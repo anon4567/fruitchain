@@ -143,6 +143,10 @@ static const int MAX_UNCONNECTING_HEADERS = 10;
 
 static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
+/** Number of bits that fruits are easier than blocks */
+static const uint32_t BITS_FRUIT_LESS_THAN_BLOCK = 10;
+
+
 struct BlockHasher
 {
     size_t operator()(const uint256& hash) const { return hash.GetCheapHash(); }

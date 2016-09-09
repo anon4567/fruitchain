@@ -24,6 +24,7 @@ public:
     int32_t nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
+    uint256 hashFruits;
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
@@ -40,6 +41,7 @@ public:
         READWRITE(this->nVersion);
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
+        READWRITE(hashFruits);
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
@@ -50,6 +52,7 @@ public:
         nVersion = 0;
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
+        hashFruits.SetNull();
         nTime = 0;
         nBits = 0;
         nNonce = 0;
@@ -74,6 +77,7 @@ class CBlock : public CBlockHeader
 public:
     // network and disk
     std::vector<CTransaction> vtx;
+    std::vector<CBlockHeader> vfrt;
 
     // memory only
     mutable bool fChecked;
@@ -95,12 +99,14 @@ public:
     inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(*(CBlockHeader*)this);
         READWRITE(vtx);
+        READWRITE(vfrt);
     }
 
     void SetNull()
     {
         CBlockHeader::SetNull();
         vtx.clear();
+        vfrt.clear();
         fChecked = false;
     }
 
@@ -110,6 +116,7 @@ public:
         block.nVersion       = nVersion;
         block.hashPrevBlock  = hashPrevBlock;
         block.hashMerkleRoot = hashMerkleRoot;
+        block.hashFruits     = hashFruits;
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
