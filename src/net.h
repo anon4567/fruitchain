@@ -424,7 +424,8 @@ public:
 
     // Last time a "MEMPOOL" request was serviced.
     std::atomic<int64_t> timeLastMempoolReq;
-
+    // verFruit
+    std::atomic<int64_t> timeLastFrtMempoolReq;
     // Block and TXN accept times
     std::atomic<int64_t> nLastBlockTime;
     std::atomic<int64_t> nLastTXTime;

@@ -86,6 +86,7 @@ CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
 CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 
 CTxMemPool mempool(::minRelayTxFee);
+CFrtMempool frtmempool();
 FeeFilterRounder filterRounder(::minRelayTxFee);
 
 struct IteratorComparator
@@ -227,13 +228,13 @@ namespace {
     typedef std::map<uint256, std::shared_ptr<const CTransaction>> MapRelay;
     MapRelay mapRelay;
     /** Relay map, protected by cs_main. verFruit */
-    typedef std::map<uint256, std::shared_ptr<const CBlock>> MapRelay_Fruit;
-    MapRelay_Fruit mapRelay_fruit;
+    typedef std::map<uint256, std::shared_ptr<const CBlock>> FrtMapRelay;
+    FrtMapRelay mapFrtRelay;
 
     /** Expiration-time ordered list of (expire time, relay map entry) pairs, protected by cs_main). */
     std::deque<std::pair<int64_t, MapRelay::iterator>> vRelayExpiration;
     /** Expiration-time ordered list of (expire time, relay map entry) pairs, protected by cs_main). verFruit */
-    std::deque<std::pair<int64_t, MapRelay_Fruit::iterator>> vRelayExpiration_fruit;
+    std::deque<std::pair<int64_t, FrtMapRelay::iterator>> vFrtRelayExpiration;
 } // anon namespace
 
 //////////////////////////////////////////////////////////////////////////////
@@ -4260,6 +4261,8 @@ void UnloadBlockIndex()
     pindexBestInvalid = NULL;
     pindexBestHeader = NULL;
     mempool.clear();
+    //verFruit
+    frtmempool.clear();
     mapOrphanTransactions.clear();
     mapOrphanTransactionsByPrev.clear();
     nSyncStarted = 0;
@@ -4856,13 +4859,19 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
             else if (inv.type == MSG_FRUIT)
             {
                 bool push = false;
-                auto mi = mapRelay_fruit.find(inv.hash);  
-                if (mi != mapRelay_fruit.end()) {
-                    pfrom->PushMessage(NetMsgType::FRUIT, *mi->second);               //??: with flag
+                auto mi = mapFrtRelay.find(inv.hash);  
+                if (mi != mapFrtRelay.end()) {
+                    pfrom->PushMessage(NetMsgType::FRUIT, *mi->second);               //TODO: with flag?
                     push = true;
-                } else if (pfrom->timeLastMempoolReq_fruit) {
-                    auto fruitinfo = mempool.info(inv.hash);
-                    
+                } else if (pfrom->timeLastFrtMempoolReq) {
+                    auto frtinfo = frtmempool.info(inv.hash);
+                    if (frtinfo.frt && frtinfo.nTime <= pfrom->timeLastFrtMempoolReq) {
+                        pfrom->PushMessage(NetMsgType::FRUIT, *frtinfo.frt);
+                        push = true;
+                    }     
+                }
+                if (!push) {
+                    vNotFound.push_back(inv);
                 }
             }
 

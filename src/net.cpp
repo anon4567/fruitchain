@@ -2510,6 +2510,8 @@ CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNa
     fSentAddr = false;
     pfilter = new CBloomFilter();
     timeLastMempoolReq = 0;
+    //verFruit
+    timeLastFrtMempoolReq = 0;
     nLastBlockTime = 0;
     nLastTXTime = 0;
     nPingNonceSent = 0;
