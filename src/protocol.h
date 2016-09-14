@@ -328,8 +328,8 @@ enum GetDataMsg
     UNDEFINED = 0,
     MSG_TX,
     MSG_BLOCK,
-    MSG_FRUIT,  //verFruit
-    MSG_TYPE_MAX = MSG_FRUIT,   //verFruit
+    MSG_FRT,  //verFruit
+    MSG_TYPE_MAX = MSG_FRT,   //verFruit
     // The following can only occur in getdata. Invs always use TX or BLOCK.
     MSG_FILTERED_BLOCK,
     MSG_CMPCT_BLOCK,

@@ -20,13 +20,13 @@
 
 using namespace std;
 //TODO: FRT_WEIGHT, FRT_USAGE_SIZE, FRT_SIZE
-CFrtMemPoolEntry::CFrtMemPoolEntry(const CBlock& _frt, //const CAmount& _nFee,
-                                 int64_t _nTime, /*double _entryPriority,*/ unsigned int _entryHeight,
+CFrtMemPoolEntry::CFrtMemPoolEntry(const CFruit& _frt, //const CAmount& _nFee,
+                                 int64_t _nTime, /*double _entryPriority,*/ unsigned int _entryHeight//,
                                 // bool poolHasNoInputsOf, CAmount _inChainInputValue,
-                                /* bool _spendsCoinbase,*/ int64_t _sigOpsCost, /*LockPoints lp*/):
-    frt(std::make_shared<CBlock>(_frt)), /*nFee(_nFee),*/ nTime(_nTime), /*entryPriority(_entryPriority),*/ entryHeight(_entryHeight),
+                                /* bool _spendsCoinbase, int64_t _sigOpsCost, LockPoints lp*/):
+    frt(std::make_shared<CFruit>(_frt)), /*nFee(_nFee),*/ nTime(_nTime), /*entryPriority(_entryPriority),*/ entryHeight(_entryHeight),
 //    hadNoDependencies(poolHasNoInputsOf), inChainInputValue(_inChainInputValue),
-/*    spendsCoinbase(_spendsCoinbase),*/ sigOpCost(_sigOpsCost)//, lockPoints(lp)
+/*    spendsCoinbase(_spendsCoinbase),*/ //sigOpCost(_sigOpsCost)//, lockPoints(lp)
 {
     nFrtWeight = FRT_WEIGHT; //GetTransactionWeight(_frt);	//TODO used in miner.cpp for block weight
 //    nModSize = _tx.CalculateModifiedSize(GetTxSize());
@@ -505,7 +505,7 @@ void CFrtMemPool::CalculateDescendants(frtiter entryit, setEntries &setDescendan
         }*/
     }
 }
-void CFrtMemPool::removeRecursive(const CBlock &origFrt, std::list<CBlock>& removed)
+void CFrtMemPool::removeRecursive(const CFruit &origFrt, std::list<CFruit>& removed)
 {
     // Remove transaction from memory pool
     {
@@ -595,12 +595,12 @@ void CTxMemPool::removeConflicts(const CTransaction &tx, std::list<CTransaction>
 /**
  * Called when a block is connected. Removes from mempool and updates the miner fee estimator.
  */
-void CFrtMemPool::removeForBlock(const std::vector<CBlock>& vfrt/*, unsigned int nBlockHeight,
+void CFrtMemPool::removeForBlock(const std::vector<CFruit>& vfrt/*, unsigned int nBlockHeight,
                                 std::list<CBlock>& conflicts, bool fCurrentEstimate*/)
 {
     LOCK(cs);
     std::vector<CFrtMemPoolEntry> entries;
-    BOOST_FOREACH(const CBlock& frt, vfrt)
+    BOOST_FOREACH(const CFruit& frt, vfrt)
     {
         uint256 hash = frt.GetHash();
 
@@ -608,7 +608,7 @@ void CFrtMemPool::removeForBlock(const std::vector<CBlock>& vfrt/*, unsigned int
         if (i != mapFrt.end())
             entries.push_back(*i);
     }
-    BOOST_FOREACH(const CBlock& frt, vfrt)
+    BOOST_FOREACH(const CFruit& frt, vfrt)
     {
         frtiter it = mapFrt.find(frt.GetHash());
         if (it != mapFrt.end()) {
@@ -666,7 +666,7 @@ void CFrtMemPool::check(/*const CCoinsViewCache *pcoins*/) const
         unsigned int i = 0;
         checkTotal += it->GetFrtSize();
         innerUsage += it->DynamicMemoryUsage(); //TODO
-        const CBlock& frt = it->GetFrt();
+        const CFruit& frt = it->GetFrt();
 //        txlinksMap::const_iterator linksiter = mapLinks.find(it);
 //        assert(linksiter != mapLinks.end());
 //        const TxLinks &links = linksiter->second;
@@ -846,7 +846,7 @@ std::vector<FrtMempoolInfo> CFrtMemPool::infoAll() const
     return ret;
 }
 
-std::shared_ptr<const CBlock> CFrtMemPool::get(const uint256& hash) const
+std::shared_ptr<const CFruit> CFrtMemPool::get(const uint256& hash) const
 {
     LOCK(cs);
     indexed_fruit_set::const_iterator i = mapFrt.find(hash);
@@ -1095,7 +1095,7 @@ void CTxMemPool::trackPackageRemoved(const CFeeRate& rate) {
     }
 }*/
 //no score thus remove the first one. TODO
-void CFrtMemPool::TrimToSize(size_t sizelimit, std::vector<uint256>* pvNoSpendsRemaining) {
+void CFrtMemPool::TrimToSize(size_t sizelimit/*, std::vector<uint256>* pvNoSpendsRemaining*/) {
     LOCK(cs);
 
     unsigned nFrtnRemoved = 0;
@@ -1117,15 +1117,15 @@ void CFrtMemPool::TrimToSize(size_t sizelimit, std::vector<uint256>* pvNoSpendsR
         CalculateDescendants(mapTx.project<0>(it), stage);
         nFrtnRemoved += stage.size();
 
-        std::vector<CBlock> frtn;
+/*        std::vector<CFruit> frtn;
         if (pvNoSpendsRemaining) {
             frtn.reserve(stage.size());
             BOOST_FOREACH(frtiter it, stage)
                 frtn.push_back(it->GetFrt());
-        }
+        }*/
         RemoveStaged(stage/*, false*/);
-        if (pvNoSpendsRemaining) {
-/*            BOOST_FOREACH(const CBlock& frt, frtn) {
+/*        if (pvNoSpendsRemaining) {
+            BOOST_FOREACH(const CBlock& frt, frtn) {
                 BOOST_FOREACH(const CTxIn& txin, tx.vin) {
                     if (exists(txin.prevout.hash))
                         continue;
@@ -1133,8 +1133,8 @@ void CFrtMemPool::TrimToSize(size_t sizelimit, std::vector<uint256>* pvNoSpendsR
                     if (it == mapNextTx.end() || it->first->hash != txin.prevout.hash)
                         pvNoSpendsRemaining->push_back(txin.prevout.hash);
                 }
-            }*/
-        }
+            }
+        }*/
     }
 
 //    if (maxFeeRateRemoved > CFeeRate(0))

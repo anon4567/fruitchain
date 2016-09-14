@@ -174,7 +174,7 @@ std::string CInv::GetCommand() const
     {
     case MSG_TX:             return cmd.append(NetMsgType::TX);
     case MSG_BLOCK:          return cmd.append(NetMsgType::BLOCK);
-    case MSG_FRUIT:          return cmd.append(NetMsgType::FRUIT);      //verFruit
+    case MSG_FRT:            return cmd.append(NetMsgType::FRUIT);      //verFruit
     case MSG_FILTERED_BLOCK: return cmd.append(NetMsgType::MERKLEBLOCK);
     case MSG_CMPCT_BLOCK:    return cmd.append(NetMsgType::CMPCTBLOCK);
     default:

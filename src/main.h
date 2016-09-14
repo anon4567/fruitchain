@@ -306,6 +306,9 @@ void PruneAndFlush();
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                         bool* pfMissingInputs, bool fOverrideMempoolLimit=false, const CAmount nAbsurdFee=0);
+//verFruit
+bool AcceptFrtToMemoryPool(CFrtMemPool& pool, CValidationState &state, const CFruit &frt, //bool fLimitFree,
+                 /*bool* pfMissingInputs,*/ bool fOverrideFrtMempoolLimit=false/*, const CAmount nAbsurdFee=0*/);
 
 /** Convert CValidationState to a human-readable message for logging */
 std::string FormatStateMessage(const CValidationState &state);

@@ -2198,6 +2198,11 @@ public:
 }
 instance_of_cnetcleanup;
 
+//verFruit
+void RelayFruit(const CFruit& frt)
+{
+    CInv inv(MSG_FRT, )
+}
 
 void RelayTransaction(const CTransaction& tx)
 {
