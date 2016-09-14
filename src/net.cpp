@@ -2201,7 +2201,12 @@ instance_of_cnetcleanup;
 //verFruit
 void RelayFruit(const CFruit& frt)
 {
-    CInv inv(MSG_FRT, )
+    CInv inv(MSG_FRT, frt.GetHash());
+    LOCK(cs_vNodes);
+    BOOST_FOREACH(CNode* pnode, vNodes)
+    {   
+        pnode->PushInventory(inv);
+    }
 }
 
 void RelayTransaction(const CTransaction& tx)

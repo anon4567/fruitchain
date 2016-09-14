@@ -5719,107 +5719,27 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         if (!AlreadyHave(inv) && AcceptToFrtMemoryPool(frtmempool, state, frt, /*true, &fMissingInputs*/)) {
             frtmempool.check(/*pcoinsTip*/);
-            RelayTransaction(tx);
-            for (unsigned int i = 0; i < tx.vout.size(); i++) {
+            RelayFruit(frt);
+/*            for (unsigned int i = 0; i < tx.vout.size(); i++) {
                 vWorkQueue.emplace_back(inv.hash, i);
-            }
+            }*/
 
-            pfrom->nLastTXTime = GetTime();
+            pfrom->nLastFRTTime = GetTime(); //TODO
 
-            LogPrint("mempool", "AcceptToMemoryPool: peer=%d: accepted %s (poolsz %u txn, %u kB)\n",
+            LogPrint("frtmempool", "AcceptToMemoryPool: peer=%d: accepted %s (poolsz %u txn, %u kB)\n",
                 pfrom->id,
-                tx.GetHash().ToString(),
-                mempool.size(), mempool.DynamicMemoryUsage() / 1000);
+                frt.GetHash().ToString(),
+                frtmempool.size(), frtmempool.DynamicMemoryUsage() / 1000); //TODO
 
             // Recursively process any orphan transactions that depended on this one
-            set<NodeId> setMisbehaving;
-            while (!vWorkQueue.empty()) {
-                auto itByPrev = mapOrphanTransactionsByPrev.find(vWorkQueue.front());
-                vWorkQueue.pop_front();
-                if (itByPrev == mapOrphanTransactionsByPrev.end())
-                    continue;
-                for (auto mi = itByPrev->second.begin();
-                     mi != itByPrev->second.end();
-                     ++mi)
-                {
-                    const CTransaction& orphanTx = (*mi)->second.tx;
-                    const uint256& orphanHash = orphanTx.GetHash();
-                    NodeId fromPeer = (*mi)->second.fromPeer;
-                    bool fMissingInputs2 = false;
-                    // Use a dummy CValidationState so someone can't setup nodes to counter-DoS based on orphan
-                    // resolution (that is, feeding people an invalid transaction based on LegitTxX in order to get
-                    // anyone relaying LegitTxX banned)
-                    CValidationState stateDummy;
-
-
-                    if (setMisbehaving.count(fromPeer))
-                        continue;
-                    if (AcceptToMemoryPool(mempool, stateDummy, orphanTx, true, &fMissingInputs2)) {
-                        LogPrint("mempool", "   accepted orphan tx %s\n", orphanHash.ToString());
-                        RelayTransaction(orphanTx);
-                        for (unsigned int i = 0; i < orphanTx.vout.size(); i++) {
-                            vWorkQueue.emplace_back(orphanHash, i);
-                        }
-                        vEraseQueue.push_back(orphanHash);
-                    }
-                    else if (!fMissingInputs2)
-                    {
-                        int nDos = 0;
-                        if (stateDummy.IsInvalid(nDos) && nDos > 0 && (!state.CorruptionPossible() || State(fromPeer)->fHaveWitness))
-                        {
-                            // Punish peer that gave us an invalid orphan tx
-                            Misbehaving(fromPeer, nDos);
-                            setMisbehaving.insert(fromPeer);
-                            LogPrint("mempool", "   invalid orphan tx %s\n", orphanHash.ToString());
-                        }
-                        // Has inputs but not accepted to mempool
-                        // Probably non-standard or insufficient fee/priority
-                        LogPrint("mempool", "   removed orphan tx %s\n", orphanHash.ToString());
-                        vEraseQueue.push_back(orphanHash);
-                        if (!stateDummy.CorruptionPossible()) {
-                            assert(recentRejects);
-                            recentRejects->insert(orphanHash);
-                        }
-                    }
-                    mempool.check(pcoinsTip);
-                }
-            }
-
-            BOOST_FOREACH(uint256 hash, vEraseQueue)
-                EraseOrphanTx(hash);
         }
-        else if (fMissingInputs)
-        {
-            bool fRejectedParents = false; // It may be the case that the orphans parents have all been rejected
-            BOOST_FOREACH(const CTxIn& txin, tx.vin) {
-                if (recentRejects->contains(txin.prevout.hash)) {
-                    fRejectedParents = true;
-                    break;
-                }
-            }
-            if (!fRejectedParents) {
-                BOOST_FOREACH(const CTxIn& txin, tx.vin) {
-                    CInv inv(MSG_TX, txin.prevout.hash);
-                    pfrom->AddInventoryKnown(inv);
-                    if (!AlreadyHave(inv)) pfrom->AskFor(inv);
-                }
-                AddOrphanTx(tx, pfrom->GetId());
-
-                // DoS prevention: do not allow mapOrphanTransactions to grow unbounded
-                unsigned int nMaxOrphanTx = (unsigned int)std::max((int64_t)0, GetArg("-maxorphantx", DEFAULT_MAX_ORPHAN_TRANSACTIONS));
-                unsigned int nEvicted = LimitOrphanTxSize(nMaxOrphanTx);
-                if (nEvicted > 0)
-                    LogPrint("mempool", "mapOrphan overflow, removed %u tx\n", nEvicted);
-            } else {
-                LogPrint("mempool", "not keeping orphan with rejected parents %s\n",tx.GetHash().ToString());
-            }
-        } else {
+        else {
             if (!state.CorruptionPossible()) {
                 assert(recentRejects);
-                recentRejects->insert(tx.GetHash());
+                recentRejects->insert(frt.GetHash());
             }
 
-            if (pfrom->fWhitelisted && GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) {
+            if (pfrom->fWhitelisted && GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) { //TODO
                 // Always relay transactions received from whitelisted peers, even
                 // if they were already in the mempool or rejected from it due
                 // to policy, allowing the node to function as a gateway for
@@ -5830,23 +5750,23 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 // case.
                 int nDoS = 0;
                 if (!state.IsInvalid(nDoS) || nDoS == 0) {
-                    LogPrintf("Force relaying tx %s from whitelisted peer=%d\n", tx.GetHash().ToString(), pfrom->id);
-                    RelayTransaction(tx);
+                    LogPrintf("Force relaying fruit %s from whitelisted peer=%d\n", frt.GetHash().ToString(), pfrom->id);
+                    RelayFruit(frt);
                 } else {
-                    LogPrintf("Not relaying invalid transaction %s from whitelisted peer=%d (%s)\n", tx.GetHash().ToString(), pfrom->id, FormatStateMessage(state));
+                    LogPrintf("Not relaying invalid fruit %s from whitelisted peer=%d (%s)\n", frt.GetHash().ToString(), pfrom->id, FormatStateMessage(state));
                 }
             }
         }
         int nDoS = 0;
         if (state.IsInvalid(nDoS))
         {
-            LogPrint("mempoolrej", "%s from peer=%d was not accepted: %s\n", tx.GetHash().ToString(),
+            LogPrint("frtmempoolrej", "%s from peer=%d was not accepted: %s\n", frt.GetHash().ToString(),
                 pfrom->id,
                 FormatStateMessage(state));
             if (state.GetRejectCode() < REJECT_INTERNAL) // Never send AcceptToMemoryPool's internal codes over P2P
                 pfrom->PushMessage(NetMsgType::REJECT, strCommand, (unsigned char)state.GetRejectCode(),
                                    state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), inv.hash);
-            if (nDoS > 0 && (!state.CorruptionPossible() || State(pfrom->id)->fHaveWitness)) {
+            if (nDoS > 0 && (!state.CorruptionPossible() || State(pfrom->id)->fHaveWitness)) { //TODO
                 // When a non-witness-supporting peer gives us a transaction that would
                 // be accepted if witness validation was off, we can't blame them for it.
                 Misbehaving(pfrom->GetId(), nDoS);
@@ -6226,7 +6146,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::MEMPOOL)
+    else if (strCommand == NetMsgType::MEMPOOL) //TODO for frtmempool
     {
         if (!(nLocalServices & NODE_BLOOM) && !pfrom->fWhitelisted)
         {
@@ -6392,7 +6312,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 ostringstream ss;
                 ss << strMsg << " code " << itostr(ccode) << ": " << strReason;
 
-                if (strMsg == NetMsgType::BLOCK || strMsg == NetMsgType::TX)
+                if (strMsg == NetMsgType::BLOCK || strMsg == NetMsgType::TX || strMsg == NetMsgType::FRUIT)
                 {
                     uint256 hash;
                     vRecv >> hash;

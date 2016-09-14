@@ -429,6 +429,8 @@ public:
     // Block and TXN accept times
     std::atomic<int64_t> nLastBlockTime;
     std::atomic<int64_t> nLastTXTime;
+    //verFruit
+    std::atomic<int64_t> nLastFRTTime;
 
     // Ping time measurement:
     // The pong reply we're expecting, or 0 if no pong expected.
