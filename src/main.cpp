@@ -6622,7 +6622,7 @@ bool SendMessages(CNode* pto)
         // transactions become unconfirmed and spams other nodes.
         if (!fReindex && !fImporting && !IsInitialBlockDownload())
         {
-            GetMainSignals().Broadcast(nTimeBestReceived);
+            GetMainSignals().Broadcast(nTimeBestReceived); //TODO
         }
 
         //
@@ -6778,9 +6778,11 @@ bool SendMessages(CNode* pto)
             if (fSendTrickle) {
                 LOCK(pto->cs_filter);
                 if (!pto->fRelayTxes) pto->setInventoryTxToSend.clear();
+                //verFruit TODO fRelayTxes
+                if (!pto->fRelayTxes) pto->setInventoryFrtToSend.clear();
             }
 
-            // Respond to BIP35 mempool requests
+            // Respond to BIP35 mempool requests TODO frtmempool
             if (fSendTrickle && pto->fSendMempool) {
                 auto vtxinfo = mempool.infoAll();
                 pto->fSendMempool = false;
@@ -6878,7 +6880,73 @@ bool SendMessages(CNode* pto)
                     pto->filterInventoryKnown.insert(hash);
                 }
             }
+			//verFruit
+    		if (fSendTrickle) {
+                // Produce a vector with all candidates for sending
+                vector<std::set<uint256>::iterator> vInvFrt;
+                vInvFrt.reserve(pto->setInventoryFrtToSend.size());
+                for (std::set<uint256>::iterator it = pto->setInventoryFrtToSend.begin(); it != pto->setInventoryFrtToSend.end(); it++) {
+                    vInvFrt.push_back(it);
+                }
+/*                CAmount filterrate = 0;
+                {
+                    LOCK(pto->cs_feeFilter);
+                    filterrate = pto->minFeeFilter;
+                }*/
+                // Topologically and fee-rate sort the inventory we send for privacy and priority reasons.
+                // A heap is used so that not all items need sorting if only a few are being sent.
+//                CompareInvMempoolOrder compareInvMempoolOrder(&mempool);
+//                std::make_heap(vInvTx.begin(), vInvTx.end(), compareInvMempoolOrder);
+                // No reason to drain out at many times the network's capacity,
+                // especially since we have many peers and some will draw much shorter delays.
+                unsigned int nRelayedFruits = 0;
+                LOCK(pto->cs_filter);//TODO
+                while (!vInvFrt.empty() && nRelayedFruits < INVENTORY_BROADCAST_MAX) {
+                    // Fetch the top element from the heap
+//                    std::pop_heap(vInvTx.begin(), vInvTx.end(), compareInvMempoolOrder);
+                    std::set<uint256>::iterator it = vInvFrt.back();
+                    vInvFrt.pop_back();
+                    uint256 hash = *it;
+                    // Remove it from the to-be-sent set
+                    pto->setInventoryFrtToSend.erase(it);
+                    // Check if not in the filter already
+/*                    if (pto->filterInventoryKnown.contains(hash)) {
+                        continue;
+                    }*/
+                    // Not in the mempool anymore? don't bother sending it.
+                    auto frtinfo = frtmempool.info(hash);
+                    if (!frtinfo.tx) {
+                        continue;
+                    }
+/*                    if (filterrate && txinfo.feeRate.GetFeePerK() < filterrate) {
+                        continue;
+                    }*/
+//                    if (pto->pfilter && !pto->pfilter->IsRelevantAndUpdate(*txinfo.tx)) continue;
+                    // Send
+                    vInv.push_back(CInv(MSG_FRT, hash));
+                    nRelayedFruits++;
+                    {
+                        // Expire old relay messages TODO Is it ok to use the same one with Tx?
+                        while (!vRelayExpiration.empty() && vRelayExpiration.front().first < nNow)
+                        {
+                            mapFrtRelay.erase(vRelayExpiration.front().second);
+                            vRelayExpiration.pop_front();
+                        }
+
+                        auto ret = mapFrtRelay.insert(std::make_pair(hash, std::move(frtinfo.frt)));
+                        if (ret.second) {
+                            vRelayExpiration.push_back(std::make_pair(nNow + 15 * 60 * 1000000, ret.first));
+                        }
+                    }
+                    if (vInv.size() == MAX_INV_SZ) {
+                        pto->PushMessage(NetMsgType::INV, vInv);
+                        vInv.clear();
+                    }
+                    pto->filterInventoryKnown.insert(hash);
+                }
+            }
         }
+
         if (!vInv.empty())
             pto->PushMessage(NetMsgType::INV, vInv);
 
@@ -6941,7 +7009,7 @@ bool SendMessages(CNode* pto)
                 if (fDebug)
                     LogPrint("net", "Requesting %s peer=%d\n", inv.ToString(), pto->id);
                 vGetData.push_back(inv);
-                if (vGetData.size() >= 1000)
+                if (vGetData.size() >= 1000)   //TODO
                 {
                     pto->PushMessage(NetMsgType::GETDATA, vGetData);
                     vGetData.clear();
