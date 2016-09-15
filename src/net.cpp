@@ -2482,7 +2482,7 @@ CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNa
     addr(addrIn),
     nKeyedNetGroup(CalculateKeyedNetGroup(addrIn)),
     addrKnown(5000, 0.001),
-    filterInventoryKnown(50000, 0.000001)
+    filterInventoryKnown(50000, 0.000001) //TODO: Size may change due to fruit
 {
     nServices = NODE_NONE;
     nServicesExpected = NODE_NONE;

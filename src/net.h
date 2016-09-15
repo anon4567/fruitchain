@@ -553,7 +553,9 @@ public:
                 setInventoryTxToSend.insert(inv.hash);
             }
         } else if (inv.type == MSG_FRT) { //verFruit
-            setInventoryFrtToSend.insert(inv.hash); //TODO filter
+            if (!filterInventoryKnown.contains(inv.hash)) {     // Check whether already recieved INV from this peer or already send to this peer
+                setInventoryFrtToSend.insert(inv.hash); 
+            }
         } else if (inv.type == MSG_BLOCK) {
             vInventoryBlockToSend.push_back(inv.hash);
         }

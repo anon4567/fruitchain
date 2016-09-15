@@ -1171,13 +1171,13 @@ bool AcceptToFrtMemoryPoolWorker(CFrtMemPool& pool, CValidationState& state, con
 
         // trim mempool and check if tx was trimmed
         if (!fOverrideFrtMempoolLimit) {
-            LimitFrtMempoolSize(pool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60); //TODO
+            LimitFrtMempoolSize(pool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60); //TODO: Need -frtmaxmempool? Not now.
             if (!pool.exists(hash))
                 return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "frtmempool full");
         }
     }
 
-//    SyncWithWallets(tx, NULL); TODO
+//    SyncWithWallets(tx, NULL);    TODO: Used in Wallet and Zmq, it seems not necessary for fruit.
 
     return true;
 }
@@ -4795,8 +4795,8 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
     //verFruit
     case MSG_FRUIT:
         {
-            assert(recentRejects); //TODO
-            //No chain tip effects
+            assert(recentRejects); // Relate to 
+            // No chain tip effects
             return  recentRejects->contains(inv.hash) ||
                     frtmempool.exists(inv.hash);     
         }
@@ -4938,20 +4938,20 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
                 }
             }
             //verFruit
-            else if (inv.type == MSG_FRUIT) //TODO: verify fruit?
+            else if (inv.type == MSG_FRUIT) 
             {
                 bool push = false;
                 auto mi = mapFrtRelay.find(inv.hash);  
                 if (mi != mapFrtRelay.end()) {
-                    pfrom->PushMessage(NetMsgType::FRUIT, *mi->second);               //TODO: with flag?
+                    pfrom->PushMessage(NetMsgType::FRUIT, *mi->second);               //TODO: No witness in Fruit
                     push = true;
-                } else if (pfrom->timeLastFrtMempoolReq) {
+                } /*else if (pfrom->timeLastFrtMempoolReq) {  TODO: Related to BIP35, Mempool request. May be FrtMempool request furture
                     auto frtinfo = frtmempool.info(inv.hash);
                     if (frtinfo.frt && frtinfo.nTime <= pfrom->timeLastFrtMempoolReq) {
                         pfrom->PushMessage(NetMsgType::FRUIT, *frtinfo.frt);
                         push = true;
                     }     
-                }
+                }*/
                 if (!push) {
                     vNotFound.push_back(inv);
                 }
@@ -5291,7 +5291,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     {
         vector<CInv> vInv;
         vRecv >> vInv;
-        if (vInv.size() > MAX_INV_SZ) //TODO: may change?
+        if (vInv.size() > MAX_INV_SZ) //TODO: MAX_INV_SZ may change in the future because of fruits
         {
             LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 20);
@@ -5353,11 +5353,11 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             }
             //verFruit
             else if (inv.type == MSG_FRUIT) {
-                pfrom->AddInventoryKnown(inv); //TODO
+                pfrom->AddInventoryKnown(inv); 
                 if (fBlocksOnly)
                     LogPrint("net", "fruit (%s) inv sent in violation of protocol peer=%d\n", inv.hash.ToString(), pfrom->id); 
-                else if (!fAlreadyHave && !fImporting && !fReindex && !IsInitialBlockDownload()) //TODO
-                    pfrom->AskFor(inv); //TODO
+                else if (!fAlreadyHave && !fImporting && !fReindex && !IsInitialBlockDownload()) //TODO: not sure the effect of fImporting and etc.
+                    pfrom->AskFor(inv); 
             }
             else
             {
@@ -5448,7 +5448,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::GETBLOCKTXN) //TODO BIP152
+    else if (strCommand == NetMsgType::GETBLOCKTXN) //TODO: BIP152, a improved protocol, may apply for fruit in the future
     {
         BlockTransactionsRequest req;
         vRecv >> req;
@@ -5695,7 +5695,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     //verFruit
     else if (strCommand == NetMsgType::FRUIT) {
         if (!fRelayTxes && (!pfrom->fWhitelisted || !GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY)))
-            //TODO fRelayTxes
+            //TODO: may need fRelayFrts for fruit.
         {
             LogPrint("net", "fruit sent in violation of protocol peer=%d\n", pfrom->id);
             return true;
@@ -5724,12 +5724,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 vWorkQueue.emplace_back(inv.hash, i);
             }*/
 
-            pfrom->nLastFRTTime = GetTime(); //TODO
+            pfrom->nLastFRTTime = GetTime(); //TODO: This is used for evict node, may be added in the future.
 
             LogPrint("frtmempool", "AcceptToMemoryPool: peer=%d: accepted %s (poolsz %u txn, %u kB)\n",
                 pfrom->id,
                 frt.GetHash().ToString(),
-                frtmempool.size(), frtmempool.DynamicMemoryUsage() / 1000); //TODO
+                frtmempool.size(), frtmempool.DynamicMemoryUsage() / 1000); //TODO: Fruit Size scale are not determined yet.
 
             // Recursively process any orphan transactions that depended on this one
         }
@@ -5739,7 +5739,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 recentRejects->insert(frt.GetHash());
             }
 
-            if (pfrom->fWhitelisted && GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) { //TODO
+            if (pfrom->fWhitelisted && GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) { //TODO: Assume same whitelist for fruit
                 // Always relay transactions received from whitelisted peers, even
                 // if they were already in the mempool or rejected from it due
                 // to policy, allowing the node to function as a gateway for
@@ -5766,7 +5766,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             if (state.GetRejectCode() < REJECT_INTERNAL) // Never send AcceptToMemoryPool's internal codes over P2P
                 pfrom->PushMessage(NetMsgType::REJECT, strCommand, (unsigned char)state.GetRejectCode(),
                                    state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), inv.hash);
-            if (nDoS > 0 && (!state.CorruptionPossible() || State(pfrom->id)->fHaveWitness)) { //TODO
+            if (nDoS > 0 && (!state.CorruptionPossible() || State(pfrom->id)->fHaveWitness)) { //TODO: may be the same for fruit
                 // When a non-witness-supporting peer gives us a transaction that would
                 // be accepted if witness validation was off, we can't blame them for it.
                 Misbehaving(pfrom->GetId(), nDoS);
@@ -6146,7 +6146,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::MEMPOOL) //TODO for frtmempool
+    else if (strCommand == NetMsgType::MEMPOOL) //TODO: for frtmempool in the future
     {
         if (!(nLocalServices & NODE_BLOOM) && !pfrom->fWhitelisted)
         {
@@ -6622,7 +6622,7 @@ bool SendMessages(CNode* pto)
         // transactions become unconfirmed and spams other nodes.
         if (!fReindex && !fImporting && !IsInitialBlockDownload())
         {
-            GetMainSignals().Broadcast(nTimeBestReceived); //TODO
+            GetMainSignals().Broadcast(nTimeBestReceived);      //TODO: Seems no wallet fruits
         }
 
         //
@@ -6778,11 +6778,11 @@ bool SendMessages(CNode* pto)
             if (fSendTrickle) {
                 LOCK(pto->cs_filter);
                 if (!pto->fRelayTxes) pto->setInventoryTxToSend.clear();
-                //verFruit TODO fRelayTxes
+                //verFruit TODO: fRelayFrts in the future
                 if (!pto->fRelayTxes) pto->setInventoryFrtToSend.clear();
             }
 
-            // Respond to BIP35 mempool requests TODO frtmempool
+            // Respond to BIP35 mempool requests TODO: frtmempool in the future
             if (fSendTrickle && pto->fSendMempool) {
                 auto vtxinfo = mempool.infoAll();
                 pto->fSendMempool = false;
@@ -6900,7 +6900,7 @@ bool SendMessages(CNode* pto)
                 // No reason to drain out at many times the network's capacity,
                 // especially since we have many peers and some will draw much shorter delays.
                 unsigned int nRelayedFruits = 0;
-                LOCK(pto->cs_filter);//TODO
+                LOCK(pto->cs_filter);
                 while (!vInvFrt.empty() && nRelayedFruits < INVENTORY_BROADCAST_MAX) {
                     // Fetch the top element from the heap
 //                    std::pop_heap(vInvTx.begin(), vInvTx.end(), compareInvMempoolOrder);
@@ -6910,9 +6910,9 @@ bool SendMessages(CNode* pto)
                     // Remove it from the to-be-sent set
                     pto->setInventoryFrtToSend.erase(it);
                     // Check if not in the filter already
-/*                    if (pto->filterInventoryKnown.contains(hash)) {
+                    if (pto->filterInventoryKnown.contains(hash)) {
                         continue;
-                    }*/
+                    }
                     // Not in the mempool anymore? don't bother sending it.
                     auto frtinfo = frtmempool.info(hash);
                     if (!frtinfo.tx) {
@@ -6926,7 +6926,7 @@ bool SendMessages(CNode* pto)
                     vInv.push_back(CInv(MSG_FRT, hash));
                     nRelayedFruits++;
                     {
-                        // Expire old relay messages TODO Is it ok to use the same one with Tx?
+                        // Expire old relay messages TODO: Is it ok to use the same one with Tx? Seems ok.
                         while (!vRelayExpiration.empty() && vRelayExpiration.front().first < nNow)
                         {
                             mapFrtRelay.erase(vRelayExpiration.front().second);
@@ -7009,7 +7009,7 @@ bool SendMessages(CNode* pto)
                 if (fDebug)
                     LogPrint("net", "Requesting %s peer=%d\n", inv.ToString(), pto->id);
                 vGetData.push_back(inv);
-                if (vGetData.size() >= 1000)   //TODO
+                if (vGetData.size() >= 1000)   //TODO: May change due to fruit
                 {
                     pto->PushMessage(NetMsgType::GETDATA, vGetData);
                     vGetData.clear();
