@@ -7,6 +7,7 @@
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
 #include "primitives/transaction.h"
+#include "script/script.h"
 #include "serialize.h"
 #include "uint256.h"
 
@@ -28,6 +29,7 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
+    CScript scriptPubKey; //pubkey of creator
 
     CBlockHeader()
     {
@@ -46,6 +48,7 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        READWRITE(*(CScriptBase*)(&scriptPubKey));
     }
 
     void SetNull()
@@ -57,6 +60,7 @@ public:
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+        scriptPubKey.clear();
     }
 
     bool IsNull() const
@@ -78,7 +82,7 @@ class CBlock : public CBlockHeader
 public:
     // network and disk
     std::vector<CTransaction> vtx;
-    std::vector<CBlock> vfrt;
+    std::vector<CBlockHeader> vfrt;
 
     // memory only
     mutable bool fChecked;
@@ -122,6 +126,7 @@ public:
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
+        block.scriptPubKey = scriptPubKey;
         return block;
     }
 

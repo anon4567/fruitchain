@@ -44,6 +44,7 @@ using namespace std;
 // transactions that depend on transactions that aren't yet in the block.
 
 uint64_t nLastBlockTx = 0;
+uint64_t nLastBlockFrt = 0;
 uint64_t nLastBlockSize = 0;
 uint64_t nLastBlockWeight = 0;
 
@@ -106,6 +107,7 @@ BlockAssembler::BlockAssembler(const CChainParams& _chainparams)
 void BlockAssembler::resetBlock()
 {
     inBlock.clear();
+    fruitInBlock.clear();
 
     // Reserve space for coinbase tx
     nBlockSize = 1000;
@@ -115,9 +117,11 @@ void BlockAssembler::resetBlock()
 
     // These counters do not include coinbase tx
     nBlockTx = 0;
+    nBlockFrt = 0;
     nFees = 0;
 
     lastFewTxs = 0;
+    lastFewFrts = 0;
     blockFinished = false;
 }
 
@@ -130,6 +134,9 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
     if (!pblocktemplate.get())
         return NULL;
     pblock = &pblocktemplate->block; // pointer for convenience
+
+    // Set block creator
+    pblock->scriptPubKey = scriptPubKeyIn;
 
     // Add dummy coinbase tx as first transaction
     pblock->vtx.push_back(CTransaction());

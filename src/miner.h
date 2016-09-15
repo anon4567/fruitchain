@@ -159,6 +159,7 @@ private:
 
     // Variables used for addPriorityTxs
     int lastFewTxs;
+    int lastFewFrts;
     bool blockFinished;
 
 public:
@@ -184,6 +185,10 @@ private:
 
     /** Add fruits */
     void addFrts();
+
+    //helper function for addFrts
+    /* Test if frt will still "fit" in the block */
+    bool TestForBlock(CFrtMemPool::frtiter iter);
 
     // helper function for addPriorityTxs
     /** Test if tx will still "fit" in the block */
