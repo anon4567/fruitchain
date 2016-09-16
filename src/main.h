@@ -161,6 +161,7 @@ extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
 extern CFrtMemPool frtmempool;
+extern CFrtMemPool frtmempool_used;
 typedef boost::unordered_map<uint256, CBlockIndex*, BlockHasher> BlockMap;
 extern BlockMap mapBlockIndex;
 extern uint64_t nLastBlockTx;
@@ -311,6 +312,9 @@ void PruneAndFlush();
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fOverrideMempoolLimit = false, const CAmount nAbsurdFee = 0);
 
+/** (try to) add fruit to memory pool **/
+bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CFruit& frt, bool fOverrideMempoolLimit, , const Consensus::Params& consensusParams, bool fCheckPOW);
+
 /** Convert CValidationState to a human-readable message for logging */
 std::string FormatStateMessage(const CValidationState& state);
 
@@ -364,6 +368,9 @@ void UpdateCoins(const CTransaction& tx, CCoinsViewCache& inputs, int nHeight);
 
 /** Context-independent validity checks */
 bool CheckTransaction(const CTransaction& tx, CValidationState& state);
+
+/** Context-independent validity checks */
+bool CheckFruit(const CFruit& fruit, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW);
 
 namespace Consensus
 {
@@ -468,6 +475,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
  *  By "context", we mean only the previous block headers, but not the UTXO
  *  set; UTXO-related validity checks are done in ConnectBlock(). */
 bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, int64_t nAdjustedTime);
+bool ContextualCheckFruit(const CFruit& fruit, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, int64_t nAdjustedTime);
 bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev);
 
 /** Apply the effects of this block (with given index) on the UTXO set represented by coins.

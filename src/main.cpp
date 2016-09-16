@@ -1093,6 +1093,17 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state)
     return true;
 }
 
+bool CheckFruit(const CFruit& fruit, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW);
+{
+    // Check proof of work matches claimed amount
+    if (fCheckPOW && !CheckProofOfWork(fruit.GetHash(), fruit.nBits - BITS_FRUIT_LESS_THAN_BLOCK, consensusParams)) {
+        //return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
+        // TODO: error
+    }
+
+    return true;
+}
+
 void LimitMempoolSize(CTxMemPool& pool, size_t limit, unsigned long age)
 {
     int expired = pool.Expire(GetTime() - age);
@@ -1526,6 +1537,60 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 
     return true;
 }
+
+
+bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CFruit& frt, bool fOverrideMempoolLimit, , const Consensus::Params& consensusParams, bool fCheckPOW)
+{
+    const uint256 hash = frt.GetHash();
+    AssertLockHeld(cs_main);
+
+    if (!CheckFruit(tx, state, consensus, ParamsfCheckPOW))
+        return false; // state filled in by CheckTransaction
+
+    // is it already in the memory pool?
+    if (pool.exists(hash)) {
+        // TODO: error
+        //  return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-in-mempool");
+    }
+
+
+    {
+        CCoinsView dummy;
+        CCoinsViewCache view(&dummy);
+
+        CAmount nValueIn = 0;
+        LockPoints lp;
+        {
+            LOCK(pool.cs);
+
+            // do we already have it?
+            bool fHadTxInCache = pcoinsTip->HaveCoinsInCache(hash);
+            if (view.HaveCoins(hash)) {
+                if (!fHadTxInCache)
+                    vHashTxnToUncache.push_back(hash);
+                return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-known");
+            }
+        }
+
+        CTxMemPoolEntry entry(tx, nFees, GetTime(), dPriority, chainActive.Height(), pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp); //TODO: adaption
+        unsigned int nSize = entry.GetTxSize();
+
+
+        // Store transaction in memory
+        pool.addUnchecked(hash, entry, setAncestors, !IsInitialBlockDownload()); //TODO: adaption
+
+        // trim mempool and check if tx was trimmed
+        if (!fOverrideMempoolLimit) {
+            LimitFrtempoolSize(pool, GetArg("-maxfrtmempool", DEFAULT_MAX_FRTMEMPOOL_SIZE) * 1000000, GetArg("-frtmempoolexpiry", DEFAULT_FRTMEMPOOL_EXPIRY) * 60 * 60); //TODO: command and function
+            if (!pool.exists(hash))
+                return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "mempool full");
+        }
+    }
+
+
+    return true;
+}
+
 
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fOverrideMempoolLimit, const CAmount nAbsurdFee)
 {
@@ -2445,6 +2510,13 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     nTimeForks += nTime2 - nTime1;
     LogPrint("bench", "    - Fork checks: %.2fms [%.2fs]\n", 0.001 * (nTime2 - nTime1), nTimeForks * 0.000001);
 
+    // Check fruit is not re-collected
+    for (const auto& frt : pblock.vfrt) {
+        if (frtmempool_used.exists(frt.GetHash())) {
+            // TODO: error
+        }
+    }
+    //----------------------------
 
     std::vector<CTransaction> fruit_tx;
     if (IsEndOfEpisode(pindex)) { //pindex->nHeight + 1 % FRUIT_PERIOD_LENGTH == 0) {  TODO: IsEndOfEpisode function
@@ -3555,6 +3627,18 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (fCheckPOW && fCheckMerkleRoot)
         block.fChecked = true;
 
+    // Check fruits
+    std::set<uint256> setFruits;
+    for (const auto& frt : block.vfrt) {
+        if (!CheckFruit(frt, state, consensusParams, fCheckPOW)) {
+            //TODO: error
+        }
+        if (setFruits.find(frt.GetHash()) != setFruits.end()) {
+            //TODO: error
+        }
+    }
+    // ---------------------------
+
     return true;
 }
 
@@ -3663,6 +3747,48 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
     return true;
 }
 
+
+bool ContextualCheckFruit(const CFruit& fruit, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, int64_t nAdjustedTime)
+{
+    const int nHeight = pindexPrev == NULL ? 0 : pindexPrev->nHeight + 1;
+    // Check proof of work
+    if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
+        return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false, "incorrect proof of work");
+
+    // Check timestamp against prev
+    if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast())
+        return state.Invalid(false, REJECT_INVALID, "time-too-old", "block's timestamp is too early");
+
+    // Check timestamp
+    if (block.GetBlockTime() > nAdjustedTime + 2 * 60 * 60)
+        return state.Invalid(false, REJECT_INVALID, "time-too-new", "block timestamp too far in the future");
+
+    // Reject outdated version blocks when 95% (75% on testnet) of the network has upgraded:
+    // check for version 2, 3 and 4 upgrades
+    if ((block.nVersion < 2 && nHeight >= consensusParams.BIP34Height) ||
+        (block.nVersion < 3 && nHeight >= consensusParams.BIP66Height) ||
+        (block.nVersion < 4 && nHeight >= consensusParams.BIP65Height))
+        return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", block.nVersion),
+            strprintf("rejected nVersion=0x%08x block", block.nVersion));
+
+
+    /**
+        1. prev is one of (left shift one of the episode)
+        2[No need since this would be checked at connect part]. not be contained in any block earlier in this episode
+    */
+
+    bool prevIsValid = false;
+    CBlockIndex* nIndex = pindexPrev;
+    do {
+        bool isLastEpisode = IsEndOfEpisode(nIndex);
+        if (pindexPrev->GetHash() == fruit.hashPrevBlock)
+            prevIsValid = true;
+    } while (!isLastEpisode);
+
+    return true;
+}
+
+
 bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev)
 {
     const int nHeight = pindexPrev == NULL ? 0 : pindexPrev->nHeight + 1;
@@ -3737,6 +3863,13 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
     if (GetBlockWeight(block) > MAX_BLOCK_WEIGHT) {
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-weight", false, strprintf("%s : weight limit failed", __func__));
     }
+
+    //Contextualcheck fruits
+    for (const auto& frt : block.vfrt)
+        if (!ContextualCheckFruit(frt)) {
+            // TODO: error
+        }
+    //----------------------------------
 
     return true;
 }
