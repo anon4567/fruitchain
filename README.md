@@ -1,3 +1,17 @@
+# TODO list #
+## Yuncong ##
+1. How to handle transaction that use generation reward in memorypool 
+2. Fruit release parallelization
+3. AcceptToFruitMemoryPool
+
+## Siqiu ##
+1. Fruit contextual check
+2. Disconnection
+3. Update of block when mining
+4. Block structure related code
+5. Genesis block
+
+
 Bitcoin Core integration/staging tree
 =====================================
 
