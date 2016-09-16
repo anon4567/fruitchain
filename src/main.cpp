@@ -1553,25 +1553,12 @@ bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const C
         //  return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-in-mempool");
     }
 
+    // TODO:
+    // 1. check if its prev_header if one of previous blocks
+    // 2. check if exists in previous blocks
+
 
     {
-        CCoinsView dummy;
-        CCoinsViewCache view(&dummy);
-
-        CAmount nValueIn = 0;
-        LockPoints lp;
-        {
-            LOCK(pool.cs);
-
-            // do we already have it?
-            bool fHadTxInCache = pcoinsTip->HaveCoinsInCache(hash);
-            if (view.HaveCoins(hash)) {
-                if (!fHadTxInCache)
-                    vHashTxnToUncache.push_back(hash);
-                return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-known");
-            }
-        }
-
         CTxMemPoolEntry entry(tx, nFees, GetTime(), dPriority, chainActive.Height(), pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp); //TODO: adaption
         unsigned int nSize = entry.GetTxSize();
 
@@ -2511,11 +2498,12 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "    - Fork checks: %.2fms [%.2fs]\n", 0.001 * (nTime2 - nTime1), nTimeForks * 0.000001);
 
     // Check fruit is not re-collected
+    CBlockIndex* nblockindex = pindex;
     for (const auto& frt : pblock.vfrt) {
         if (frtmempool_used.exists(frt.GetHash())) {
             // TODO: error
         }
-    }
+    })
     //----------------------------
 
     std::vector<CTransaction> fruit_tx;
@@ -3774,7 +3762,7 @@ bool ContextualCheckFruit(const CFruit& fruit, CValidationState& state, const Co
 
     /**
         1. prev is one of (left shift one of the episode)
-        2[No need since this would be checked at connect part]. not be contained in any block earlier in this episode
+        2. not be contained in any block earlier in this episode
     */
 
     bool prevIsValid = false;
