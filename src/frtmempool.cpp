@@ -19,7 +19,7 @@
 #include "version.h"
 
 using namespace std;
-//TODO: FRT_WEIGHT, FRT_USAGE_SIZE, FRT_SIZE
+//TODO: FRT_WEIGHT, FRT_USAGE_SIZE, FRT_SIZE to be decided
 CFrtMemPoolEntry::CFrtMemPoolEntry(const CFruit& _frt, //const CAmount& _nFee,
                                  int64_t _nTime, /*double _entryPriority,*/ unsigned int _entryHeight//,
                                 // bool poolHasNoInputsOf, CAmount _inChainInputValue,
@@ -28,9 +28,9 @@ CFrtMemPoolEntry::CFrtMemPoolEntry(const CFruit& _frt, //const CAmount& _nFee,
 //    hadNoDependencies(poolHasNoInputsOf), inChainInputValue(_inChainInputValue),
 /*    spendsCoinbase(_spendsCoinbase),*/ //sigOpCost(_sigOpsCost)//, lockPoints(lp)
 {
-    nFrtWeight = FRT_WEIGHT; //GetTransactionWeight(_frt);	//TODO used in miner.cpp for block weight
+    nFrtWeight = FRT_WEIGHT; //GetTransactionWeight(_frt);	//TODO: used in miner.cpp for block weight
 //    nModSize = _tx.CalculateModifiedSize(GetTxSize());
-    nUsageSize = FRT_USAGESIZE;  //RecursiveDynamicUsage(*tx) + memusage::DynamicUsage(tx); //TODO call func in core_memusage and memusage  -> tx.vin, tx.vout, tx.wit
+    nUsageSize = FRT_USAGESIZE;  //RecursiveDynamicUsage(*tx) + memusage::DynamicUsage(tx); //TODO: call func in core_memusage and memusage  -> tx.vin, tx.vout, tx.wit
 
  /*   nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
@@ -173,7 +173,7 @@ void CFrtMemPool::UpdateFruitsFromBlock(const std::vector<uint256> &vHashesToUpd
     }
 }*/
 /*
-bool CTxMemPool::CalculateMemPoolAncestors(const CTxMemPoolEntry &entry, setEntries &setAncestors, uint64_t limitAncestorCount, uint64_t limitAncestorSize, uint64_t limitDescendantCount, uint64_t limitDescendantSize, std::string &errString, bool fSearchForParents /* = true ) const
+bool CTxMemPool::CalculateMemPoolAncestors(const CTxMemPoolEntry &entry, setEntries &setAncestors, uint64_t limitAncestorCount, uint64_t limitAncestorSize, uint64_t limitDescendantCount, uint64_t limitDescendantSize, std::string &errString, bool fSearchForParents  = true ) const
 {
     setEntries parentHashes;
     const CTransaction &tx = entry.GetTx();
@@ -397,7 +397,7 @@ void CFrtMemPool::AddFruitsUpdated(unsigned int n)
 bool CFrtMemPool::addUnchecked(const uint256& hash, const CFrtMemPoolEntry &entry, /*setEntries &setAncestors, bool fCurrentEstimate*/)
 {
     // Add to memory pool without checking anything.
-    // Used by main.cpp AcceptToMemoryPool(), which DOES do TODO
+    // Used by main.cpp AcceptToMemoryPool(), which DOES do 
     // all the appropriate checks.
     LOCK(cs);
     indexed_fruit_set::iterator newit = mapFrt.insert(entry).first;
@@ -538,7 +538,7 @@ void CFrtMemPool::removeRecursive(const CFruit &origFrt, std::list<CFruit>& remo
         RemoveStaged(setAllRemoves/*, false*/);
     }
 }
-/*TODO seem no need for fruit
+/*TODO: seem no need for fruit
 void CFrtMemPool::removeForReorg(const CCoinsViewCache *pcoins, unsigned int nMemPoolHeight, int flags)
 {
     // Remove transactions spending a coinbase which are now immature and no-longer-final transactions
@@ -657,7 +657,7 @@ void CFrtMemPool::check(/*const CCoinsViewCache *pcoins*/) const
     uint64_t checkTotal = 0;
     uint64_t innerUsage = 0;
 
-//    CCoinsViewCache mempoolDuplicate(const_cast<CCoinsViewCache*>(pcoins)); TODO
+//    CCoinsViewCache mempoolDuplicate(const_cast<CCoinsViewCache*>(pcoins)); 
 //    const int64_t nSpendHeight = GetSpendHeight(mempoolDuplicate);
 
     LOCK(cs);
@@ -665,7 +665,7 @@ void CFrtMemPool::check(/*const CCoinsViewCache *pcoins*/) const
     for (indexed_fruit_set::const_iterator it = mapFrt.begin(); it != mapFrt.end(); it++) {
         unsigned int i = 0;
         checkTotal += it->GetFrtSize();
-        innerUsage += it->DynamicMemoryUsage(); //TODO
+        innerUsage += it->DynamicMemoryUsage(); //TODO: MemoryUsage is not determined yet.
         const CFruit& frt = it->GetFrt();
 //        txlinksMap::const_iterator linksiter = mapLinks.find(it);
 //        assert(linksiter != mapLinks.end());
@@ -742,7 +742,7 @@ void CFrtMemPool::check(/*const CCoinsViewCache *pcoins*/) const
             bool fCheckResult = tx.IsCoinBase() ||
                 Consensus::CheckTxInputs(tx, state, mempoolDuplicate, nSpendHeight);
             assert(fCheckResult);
-            UpdateCoins(tx, mempoolDuplicate, 1000000);         TODO
+            UpdateCoins(tx, mempoolDuplicate, 1000000);         
         }*/
     }
     unsigned int stepsSinceLastRemove = 0;
@@ -968,7 +968,7 @@ bool CTxMemPool::HasNoInputsOf(const CTransaction &tx) const
     return true;
 }*/
 
-/*CCoinsViewMemPool::CCoinsViewMemPool(CCoinsView* baseIn, const CTxMemPool& mempoolIn) : CCoinsViewBacked(baseIn), mempool(mempoolIn) { } //TODO
+/*CCoinsViewMemPool::CCoinsViewMemPool(CCoinsView* baseIn, const CTxMemPool& mempoolIn) : CCoinsViewBacked(baseIn), mempool(mempoolIn) { } 
 
 bool CCoinsViewMemPool::GetCoins(const uint256 &txid, CCoins &coins) const {
     // If an entry in the mempool exists, always return that one, as it's guaranteed to never
@@ -981,12 +981,11 @@ bool CCoinsViewMemPool::GetCoins(const uint256 &txid, CCoins &coins) const {
     }
     return (base->GetCoins(txid, coins) && !coins.IsPruned());
 }*/
-//TODO
 /*
 bool CCoinsViewMemPool::HaveCoins(const uint256 &txid) const {
     return mempool.exists(txid) || base->HaveCoins(txid);
 }*/
-//TODO
+//TODO: Need to be decided
 size_t CFrtMemPool::DynamicMemoryUsage() const {
     LOCK(cs);
     // Estimate the overhead of mapTx to be 15 pointers + an allocation, as no exact formula for boost::multi_index_contained is implemented.
@@ -1094,15 +1093,15 @@ void CTxMemPool::trackPackageRemoved(const CFeeRate& rate) {
         blockSinceLastRollingFeeBump = false;
     }
 }*/
-//no score thus remove the first one. TODO
+//no priority thus remove the first fruit. TODO: Other order?
 void CFrtMemPool::TrimToSize(size_t sizelimit/*, std::vector<uint256>* pvNoSpendsRemaining*/) {
     LOCK(cs);
 
     unsigned nFrtnRemoved = 0;
 //    CFeeRate maxFeeRateRemoved(0);
-    while (!mapFrt.empty() && DynamicMemoryUsage() > sizelimit) {  //TODO
+    while (!mapFrt.empty() && DynamicMemoryUsage() > sizelimit) {  //TODO: sizelimit need to be decided
 //        indexed_fruit_set::index<descendant_score>::type::iterator it = mapTx.get<descendant_score>().begin();
-          indexed_fruit_set::index<entry_time_fruit>::type::iterator it = mapFrt.get<entry_time_fruit>().begin();// TODO
+          indexed_fruit_set::index<entry_time_fruit>::type::iterator it = mapFrt.get<entry_time_fruit>().begin();// TODO: Currently using entry_time
 
         // We set the new mempool min fee to the feerate of the removed set, plus the
         // "minimum reasonable fee rate" (ie some value under which we consider txn

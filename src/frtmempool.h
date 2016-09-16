@@ -26,6 +26,7 @@
     Based on TxMempool. 
     Get rid of anything about fee and priority because there is no fruit fee
     Get rid of anything about ancester and descendant because fruits are independent.
+    Get rid of anything about CCoin because there is no direct connection between fruit and UTXO
     TODO: SaltedTxidHasher
 **/
 
@@ -131,7 +132,7 @@ public:
 //    double GetPriority(unsigned int currentHeight) const;
 //    const CAmount& GetFee() const { return nFee; }
     size_t GetFrtSize() const;
-    size_t GetTxWeight() const { return nTxWeight; }
+    size_t GetFrtWeight() const { return nFrtWeight; }
     int64_t GetTime() const { return nTime; }
     unsigned int GetHeight() const { return entryHeight; }
 //    bool WasClearAtEntry() const { return hadNoDependencies; }
@@ -442,7 +443,7 @@ public:
         CFrtMemPoolEntry,
         boost::multi_index::indexed_by<
             // sorted by txid
-            boost::multi_index::hashed_unique<mempoolentry_frtid, SaltedTxidHasher>, //TODO
+            boost::multi_index::hashed_unique<mempoolentry_frtid, SaltedTxidHasher>, //TODO: SaltedFrtidHasher?
             // sorted by fee rate
 /*            boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<descendant_score>,
@@ -520,7 +521,7 @@ public:
      * all inputs are in the mapNextTx array). If sanity-checking is turned off,
      * check does nothing.
      */
-    void check(/*const CCoinsViewCache *pcoins*/) const; //TODO
+    void check(/*const CCoinsViewCache *pcoins*/) const; 
     void setSanityCheck(double dFrequency = 1.0) { nCheckFrequency = dFrequency * 4294967295.0; }
 
     // addUnchecked must updated state for all ancestors of a given transaction,
@@ -531,7 +532,7 @@ public:
 //    bool addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry, setEntries &setAncestors, bool fCurrentEstimate = true);
 
     void removeRecursive(const CFruit &frt, std::list<CFruit>& removed);
-//    void removeForReorg(const CCoinsViewCache *pcoins, unsigned int nMemPoolHeight, int flags); //TODO
+//    void removeForReorg(const CCoinsViewCache *pcoins, unsigned int nMemPoolHeight, int flags); //TODO: seems not need
 //    void removeConflicts(const CBlock &frt, std::list<CBlock>& removed);
     void removeForBlock(const std::vector<CFruit>& vfrt/*, unsigned int nBlockHeight,
                         std::list<CBlock>& conflicts, bool fCurrentEstimate = true*/);
@@ -539,14 +540,14 @@ public:
     void _clear(); //lock free
 //    bool CompareDepthAndScore(const uint256& hasha, const uint256& hashb);
     void queryHashes(std::vector<uint256>& vfrtid);
-//    void pruneSpent(const uint256& hash, CCoins &coins); //TODO
+//    void pruneSpent(const uint256& hash, CCoins &coins); 
     unsigned int GetFruitsUpdated() const;
     void AddFruitsUpdated(unsigned int n);
     /**
      * Check that none of this transactions inputs are in the mempool, and thus
      * the tx is not dependent on other mempool transactions to be included in a block.
      */
-//    bool HasNoInputsOf(const CTransaction& tx) const; //TODO
+//    bool HasNoInputsOf(const CTransaction& tx) const; 
 
     /** Affect CreateNewBlock prioritisation of transactions */
 //    void PrioritiseTransaction(const uint256 hash, const std::string strHash, double dPriorityDelta, const CAmount& nFeeDelta);
@@ -572,7 +573,7 @@ public:
      *  for).  Note: hashesToUpdate should be the set of transactions from the
      *  disconnected block that have been accepted back into the mempool.
      */
-//    void UpdateFruitFromBlock(const std::vector<uint256> &hashesToUpdate); //TODO fruit back?
+//    void UpdateFruitFromBlock(const std::vector<uint256> &hashesToUpdate); 
 
     /** Try to calculate all in-mempool ancestors of entry.
      *  (these are all calculated including the tx itself)
@@ -697,7 +698,6 @@ private:
  * CCoinsView that brings transactions from a memorypool into view.
  * It does not check for spendings by memory pool transactions.
  */
-//TODO
 /*
 class CCoinsViewMemPool : public CCoinsViewBacked
 {
