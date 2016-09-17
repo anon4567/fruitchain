@@ -5,7 +5,7 @@
 3. AcceptToFruitMemoryPool
 
 ## Siqiu ##
-1. Fruit contextual check **DONE**
+1. [**DONE**] Fruit contextual check 
 2. Maintaining frtmempool in connection and disconnection
 3. Update of block when mining
 4. Block structure related code
