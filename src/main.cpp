@@ -2154,6 +2154,72 @@ static bool ApplyTxInUndo(const CTxInUndo& undo, CCoinsViewCache& view, const CO
     return fClean;
 }
 
+void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view)
+{
+    /**
+      * calculate reward distribution of this episode.
+      * total reward S = FEE_POOL_FRACTION * nfees + GetBlockSubsidy(nHeight, chainparams.GetConsensus()) for each block
+      * let f[i] = number of fruits collected by block i, F = sum f[i]
+      * then for each fruit, its collector get co = REWARD_COLLECT_FRACTION * (1 / F) * S, its creator get cr = (1 / F) * S - co
+      * additionally, creator of block i get fee[i] - FEE_POOL_FRACTION * fee[i] for reward
+      */
+    std::vector<uint32_t> f;
+    uint32_t F = 0;
+    std::vector<CAmount> fee, reward_block_creator;
+    std::vector<CScript> fruit_creator;
+    std::vector<CScript> block_creator;
+    CAmount S = 0;
+    CBlockIndex* nblockindex = pindex;
+    f.resize(FRUIT_PERIOD_LENGTH);
+    fee.resize(FRUIT_PERIOD_LENGTH);
+    reward_block_creator.resize(FRUIT_PERIOD_LENGTH);
+    block_creator.resize(FRUIT_PERIOD_LENGTH);
+    //loop in reverse order
+    for (uint i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
+        if (nblockindex == NULL) {
+            //TODO: error:
+        }
+        CBlock* nblock;
+        if (nblockindex->GetBlockHash() == pindex->GetBlockHash()) {
+            nblock = &block;
+        } else {
+            if (!ReadBlockFromDisk(nblock, nblockindex, chainparams.GetConsensus())) {
+                //TODO: error: block unloadable
+            }
+        }
+        f[i] = nblock->vfrt.size();
+        F += f[i];
+
+        fee[i] = 0;
+        for (const auto& tx : nblock->vtx) {
+            //Note that in fruitchain there is no generation tx
+            fee[i] += view.GetValueIn(tx) - tx.GetValueOut();
+        }
+
+        reward_block_creator[i] = (1 - FEE_POOL_FRACTION) * fee[i];
+        S += GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus()) + fee[i] - reward_block_creator[i];
+        for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
+            fruit_creator.push_back(nblock->vfrt[i].scriptPubKey);
+        }
+        block_creator[i] = nblock->scriptPubKey;
+    }
+    CAmount reward_per_fruit_cr = S * 0.9 / F, reward_per_fruit_co = S / F - reward_per_fruit_cr; //TODO: variant reward for fruit in different blocks
+    // Create generation tx
+    CMutableTransaction nTx;
+    nTx.vin.resize(1);
+    nTx.vin[0].prevout.SetNull();
+    nTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
+    for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
+        reward_block_creator[i] += reward_per_fruit_co * f[i];
+        nTx.vout.push_back(CTxOut(reward_block_creator[i], block_creator[i]));
+    }
+    for (unsigned int i = 0; i < fruit_creator.size(); ++i) {
+        nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i]));
+    }
+    //TODO: test rewards
+    fruit_tx.push_back(nTx);
+}
+
 bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, bool* pfClean)
 {
     assert(pindex->GetBlockHash() == view.GetBestBlock());
@@ -2214,63 +2280,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     //Undo episode reward tx
     std::vector<CTransaction> fruit_tx;
     if (IsEndOfEpisode(pindex)) { //pindex->nHeight + 1 % FRUIT_PERIOD_LENGTH == 0) {  TODO: IsEndOfEpisode function
-        /**
-        * calculate reward distribution of this episode.
-        * total reward S = FEE_POOL_FRACTION * nfees + GetBlockSubsidy(nHeight, chainparams.GetConsensus()) for each block
-        * let f[i] = number of fruits collected by block i, F = sum f[i]
-        * then for each fruit, its collector get co = REWARD_COLLECT_FRACTION * (1 / F) * S, its creator get cr = (1 / F) * S - co
-        * additionally, creator of block i get fee[i] - FEE_POOL_FRACTION * fee[i] for reward
-        */
-        std::vector<uint32_t> f;
-        uint32_t F = 0;
-        std::vector<CAmount> fee, reward_block_creator;
-        std::vector<CScript> fruit_creator;
-        std::vector<CScript> block_creator;
-        CAmount S = 0;
-        CBlockIndex* nblockindex = pindex;
-        f.resize(FRUIT_PERIOD_LENGTH);
-        fee.resize(FRUIT_PERIOD_LENGTH);
-        reward_block_creator.resize(FRUIT_PERIOD_LENGTH);
-        block_creator.resize(FRUIT_PERIOD_LENGTH);
-        //loop in reverse order
-        for (uint i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
-            if (nblockindex == NULL) {
-                //TODO: error:
-            }
-            CBlock* nblock;
-            if (nblockindex->GetBlockHash() == pindex->GetBlockHash()) {
-                nblock = &block;
-            } else {
-                if (!ReadBlockFromDisk(nblock, nblockindex, chainparams.GetConsensus())) {
-                    //TODO: error: block unloadable
-                }
-            }
-            f[i] = nblock->vfrt.size();
-            F += f[i];
-            fee[i] = nblockindex->nFee;
-            reward_block_creator[i] = (1 - FEE_POOL_FRACTION) * fee[i];
-            S += GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus()) + fee[i] - reward_block_creator[i];
-            for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
-                fruit_creator.push_back(nblock->vfrt[i].scriptPubKey);
-            }
-            block_creator[i] = nblock->scriptPubKey;
-        }
-        CAmount reward_per_fruit_cr = S * 0.9 / F, reward_per_fruit_co = S / F - reward_per_fruit_cr;
-        // Create generation tx
-        CMutableTransaction nTx;
-        nTx.vin.resize(1);
-        nTx.vin[0].prevout.SetNull();
-        //coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
-        //coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
-        nTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
-        for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
-            reward_block_creator[i] += reward_per_fruit_co * f[i];
-            nTx.vout.push_back(CTxOut(reward_block_creator[i], block_creator[i]));
-        }
-        for (unsigned int i = 0; i < fruit_creator.size(); ++i) {
-            nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i]));
-        }
-        fruit_tx.push_back(nTx);
+        CalculateRewardDistribution(fruit_tx, block, pindex, view);
     }
 
     // undo transactions in reverse order
@@ -2504,63 +2514,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     std::vector<CTransaction> fruit_tx;
     if (IsEndOfEpisode(pindex)) { //pindex->nHeight + 1 % FRUIT_PERIOD_LENGTH == 0) {  TODO: IsEndOfEpisode function
-        /**
-        * calculate reward distribution of this episode.
-        * total reward S = FEE_POOL_FRACTION * nfees + GetBlockSubsidy(nHeight, chainparams.GetConsensus()) for each block
-        * let f[i] = number of fruits collected by block i, F = sum f[i]
-        * then for each fruit, its collector get co = REWARD_COLLECT_FRACTION * (1 / F) * S, its creator get cr = (1 / F) * S - co
-        * additionally, creator of block i get fee[i] - FEE_POOL_FRACTION * fee[i] for reward
-        */
-        std::vector<uint32_t> f;
-        uint32_t F = 0;
-        std::vector<CAmount> fee, reward_block_creator;
-        std::vector<CScript> fruit_creator;
-        std::vector<CScript> block_creator;
-        CAmount S = 0;
-        CBlockIndex* nblockindex = pindex;
-        f.resize(FRUIT_PERIOD_LENGTH);
-        fee.resize(FRUIT_PERIOD_LENGTH);
-        reward_block_creator.resize(FRUIT_PERIOD_LENGTH);
-        block_creator.resize(FRUIT_PERIOD_LENGTH);
-        //loop in reverse order
-        for (uint i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
-            if (nblockindex == NULL) {
-                //TODO: error:
-            }
-            CBlock* nblock;
-            if (nblockindex->GetBlockHash() == pindex->GetBlockHash()) {
-                nblock = &block;
-            } else {
-                if (!ReadBlockFromDisk(nblock, nblockindex, chainparams.GetConsensus())) {
-                    //TODO: error: block unloadable
-                }
-            }
-            f[i] = nblockindex->nFrt; // TODO: Add this nFrt to CBlockIndex
-            F += f[i];
-            fee[i] = nblockindex->nFee; // TODO: ADd nFee to CBlockIndex
-            reward_block_creator[i] = (1 - FEE_POOL_FRACTION) * fee[i];
-            S += GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus()) + fee[i] - reward_block_creator[i];
-            for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
-                fruit_creator.push_back(nblock->vfrt[i].scriptPubKey);
-            }
-            block_creator[i] = nblock->scriptPubKey;
-        }
-        CAmount reward_per_fruit_cr = S * 0.9 / F, reward_per_fruit_co = S / F - reward_per_fruit_cr;
-        // Create generation tx
-        CMutableTransaction nTx;
-        nTx.vin.resize(1);
-        nTx.vin[0].prevout.SetNull();
-        //coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
-        //coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
-        nTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
-        for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
-            reward_block_creator[i] += reward_per_fruit_co * f[i];
-            nTx.vout.push_back(CTxOut(reward_block_creator[i], block_creator[i]));
-        }
-        for (unsigned int i = 0; i < fruit_creator.size(); ++i) {
-            nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i]));
-        }
-        fruit_tx.push_back(nTx);
+        CalculateRewardDistribution(fruit_tx, block, pindex, view);
     }
     //------------------------------------------------------
 
@@ -3424,11 +3378,6 @@ bool ReceivedBlockTransactions(const CBlock& block, CValidationState& state, CBl
     pindexNew->nDataPos = pos.nPos;
     pindexNew->nUndoPos = 0;
     pindexNew->nStatus |= BLOCK_HAVE_DATA;
-
-    // Calculate nFee
-    CAmount
-    for ()
-    //-------------------------------------
 
     if (IsWitnessEnabled(pindexNew->pprev, Params().GetConsensus())) {
         pindexNew->nStatus |= BLOCK_OPT_WITNESS;
@@ -4485,7 +4434,6 @@ bool RewindBlockIndex(const CChainParams& params)
             pindexIter->nUndoPos = 0;
             // Remove various other things
             pindexIter->nTx = 0;
-            pindexIter->nFee = 0;
             pindexIter->nChainTx = 0;
             pindexIter->nSequenceId = 0;
             // Make sure it gets written.
