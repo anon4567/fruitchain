@@ -10,6 +10,7 @@
 3. [**DONE**] Update of block when mining
 4. Block structure related code
 5. Genesis block
+6. Error massage
 
 
 Bitcoin Core integration/staging tree
