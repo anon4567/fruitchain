@@ -195,6 +195,10 @@ public:
     //! Note: in a potential headers-first mode, this number cannot be relied upon
     unsigned int nTx;
 
+    //! Total fees in this block.
+    //! Note: in a potential headers-first mode, this number cannot be relied upon
+    CAmount nFee;
+
     //! (memory only) Number of transactions in the chain up to and including this block.
     //! This value will be non-zero only if and only if transactions for this block and all its parents are available.
     //! Change to 64-bit type when necessary; won't happen before 2030
@@ -224,6 +228,7 @@ public:
         nUndoPos = 0;
         nChainWork = arith_uint256();
         nTx = 0;
+        nFee = 0;
         nChainTx = 0;
         nStatus = 0;
         nSequenceId = 0;

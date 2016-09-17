@@ -2238,16 +2238,16 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
                 //TODO: error:
             }
             CBlock* nblock;
-            if (nblockindex->phashBlock == pindex) {
+            if (nblockindex->GetBlockHash() == pindex->GetBlockHash()) {
                 nblock = &block;
             } else {
                 if (!ReadBlockFromDisk(nblock, nblockindex, chainparams.GetConsensus())) {
                     //TODO: error: block unloadable
                 }
             }
-            f[i] = nblockindex->nFrt; // TODO: Add this nFrt to CBlockIndex
+            f[i] = nblock->vfrt.size();
             F += f[i];
-            fee[i] = nblockindex->nFee; // TODO: ADd nFee to CBlockIndex
+            fee[i] = nblockindex->nFee;
             reward_block_creator[i] = (1 - FEE_POOL_FRACTION) * fee[i];
             S += GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus()) + fee[i] - reward_block_creator[i];
             for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
@@ -2528,7 +2528,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
                 //TODO: error:
             }
             CBlock* nblock;
-            if (nblockindex->phashBlock == pindex) {
+            if (nblockindex->GetBlockHash() == pindex->GetBlockHash()) {
                 nblock = &block;
             } else {
                 if (!ReadBlockFromDisk(nblock, nblockindex, chainparams.GetConsensus())) {
@@ -3424,6 +3424,12 @@ bool ReceivedBlockTransactions(const CBlock& block, CValidationState& state, CBl
     pindexNew->nDataPos = pos.nPos;
     pindexNew->nUndoPos = 0;
     pindexNew->nStatus |= BLOCK_HAVE_DATA;
+
+    // Calculate nFee
+    CAmount
+    for ()
+    //-------------------------------------
+
     if (IsWitnessEnabled(pindexNew->pprev, Params().GetConsensus())) {
         pindexNew->nStatus |= BLOCK_OPT_WITNESS;
     }
@@ -4479,6 +4485,7 @@ bool RewindBlockIndex(const CChainParams& params)
             pindexIter->nUndoPos = 0;
             // Remove various other things
             pindexIter->nTx = 0;
+            pindexIter->nFee = 0;
             pindexIter->nChainTx = 0;
             pindexIter->nSequenceId = 0;
             // Make sure it gets written.
