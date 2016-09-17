@@ -2298,6 +2298,11 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         }
     }
 
+    // Update frtmempool and frtmempool_used
+    for (const auto& frt : pblock.vfrt) {
+        //TODO: add frt to frtmempool and remove it from frtmempool_used
+    }
+    //----------------------------
     //------------------------------------------------------
 
     // move best block pointer to prevout block
@@ -2716,6 +2721,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     // Update frtmempool and frtmempool_used
     for (const auto& frt : pblock.vfrt) {
+        //TODO: add frt to frtmempool_used and remove it from frtmempool
     }
     //----------------------------
 

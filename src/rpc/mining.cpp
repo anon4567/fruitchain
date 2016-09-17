@@ -120,7 +120,7 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
         }
         while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
             if (CheckProofOfWork(pblock->GetHash(), pblock->nBits - BITS_FRUIT_LESS_THAN_BLOCK, Params().GetConsensus())) {
-                sendfruit(pblock);
+                RelayFruit(pblock->GetBlockHeader()); // TODO
             }
             ++pblock->nNonce;
             --nMaxTries;
