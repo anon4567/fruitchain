@@ -1,6 +1,6 @@
 # TODO list #
 ## Yuncong ##
-1. [**DONE**] How to handle transaction that use generation reward in memorypool [** Note: All tx in mempool must have valid input and spendcoinbase only used in removeForReorg. **]
+1. [**DONE**] How to handle transaction that use generation reward in memorypool [Note: All tx in mempool must have valid input and spendcoinbase only used in removeForReorg.]
 2. Fruit release parallelization
 3. AcceptToFruitMemoryPool
 
