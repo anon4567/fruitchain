@@ -2497,15 +2497,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     nTimeForks += nTime2 - nTime1;
     LogPrint("bench", "    - Fork checks: %.2fms [%.2fs]\n", 0.001 * (nTime2 - nTime1), nTimeForks * 0.000001);
 
-    // Check fruit is not re-collected
-    CBlockIndex* nblockindex = pindex;
-    for (const auto& frt : pblock.vfrt) {
-        if (frtmempool_used.exists(frt.GetHash())) {
-            // TODO: error
-        }
-    })
-    //----------------------------
-
     std::vector<CTransaction> fruit_tx;
     if (IsEndOfEpisode(pindex)) { //pindex->nHeight + 1 % FRUIT_PERIOD_LENGTH == 0) {  TODO: IsEndOfEpisode function
         /**
@@ -2721,6 +2712,12 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         }
         LogPrint("mempool", "Erased %d orphan tx included or conflicted by block\n", nErased);
     }
+
+
+    // Update frtmempool and frtmempool_used
+    for (const auto& frt : pblock.vfrt) {
+    }
+    //----------------------------
 
     int64_t nTime6 = GetTimeMicros();
     nTimeCallbacks += nTime6 - nTime5;
@@ -3767,6 +3764,9 @@ bool ContextualCheckFruit(const CFruit& fruit, CValidationState& state, const Co
 
     bool prevIsValid = false;
     CBlockIndex* nIndex = pindexPrev;
+    if (frtmempool_used.exists(fruit.GetHash())) {
+        // TODO: error
+    }
     do {
         bool isLastEpisode = IsEndOfEpisode(nIndex);
         if (pindexPrev->GetHash() == fruit.hashPrevBlock)
