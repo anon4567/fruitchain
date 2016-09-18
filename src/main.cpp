@@ -2310,8 +2310,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
 
     // Update frtmempool and frtmempool_used
     for (const auto& frt : pblock.vfrt) {
-        //TODO: implement function add and remove
-        frtmempool.add(frt);
+        frtmempool.add(frt, GetTime(), chainActive.Height());
         frtmempool_used.remove(frt);
     }
     //----------------------------
@@ -2677,7 +2676,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     // Update frtmempool and frtmempool_used
     for (const auto& frt : pblock.vfrt) {
-        frtmempool_used.add(frt);
+        frtmempool_used.add(frt, GetTime(), chainActive.Height());
         frtmempool.remove(frt);
     }
     //----------------------------
