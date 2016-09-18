@@ -224,7 +224,6 @@ public:
         nUndoPos = 0;
         nChainWork = arith_uint256();
         nTx = 0;
-        nFee = 0;
         nChainTx = 0;
         nStatus = 0;
         nSequenceId = 0;
