@@ -1050,14 +1050,6 @@ int64_t GetTransactionSigOpCost(const CTransaction& tx, const CCoinsViewCache& i
 }
 
 
-//verFruit CheckFruit
-
-bool CheckFruit(const CFruit& frt, CValidationState &state)
-{
-    //TODO
-    return true;
-}
-
 bool CheckTransaction(const CTransaction& tx, CValidationState &state)
 {
     // Basic checks that don't depend on any context
@@ -1106,6 +1098,20 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state)
     return true;
 }
 
+//verFruit CheckFruit
+
+bool CheckFruit(const CFruit& fruit, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW);
+{
+    // Check proof of work matches claimed amount
+    if (fCheckPOW && !CheckProofOfWork(fruit.GetHash(), fruit.nBits - BITS_FRUIT_LESS_THAN_BLOCK, consensusParams)) {
+        //return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
+        // TODO: error
+    }
+
+    return true;
+}
+
+
 //verFruit LimitFrtMempoolSize
 void LimitFrtMempoolSize(CFrtMemPool& pool, size_t limit, unsigned long age) {
     int expired = pool.Expire(GetTime() - age);
@@ -1136,51 +1142,6 @@ std::string FormatStateMessage(const CValidationState &state)
         state.GetRejectReason(),
         state.GetDebugMessage().empty() ? "" : ", "+state.GetDebugMessage(),
         state.GetRejectCode());
-}
-
-//verFruit
-bool AcceptToFrtMemoryPoolWorker(CFrtMemPool& pool, CValidationState& state, const CFruit& frt/*, bool fLimitFree,
-                              bool* pfMissingInputs,*/ bool fOverrideFrtMempoolLimit/*, const CAmount& nAbsurdFee,
-                              std::vector<uint256>& vHashTxnToUncache*/)
-{
-    const uint256 hash = frt.GetHash();
-    AssertLockHeld(cs_main);
-
-    if (!CheckFruit(frt, state))
-        return false; // state filled in by CheckTransaction
-
-    const CChainParams& chainparams = Params();
-
-    bool witnessEnabled = IsWitnessEnabled(chainActive.Tip(), Params().GetConsensus());
-    string reason;
-    // is it already in the memory pool?
-    if (pool.exists(hash))
-        return state.Invalid(false, REJECT_ALREADY_KNOWN, "frt-already-in-frtmempool");
-
-
-    {
-        {
-        LOCK(pool.cs);
-
-        CFrtMemPoolEntry entry(frt, /*nFees,*/ GetTime(), /*dPriority,*/ chainActive.Height(), /*pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp*/);
-        unsigned int nSize = entry.GetFrtSize();
-
-        std::string errString;
-
-        // Store transaction in memory
-        pool.addUnchecked(hash, entry/*, setAncestors, !IsInitialBlockDownload()*/);
-
-        // trim mempool and check if tx was trimmed
-        if (!fOverrideFrtMempoolLimit) {
-            LimitFrtMempoolSize(pool, GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000, GetArg("-mempoolexpiry", DEFAULT_MEMPOOL_EXPIRY) * 60 * 60); //TODO: Need -frtmaxmempool? Not now.
-            if (!pool.exists(hash))
-                return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "frtmempool full");
-        }
-    }
-
-//    SyncWithWallets(tx, NULL);    TODO: Used in Wallet and Zmq, it seems not necessary for fruit.
-
-    return true;
 }
 
 bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree,
@@ -1617,17 +1578,50 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 }
 
 //verFruit
-bool AcceptToFrtMemoryPool(CFrtMemPool& pool, CValidationState &state, const CFruit &frt, //bool fLimitFree,
-                        /*bool* pfMissingInputs,*/ bool fOverrideFrtMempoolLimit/*, const CAmount nAbsurdFee*/)
+bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CFruit& frt, bool fOverrideMempoolLimit, , const Consensus::Params& consensusParams, bool fCheckPOW)
 {
-//    std::vector<uint256> vHashTxToUncache;
-    bool res = AcceptToFrtMemoryPoolWorker(pool, state, frt, /*fLimitFree, pfMissingInputs,*/ fOverrideMempoolLimit/*, nAbsurdFee, vHashTxToUncache*/);
-/*   if (!res) {
-        BOOST_FOREACH(const uint256& hashTx, vHashTxToUncache)
-            pcoinsTip->Uncache(hashTx);
-    }*/
-    return res;
+    const uint256 hash = frt.GetHash();
+    AssertLockHeld(cs_main);
+
+    if (!CheckFruit(frt, state, consensus, ParamsfCheckPOW))
+        return false; // state filled in by CheckTransaction
+
+    // is it already in the memory pool?
+    if (pool.exists(hash)) {
+        // TODO: error
+        //  return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-in-mempool");
+    }
+
+    // TODO:
+    // 1. check if its hist_header is correspond previous blocks
+    
+
+    // 2. check if exists in previous blocks
+    if (frtmempool_used.exists(hash)) {
+        //TODO: error
+        //  return state.Invalid(false, REJECT_ALREADY_KNOWN, "frt-already-in-frtmempool_used");
+    }
+
+    {
+        CFrtMemPoolEntry entry(frt, /*nFees,*/ GetTime(), /*dPriority,*/ chainActive.Height()/*, pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp*/); 
+//        unsigned int nSize = entry.GetFrtSize();
+
+
+        // Store transaction in memory
+        pool.addUnchecked(hash, entry/*, setAncestors, !IsInitialBlockDownload()*/);
+
+        // trim mempool and check if tx was trimmed
+        if (!fOverrideMempoolLimit) {
+            LimitFrtMempoolSize(pool, GetArg("-maxfrtmempool", DEFAULT_MAX_FRTMEMPOOL_SIZE) * 1000000, GetArg("-frtmempoolexpiry", DEFAULT_FRTMEMPOOL_EXPIRY) * 60 * 60); //TODO: command and function
+            if (!pool.exists(hash))
+                return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "frtmempool full");
+        }
+    }
+
+
+    return true;
 }
+
 
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
                         bool* pfMissingInputs, bool fOverrideMempoolLimit, const CAmount nAbsurdFee)
@@ -4799,6 +4793,7 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
             assert(recentRejects); // Relate to 
             // No chain tip effects
             return  recentRejects->contains(inv.hash) ||
+                    //TODO OrphanFruit?
                     frtmempool.exists(inv.hash);     
         }
     case MSG_BLOCK:
@@ -4944,9 +4939,9 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
                 bool push = false;
                 auto mi = mapFrtRelay.find(inv.hash);  
                 if (mi != mapFrtRelay.end()) {
-                    pfrom->PushMessage(NetMsgType::FRUIT, *mi->second);               //TODO: No witness in Fruit
+                    pfrom->PushMessage(NetMsgType::FRUIT, *mi->second);            //TODO: No witness in Fruit
                     push = true;
-                } /*else if (pfrom->timeLastFrtMempoolReq) {  TODO: Related to BIP35, Mempool request. May be FrtMempool request furture
+                } /*else if (pfrom->timeLastFrtMempoolReq) {  TODO: Related to BIP35, Mempool request. May be FrtMempool request in the future
                     auto frtinfo = frtmempool.info(inv.hash);
                     if (frtinfo.frt && frtinfo.nTime <= pfrom->timeLastFrtMempoolReq) {
                         pfrom->PushMessage(NetMsgType::FRUIT, *frtinfo.frt);
@@ -5712,13 +5707,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         LOCK(cs_main);
 
-//        bool fMissingInputs = false;
+//        bool fMissingInputs = false; TODO orphan fruit?
         CValidationState state;
 
         pfrom->setAskFor.erase(inv.hash);
         mapAlreadyAskedFor.erase(inv.hash);
 
-        if (!AlreadyHave(inv) && AcceptToFrtMemoryPool(frtmempool, state, frt, /*true, &fMissingInputs*/)) {
+        if (!AlreadyHave(inv) && AcceptToFruitMemoryPool(frtmempool, state, frt, /*true, &fMissingInputs*/)) {
             frtmempool.check(/*pcoinsTip*/);
             RelayFruit(frt);
 /*            for (unsigned int i = 0; i < tx.vout.size(); i++) {

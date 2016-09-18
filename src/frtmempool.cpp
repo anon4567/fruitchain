@@ -532,8 +532,8 @@ void CFrtMemPool::removeRecursive(const CFruit &origFrt, std::list<CFruit>& remo
         BOOST_FOREACH(frtiter it, frtToRemove) {
             CalculateDescendants(it, setAllRemoves);
         }
-        BOOST_FOREACH(txiter it, setAllRemoves) {
-            removed.push_back(it->GetTx());
+        BOOST_FOREACH(frtiter it, setAllRemoves) {
+            removed.push_back(it->GetFrt());
         }
         RemoveStaged(setAllRemoves/*, false*/);
     }
@@ -1015,16 +1015,16 @@ int CFrtMemPool::Expire(int64_t time) {
     RemoveStaged(stage/*, false*/);
     return stage.size();
 }
-
-bool CFrtMemPool::addUnchecked(const uint256&hash, const CFrtMemPoolEntry &entry/*, bool fCurrentEstimate*/)
+/*
+bool CFrtMemPool::addUnchecked(const uint256&hash, const CFrtMemPoolEntry &entry, bool fCurrentEstimate)
 {
     LOCK(cs);
 //    setEntries setAncestors;
 //    uint64_t nNoLimit = std::numeric_limits<uint64_t>::max();
 //    std::string dummy;
 //    CalculateMemPoolAncestors(entry, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, dummy);
-    return addUnchecked(hash, entry/*, setAncestors, fCurrentEstimate*/);
-}
+    return addUnchecked(hash, entry, setAncestors, fCurrentEstimate);
+}*/
 /*
 void CFrtMemPool::UpdateChild(frtiter entry, frtiter child, bool add)
 {

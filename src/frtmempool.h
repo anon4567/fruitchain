@@ -443,7 +443,7 @@ public:
         CFrtMemPoolEntry,
         boost::multi_index::indexed_by<
             // sorted by txid
-            boost::multi_index::hashed_unique<mempoolentry_frtid, SaltedTxidHasher>, //TODO: SaltedFrtidHasher?
+            boost::multi_index::hashed_unique<mempoolentry_frtid, SaltedTxidHasher>, //TODO: SaltedFrtidHasher? Seems ok to use the same one.
             // sorted by fee rate
 /*            boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<descendant_score>,
@@ -625,6 +625,23 @@ public:
     {
         LOCK(cs);
         return (mapFrt.count(hash) != 0);
+    }
+
+    //Note for add() and remove(): No additional check here, please ensure that add good fruit and remove exist fruit.
+    void add(const CFruit& frt, int64_t nTime, unsigned int entryHeight) 
+    {
+        const uint256 hash = frt.GetHash();
+        CFrtMemPoolEntry entry(frt, nTime, entryHeight);
+        addUnchecked(hash, entry);
+    }
+
+    void remove(const CFruit& frt)  
+    {
+        LOCK(cs);
+        frtiter it = mapFrt.find(frt.GetHash());
+        setEntries stage;
+        stage.insert(it);
+        RemoveStaged(stage);
     }
 
     std::shared_ptr<const CFruit> get(const uint256& hash) const;
