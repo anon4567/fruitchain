@@ -6,7 +6,7 @@
 
 ## Siqiu ##
 1. [**DONE**] Fruit contextual check 
-2. Maintaining frtmempool in connection and disconnection
+2. [**DONE**] Maintaining frtmempool in connection and disconnection
 3. [**DONE**] Update of block when mining
 4. Block structure related code
 5. Genesis block
