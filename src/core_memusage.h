@@ -5,27 +5,32 @@
 #ifndef BITCOIN_CORE_MEMUSAGE_H
 #define BITCOIN_CORE_MEMUSAGE_H
 
-#include "primitives/transaction.h"
-#include "primitives/block.h"
 #include "memusage.h"
+#include "primitives/block.h"
+#include "primitives/transaction.h"
 
-static inline size_t RecursiveDynamicUsage(const CScript& script) {
+static inline size_t RecursiveDynamicUsage(const CScript& script)
+{
     return memusage::DynamicUsage(*static_cast<const CScriptBase*>(&script));
 }
 
-static inline size_t RecursiveDynamicUsage(const COutPoint& out) {
+static inline size_t RecursiveDynamicUsage(const COutPoint& out)
+{
     return 0;
 }
 
-static inline size_t RecursiveDynamicUsage(const CTxIn& in) {
+static inline size_t RecursiveDynamicUsage(const CTxIn& in)
+{
     return RecursiveDynamicUsage(in.scriptSig) + RecursiveDynamicUsage(in.prevout);
 }
 
-static inline size_t RecursiveDynamicUsage(const CTxOut& out) {
+static inline size_t RecursiveDynamicUsage(const CTxOut& out)
+{
     return RecursiveDynamicUsage(out.scriptPubKey);
 }
 
-static inline size_t RecursiveDynamicUsage(const CScriptWitness& scriptWit) {
+static inline size_t RecursiveDynamicUsage(const CScriptWitness& scriptWit)
+{
     size_t mem = memusage::DynamicUsage(scriptWit.stack);
     for (std::vector<std::vector<unsigned char> >::const_iterator it = scriptWit.stack.begin(); it != scriptWit.stack.end(); it++) {
         mem += memusage::DynamicUsage(*it);
@@ -33,11 +38,13 @@ static inline size_t RecursiveDynamicUsage(const CScriptWitness& scriptWit) {
     return mem;
 }
 
-static inline size_t RecursiveDynamicUsage(const CTxInWitness& txinwit) {
+static inline size_t RecursiveDynamicUsage(const CTxInWitness& txinwit)
+{
     return RecursiveDynamicUsage(txinwit.scriptWitness);
 }
 
-static inline size_t RecursiveDynamicUsage(const CTxWitness& txwit) {
+static inline size_t RecursiveDynamicUsage(const CTxWitness& txwit)
+{
     size_t mem = memusage::DynamicUsage(txwit.vtxinwit);
     for (std::vector<CTxInWitness>::const_iterator it = txwit.vtxinwit.begin(); it != txwit.vtxinwit.end(); it++) {
         mem += RecursiveDynamicUsage(*it);
@@ -45,7 +52,8 @@ static inline size_t RecursiveDynamicUsage(const CTxWitness& txwit) {
     return mem;
 }
 
-static inline size_t RecursiveDynamicUsage(const CTransaction& tx) {
+static inline size_t RecursiveDynamicUsage(const CTransaction& tx)
+{
     size_t mem = memusage::DynamicUsage(tx.vin) + memusage::DynamicUsage(tx.vout) + RecursiveDynamicUsage(tx.wit);
     for (std::vector<CTxIn>::const_iterator it = tx.vin.begin(); it != tx.vin.end(); it++) {
         mem += RecursiveDynamicUsage(*it);
@@ -56,7 +64,8 @@ static inline size_t RecursiveDynamicUsage(const CTransaction& tx) {
     return mem;
 }
 
-static inline size_t RecursiveDynamicUsage(const CMutableTransaction& tx) {
+static inline size_t RecursiveDynamicUsage(const CMutableTransaction& tx)
+{
     size_t mem = memusage::DynamicUsage(tx.vin) + memusage::DynamicUsage(tx.vout) + RecursiveDynamicUsage(tx.wit);
     for (std::vector<CTxIn>::const_iterator it = tx.vin.begin(); it != tx.vin.end(); it++) {
         mem += RecursiveDynamicUsage(*it);
@@ -67,7 +76,8 @@ static inline size_t RecursiveDynamicUsage(const CMutableTransaction& tx) {
     return mem;
 }
 
-static inline size_t RecursiveDynamicUsage(const CBlock& block) {
+static inline size_t RecursiveDynamicUsage(const CBlock& block)
+{
     size_t mem = memusage::DynamicUsage(block.vtx);
     for (std::vector<CTransaction>::const_iterator it = block.vtx.begin(); it != block.vtx.end(); it++) {
         mem += RecursiveDynamicUsage(*it);
@@ -75,7 +85,8 @@ static inline size_t RecursiveDynamicUsage(const CBlock& block) {
     return mem;
 }
 
-static inline size_t RecursiveDynamicUsage(const CBlockLocator& locator) {
+static inline size_t RecursiveDynamicUsage(const CBlockLocator& locator)
+{
     return memusage::DynamicUsage(locator.vHave);
 }
 

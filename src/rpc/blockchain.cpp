@@ -9,6 +9,7 @@
 #include "checkpoints.h"
 #include "coins.h"
 #include "consensus/validation.h"
+#include "hash.h"
 #include "main.h"
 #include "policy/policy.h"
 #include "primitives/transaction.h"
@@ -18,7 +19,6 @@
 #include "txmempool.h"
 #include "util.h"
 #include "utilstrencodings.h"
-#include "hash.h"
 
 #include <stdint.h>
 
@@ -35,8 +35,7 @@ double GetDifficulty(const CBlockIndex* blockindex)
 {
     // Floating point number that is a multiple of the minimum difficulty,
     // minimum difficulty = 1.0.
-    if (blockindex == NULL)
-    {
+    if (blockindex == NULL) {
         if (chainActive.Tip() == NULL)
             return 1.0;
         else
@@ -48,13 +47,11 @@ double GetDifficulty(const CBlockIndex* blockindex)
     double dDiff =
         (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
 
-    while (nShift < 29)
-    {
+    while (nShift < 29) {
         dDiff *= 256.0;
         nShift++;
     }
-    while (nShift > 29)
-    {
+    while (nShift > 29) {
         dDiff /= 256.0;
         nShift--;
     }
@@ -84,7 +81,7 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
 
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
-    CBlockIndex *pnext = chainActive.Next(blockindex);
+    CBlockIndex* pnext = chainActive.Next(blockindex);
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
     return result;
@@ -107,15 +104,12 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     result.push_back(Pair("versionHex", strprintf("%08x", block.nVersion)));
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
     UniValue txs(UniValue::VARR);
-    BOOST_FOREACH(const CTransaction&tx, block.vtx)
-    {
-        if(txDetails)
-        {
+    BOOST_FOREACH (const CTransaction& tx, block.vtx) {
+        if (txDetails) {
             UniValue objTx(UniValue::VOBJ);
             TxToJSON(tx, uint256(), objTx);
             txs.push_back(objTx);
-        }
-        else
+        } else
             txs.push_back(tx.GetHash().GetHex());
     }
     result.push_back(Pair("tx", txs));
@@ -128,7 +122,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
 
     if (blockindex->pprev)
         result.push_back(Pair("previousblockhash", blockindex->pprev->GetBlockHash().GetHex()));
-    CBlockIndex *pnext = chainActive.Next(blockindex);
+    CBlockIndex* pnext = chainActive.Next(blockindex);
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
     return result;
@@ -142,10 +136,8 @@ UniValue getblockcount(const UniValue& params, bool fHelp)
             "\nReturns the number of blocks in the longest block chain.\n"
             "\nResult:\n"
             "n    (numeric) The current block count\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblockcount", "")
-            + HelpExampleRpc("getblockcount", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getblockcount", "") + HelpExampleRpc("getblockcount", ""));
 
     LOCK(cs_main);
     return chainActive.Height();
@@ -159,10 +151,8 @@ UniValue getbestblockhash(const UniValue& params, bool fHelp)
             "\nReturns the hash of the best (tip) block in the longest block chain.\n"
             "\nResult\n"
             "\"hex\"      (string) the block hash hex encoded\n"
-            "\nExamples\n"
-            + HelpExampleCli("getbestblockhash", "")
-            + HelpExampleRpc("getbestblockhash", "")
-        );
+            "\nExamples\n" +
+            HelpExampleCli("getbestblockhash", "") + HelpExampleRpc("getbestblockhash", ""));
 
     LOCK(cs_main);
     return chainActive.Tip()->GetBlockHash().GetHex();
@@ -176,10 +166,8 @@ UniValue getdifficulty(const UniValue& params, bool fHelp)
             "\nReturns the proof-of-work difficulty as a multiple of the minimum difficulty.\n"
             "\nResult:\n"
             "n.nnn       (numeric) the proof-of-work difficulty as a multiple of the minimum difficulty.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getdifficulty", "")
-            + HelpExampleRpc("getdifficulty", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getdifficulty", "") + HelpExampleRpc("getdifficulty", ""));
 
     LOCK(cs_main);
     return GetDifficulty();
@@ -188,24 +176,25 @@ UniValue getdifficulty(const UniValue& params, bool fHelp)
 std::string EntryDescriptionString()
 {
     return "    \"size\" : n,             (numeric) transaction size in bytes\n"
-           "    \"fee\" : n,              (numeric) transaction fee in " + CURRENCY_UNIT + "\n"
-           "    \"modifiedfee\" : n,      (numeric) transaction fee with fee deltas used for mining priority\n"
-           "    \"time\" : n,             (numeric) local time transaction entered pool in seconds since 1 Jan 1970 GMT\n"
-           "    \"height\" : n,           (numeric) block height when transaction entered pool\n"
-           "    \"startingpriority\" : n, (numeric) priority when transaction entered pool\n"
-           "    \"currentpriority\" : n,  (numeric) transaction priority now\n"
-           "    \"descendantcount\" : n,  (numeric) number of in-mempool descendant transactions (including this one)\n"
-           "    \"descendantsize\" : n,   (numeric) size of in-mempool descendants (including this one)\n"
-           "    \"descendantfees\" : n,   (numeric) modified fees (see above) of in-mempool descendants (including this one)\n"
-           "    \"ancestorcount\" : n,    (numeric) number of in-mempool ancestor transactions (including this one)\n"
-           "    \"ancestorsize\" : n,     (numeric) size of in-mempool ancestors (including this one)\n"
-           "    \"ancestorfees\" : n,     (numeric) modified fees (see above) of in-mempool ancestors (including this one)\n"
-           "    \"depends\" : [           (array) unconfirmed transactions used as inputs for this transaction\n"
-           "        \"transactionid\",    (string) parent transaction id\n"
-           "       ... ]\n";
+           "    \"fee\" : n,              (numeric) transaction fee in " +
+           CURRENCY_UNIT + "\n"
+                           "    \"modifiedfee\" : n,      (numeric) transaction fee with fee deltas used for mining priority\n"
+                           "    \"time\" : n,             (numeric) local time transaction entered pool in seconds since 1 Jan 1970 GMT\n"
+                           "    \"height\" : n,           (numeric) block height when transaction entered pool\n"
+                           "    \"startingpriority\" : n, (numeric) priority when transaction entered pool\n"
+                           "    \"currentpriority\" : n,  (numeric) transaction priority now\n"
+                           "    \"descendantcount\" : n,  (numeric) number of in-mempool descendant transactions (including this one)\n"
+                           "    \"descendantsize\" : n,   (numeric) size of in-mempool descendants (including this one)\n"
+                           "    \"descendantfees\" : n,   (numeric) modified fees (see above) of in-mempool descendants (including this one)\n"
+                           "    \"ancestorcount\" : n,    (numeric) number of in-mempool ancestor transactions (including this one)\n"
+                           "    \"ancestorsize\" : n,     (numeric) size of in-mempool ancestors (including this one)\n"
+                           "    \"ancestorfees\" : n,     (numeric) modified fees (see above) of in-mempool ancestors (including this one)\n"
+                           "    \"depends\" : [           (array) unconfirmed transactions used as inputs for this transaction\n"
+                           "        \"transactionid\",    (string) parent transaction id\n"
+                           "       ... ]\n";
 }
 
-void entryToJSON(UniValue &info, const CTxMemPoolEntry &e)
+void entryToJSON(UniValue& info, const CTxMemPoolEntry& e)
 {
     AssertLockHeld(mempool.cs);
 
@@ -224,15 +213,13 @@ void entryToJSON(UniValue &info, const CTxMemPoolEntry &e)
     info.push_back(Pair("ancestorfees", e.GetModFeesWithAncestors()));
     const CTransaction& tx = e.GetTx();
     set<string> setDepends;
-    BOOST_FOREACH(const CTxIn& txin, tx.vin)
-    {
+    BOOST_FOREACH (const CTxIn& txin, tx.vin) {
         if (mempool.exists(txin.prevout.hash))
             setDepends.insert(txin.prevout.hash.ToString());
     }
 
     UniValue depends(UniValue::VARR);
-    BOOST_FOREACH(const string& dep, setDepends)
-    {
+    BOOST_FOREACH (const string& dep, setDepends) {
         depends.push_back(dep);
     }
 
@@ -241,26 +228,22 @@ void entryToJSON(UniValue &info, const CTxMemPoolEntry &e)
 
 UniValue mempoolToJSON(bool fVerbose = false)
 {
-    if (fVerbose)
-    {
+    if (fVerbose) {
         LOCK(mempool.cs);
         UniValue o(UniValue::VOBJ);
-        BOOST_FOREACH(const CTxMemPoolEntry& e, mempool.mapTx)
-        {
+        BOOST_FOREACH (const CTxMemPoolEntry& e, mempool.mapTx) {
             const uint256& hash = e.GetTx().GetHash();
             UniValue info(UniValue::VOBJ);
             entryToJSON(info, e);
             o.push_back(Pair(hash.ToString(), info));
         }
         return o;
-    }
-    else
-    {
+    } else {
         vector<uint256> vtxid;
         mempool.queryHashes(vtxid);
 
         UniValue a(UniValue::VARR);
-        BOOST_FOREACH(const uint256& hash, vtxid)
+        BOOST_FOREACH (const uint256& hash, vtxid)
             a.push_back(hash.ToString());
 
         return a;
@@ -282,14 +265,11 @@ UniValue getrawmempool(const UniValue& params, bool fHelp)
             "]\n"
             "\nResult: (for verbose = true):\n"
             "{                           (json object)\n"
-            "  \"transactionid\" : {       (json object)\n"
-            + EntryDescriptionString()
-            + "  }, ...\n"
-            "}\n"
-            "\nExamples\n"
-            + HelpExampleCli("getrawmempool", "true")
-            + HelpExampleRpc("getrawmempool", "true")
-        );
+            "  \"transactionid\" : {       (json object)\n" +
+            EntryDescriptionString() + "  }, ...\n"
+                                       "}\n"
+                                       "\nExamples\n" +
+            HelpExampleCli("getrawmempool", "true") + HelpExampleRpc("getrawmempool", "true"));
 
     bool fVerbose = false;
     if (params.size() > 0)
@@ -314,14 +294,11 @@ UniValue getmempoolancestors(const UniValue& params, bool fHelp)
             "]\n"
             "\nResult (for verbose=true):\n"
             "{                           (json object)\n"
-            "  \"transactionid\" : {       (json object)\n"
-            + EntryDescriptionString()
-            + "  }, ...\n"
-            "}\n"
-            "\nExamples\n"
-            + HelpExampleCli("getmempoolancestors", "\"mytxid\"")
-            + HelpExampleRpc("getmempoolancestors", "\"mytxid\"")
-            );
+            "  \"transactionid\" : {       (json object)\n" +
+            EntryDescriptionString() + "  }, ...\n"
+                                       "}\n"
+                                       "\nExamples\n" +
+            HelpExampleCli("getmempoolancestors", "\"mytxid\"") + HelpExampleRpc("getmempoolancestors", "\"mytxid\""));
     }
 
     bool fVerbose = false;
@@ -344,15 +321,15 @@ UniValue getmempoolancestors(const UniValue& params, bool fHelp)
 
     if (!fVerbose) {
         UniValue o(UniValue::VARR);
-        BOOST_FOREACH(CTxMemPool::txiter ancestorIt, setAncestors) {
+        BOOST_FOREACH (CTxMemPool::txiter ancestorIt, setAncestors) {
             o.push_back(ancestorIt->GetTx().GetHash().ToString());
         }
 
         return o;
     } else {
         UniValue o(UniValue::VOBJ);
-        BOOST_FOREACH(CTxMemPool::txiter ancestorIt, setAncestors) {
-            const CTxMemPoolEntry &e = *ancestorIt;
+        BOOST_FOREACH (CTxMemPool::txiter ancestorIt, setAncestors) {
+            const CTxMemPoolEntry& e = *ancestorIt;
             const uint256& hash = e.GetTx().GetHash();
             UniValue info(UniValue::VOBJ);
             entryToJSON(info, e);
@@ -378,14 +355,11 @@ UniValue getmempooldescendants(const UniValue& params, bool fHelp)
             "]\n"
             "\nResult (for verbose=true):\n"
             "{                           (json object)\n"
-            "  \"transactionid\" : {       (json object)\n"
-            + EntryDescriptionString()
-            + "  }, ...\n"
-            "}\n"
-            "\nExamples\n"
-            + HelpExampleCli("getmempooldescendants", "\"mytxid\"")
-            + HelpExampleRpc("getmempooldescendants", "\"mytxid\"")
-            );
+            "  \"transactionid\" : {       (json object)\n" +
+            EntryDescriptionString() + "  }, ...\n"
+                                       "}\n"
+                                       "\nExamples\n" +
+            HelpExampleCli("getmempooldescendants", "\"mytxid\"") + HelpExampleRpc("getmempooldescendants", "\"mytxid\""));
     }
 
     bool fVerbose = false;
@@ -408,15 +382,15 @@ UniValue getmempooldescendants(const UniValue& params, bool fHelp)
 
     if (!fVerbose) {
         UniValue o(UniValue::VARR);
-        BOOST_FOREACH(CTxMemPool::txiter descendantIt, setDescendants) {
+        BOOST_FOREACH (CTxMemPool::txiter descendantIt, setDescendants) {
             o.push_back(descendantIt->GetTx().GetHash().ToString());
         }
 
         return o;
     } else {
         UniValue o(UniValue::VOBJ);
-        BOOST_FOREACH(CTxMemPool::txiter descendantIt, setDescendants) {
-            const CTxMemPoolEntry &e = *descendantIt;
+        BOOST_FOREACH (CTxMemPool::txiter descendantIt, setDescendants) {
+            const CTxMemPoolEntry& e = *descendantIt;
             const uint256& hash = e.GetTx().GetHash();
             UniValue info(UniValue::VOBJ);
             entryToJSON(info, e);
@@ -435,13 +409,10 @@ UniValue getmempoolentry(const UniValue& params, bool fHelp)
             "\nArguments:\n"
             "1. \"txid\"                   (string, required) The transaction id (must be in mempool)\n"
             "\nResult:\n"
-            "{                           (json object)\n"
-            + EntryDescriptionString()
-            + "}\n"
-            "\nExamples\n"
-            + HelpExampleCli("getmempoolentry", "\"mytxid\"")
-            + HelpExampleRpc("getmempoolentry", "\"mytxid\"")
-        );
+            "{                           (json object)\n" +
+            EntryDescriptionString() + "}\n"
+                                       "\nExamples\n" +
+            HelpExampleCli("getmempoolentry", "\"mytxid\"") + HelpExampleRpc("getmempoolentry", "\"mytxid\""));
     }
 
     uint256 hash = ParseHashV(params[0], "parameter 1");
@@ -453,7 +424,7 @@ UniValue getmempoolentry(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction not in mempool");
     }
 
-    const CTxMemPoolEntry &e = *it;
+    const CTxMemPoolEntry& e = *it;
     UniValue info(UniValue::VOBJ);
     entryToJSON(info, e);
     return info;
@@ -469,10 +440,8 @@ UniValue getblockhash(const UniValue& params, bool fHelp)
             "1. index         (numeric, required) The block index\n"
             "\nResult:\n"
             "\"hash\"         (string) The block hash\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblockhash", "1000")
-            + HelpExampleRpc("getblockhash", "1000")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getblockhash", "1000") + HelpExampleRpc("getblockhash", "1000"));
 
     LOCK(cs_main);
 
@@ -513,10 +482,8 @@ UniValue getblockheader(const UniValue& params, bool fHelp)
             "}\n"
             "\nResult (for verbose=false):\n"
             "\"data\"             (string) A string that is serialized, hex-encoded data for block 'hash'.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblockheader", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-            + HelpExampleRpc("getblockheader", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getblockheader", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"") + HelpExampleRpc("getblockheader", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\""));
 
     LOCK(cs_main);
 
@@ -532,8 +499,7 @@ UniValue getblockheader(const UniValue& params, bool fHelp)
 
     CBlockIndex* pblockindex = mapBlockIndex[hash];
 
-    if (!fVerbose)
-    {
+    if (!fVerbose) {
         CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION);
         ssBlock << pblockindex->GetBlockHeader();
         std::string strHex = HexStr(ssBlock.begin(), ssBlock.end());
@@ -579,10 +545,8 @@ UniValue getblock(const UniValue& params, bool fHelp)
             "}\n"
             "\nResult (for verbose=false):\n"
             "\"data\"             (string) A string that is serialized, hex-encoded data for block 'hash'.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-            + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\"") + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\""));
 
     LOCK(cs_main);
 
@@ -602,11 +566,10 @@ UniValue getblock(const UniValue& params, bool fHelp)
     if (fHavePruned && !(pblockindex->nStatus & BLOCK_HAVE_DATA) && pblockindex->nTx > 0)
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Block not available (pruned data)");
 
-    if(!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus()))
+    if (!ReadBlockFromDisk(block, pblockindex, Params().GetConsensus()))
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
 
-    if (!fVerbose)
-    {
+    if (!fVerbose) {
         CDataStream ssBlock(SER_NETWORK, PROTOCOL_VERSION);
         ssBlock << block;
         std::string strHex = HexStr(ssBlock.begin(), ssBlock.end());
@@ -616,8 +579,7 @@ UniValue getblock(const UniValue& params, bool fHelp)
     return blockToJSON(block, pblockindex);
 }
 
-struct CCoinsStats
-{
+struct CCoinsStats {
     int nHeight;
     uint256 hashBlock;
     uint64_t nTransactions;
@@ -630,7 +592,7 @@ struct CCoinsStats
 };
 
 //! Calculate statistics about the unspent transaction output set
-static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats)
+static bool GetUTXOStats(CCoinsView* view, CCoinsStats& stats)
 {
     std::unique_ptr<CCoinsViewCursor> pcursor(view->Cursor());
 
@@ -649,11 +611,11 @@ static bool GetUTXOStats(CCoinsView *view, CCoinsStats &stats)
         if (pcursor->GetKey(key) && pcursor->GetValue(coins)) {
             stats.nTransactions++;
             ss << key;
-            for (unsigned int i=0; i<coins.vout.size(); i++) {
-                const CTxOut &out = coins.vout[i];
+            for (unsigned int i = 0; i < coins.vout.size(); i++) {
+                const CTxOut& out = coins.vout[i];
                 if (!out.IsNull()) {
                     stats.nTransactionOutputs++;
-                    ss << VARINT(i+1);
+                    ss << VARINT(i + 1);
                     ss << out;
                     nTotalAmount += out.nValue;
                 }
@@ -687,10 +649,8 @@ UniValue gettxoutsetinfo(const UniValue& params, bool fHelp)
             "  \"hash_serialized\": \"hash\",   (string) The serialized hash\n"
             "  \"total_amount\": x.xxx          (numeric) The total amount\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("gettxoutsetinfo", "")
-            + HelpExampleRpc("gettxoutsetinfo", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("gettxoutsetinfo", "") + HelpExampleRpc("gettxoutsetinfo", ""));
 
     UniValue ret(UniValue::VOBJ);
 
@@ -722,29 +682,27 @@ UniValue gettxout(const UniValue& params, bool fHelp)
             "{\n"
             "  \"bestblock\" : \"hash\",    (string) the block hash\n"
             "  \"confirmations\" : n,       (numeric) The number of confirmations\n"
-            "  \"value\" : x.xxx,           (numeric) The transaction value in " + CURRENCY_UNIT + "\n"
-            "  \"scriptPubKey\" : {         (json object)\n"
-            "     \"asm\" : \"code\",       (string) \n"
-            "     \"hex\" : \"hex\",        (string) \n"
-            "     \"reqSigs\" : n,          (numeric) Number of required signatures\n"
-            "     \"type\" : \"pubkeyhash\", (string) The type, eg pubkeyhash\n"
-            "     \"addresses\" : [          (array of string) array of bitcoin addresses\n"
-            "        \"bitcoinaddress\"     (string) bitcoin address\n"
-            "        ,...\n"
-            "     ]\n"
-            "  },\n"
-            "  \"version\" : n,            (numeric) The version\n"
-            "  \"coinbase\" : true|false   (boolean) Coinbase or not\n"
-            "}\n"
+            "  \"value\" : x.xxx,           (numeric) The transaction value in " +
+            CURRENCY_UNIT + "\n"
+                            "  \"scriptPubKey\" : {         (json object)\n"
+                            "     \"asm\" : \"code\",       (string) \n"
+                            "     \"hex\" : \"hex\",        (string) \n"
+                            "     \"reqSigs\" : n,          (numeric) Number of required signatures\n"
+                            "     \"type\" : \"pubkeyhash\", (string) The type, eg pubkeyhash\n"
+                            "     \"addresses\" : [          (array of string) array of bitcoin addresses\n"
+                            "        \"bitcoinaddress\"     (string) bitcoin address\n"
+                            "        ,...\n"
+                            "     ]\n"
+                            "  },\n"
+                            "  \"version\" : n,            (numeric) The version\n"
+                            "  \"coinbase\" : true|false   (boolean) Coinbase or not\n"
+                            "}\n"
 
-            "\nExamples:\n"
-            "\nGet unspent transactions\n"
-            + HelpExampleCli("listunspent", "") +
-            "\nView the details\n"
-            + HelpExampleCli("gettxout", "\"txid\" 1") +
-            "\nAs a json rpc call\n"
-            + HelpExampleRpc("gettxout", "\"txid\", 1")
-        );
+                            "\nExamples:\n"
+                            "\nGet unspent transactions\n" +
+            HelpExampleCli("listunspent", "") +
+            "\nView the details\n" + HelpExampleCli("gettxout", "\"txid\" 1") +
+            "\nAs a json rpc call\n" + HelpExampleRpc("gettxout", "\"txid\", 1"));
 
     LOCK(cs_main);
 
@@ -768,11 +726,11 @@ UniValue gettxout(const UniValue& params, bool fHelp)
         if (!pcoinsTip->GetCoins(hash, coins))
             return NullUniValue;
     }
-    if (n<0 || (unsigned int)n>=coins.vout.size() || coins.vout[n].IsNull())
+    if (n < 0 || (unsigned int)n >= coins.vout.size() || coins.vout[n].IsNull())
         return NullUniValue;
 
     BlockMap::iterator it = mapBlockIndex.find(pcoinsTip->GetBestBlock());
-    CBlockIndex *pindex = it->second;
+    CBlockIndex* pindex = it->second;
     ret.push_back(Pair("bestblock", pindex->GetBlockHash().GetHex()));
     if ((unsigned int)coins.nHeight == MEMPOOL_HEIGHT)
         ret.push_back(Pair("confirmations", 0));
@@ -797,14 +755,14 @@ UniValue verifychain(const UniValue& params, bool fHelp)
             "verifychain ( checklevel numblocks )\n"
             "\nVerifies blockchain database.\n"
             "\nArguments:\n"
-            "1. checklevel   (numeric, optional, 0-4, default=" + strprintf("%d", nCheckLevel) + ") How thorough the block verification is.\n"
-            "2. numblocks    (numeric, optional, default=" + strprintf("%d", nCheckDepth) + ", 0=all) The number of blocks to check.\n"
-            "\nResult:\n"
-            "true|false       (boolean) Verified or not\n"
-            "\nExamples:\n"
-            + HelpExampleCli("verifychain", "")
-            + HelpExampleRpc("verifychain", "")
-        );
+            "1. checklevel   (numeric, optional, 0-4, default=" +
+            strprintf("%d", nCheckLevel) + ") How thorough the block verification is.\n"
+                                           "2. numblocks    (numeric, optional, default=" +
+            strprintf("%d", nCheckDepth) + ", 0=all) The number of blocks to check.\n"
+                                           "\nResult:\n"
+                                           "true|false       (boolean) Verified or not\n"
+                                           "\nExamples:\n" +
+            HelpExampleCli("verifychain", "") + HelpExampleRpc("verifychain", ""));
 
     LOCK(cs_main);
 
@@ -821,23 +779,22 @@ static UniValue SoftForkMajorityDesc(int version, CBlockIndex* pindex, const Con
 {
     UniValue rv(UniValue::VOBJ);
     bool activated = false;
-    switch(version)
-    {
-        case 2:
-            activated = pindex->nHeight >= consensusParams.BIP34Height;
-            break;
-        case 3:
-            activated = pindex->nHeight >= consensusParams.BIP66Height;
-            break;
-        case 4:
-            activated = pindex->nHeight >= consensusParams.BIP65Height;
-            break;
+    switch (version) {
+    case 2:
+        activated = pindex->nHeight >= consensusParams.BIP34Height;
+        break;
+    case 3:
+        activated = pindex->nHeight >= consensusParams.BIP66Height;
+        break;
+    case 4:
+        activated = pindex->nHeight >= consensusParams.BIP65Height;
+        break;
     }
     rv.push_back(Pair("status", activated));
     return rv;
 }
 
-static UniValue SoftForkDesc(const std::string &name, int version, CBlockIndex* pindex, const Consensus::Params& consensusParams)
+static UniValue SoftForkDesc(const std::string& name, int version, CBlockIndex* pindex, const Consensus::Params& consensusParams)
 {
     UniValue rv(UniValue::VOBJ);
     rv.push_back(Pair("id", name));
@@ -851,14 +808,23 @@ static UniValue BIP9SoftForkDesc(const Consensus::Params& consensusParams, Conse
     UniValue rv(UniValue::VOBJ);
     const ThresholdState thresholdState = VersionBitsTipState(consensusParams, id);
     switch (thresholdState) {
-    case THRESHOLD_DEFINED: rv.push_back(Pair("status", "defined")); break;
-    case THRESHOLD_STARTED: rv.push_back(Pair("status", "started")); break;
-    case THRESHOLD_LOCKED_IN: rv.push_back(Pair("status", "locked_in")); break;
-    case THRESHOLD_ACTIVE: rv.push_back(Pair("status", "active")); break;
-    case THRESHOLD_FAILED: rv.push_back(Pair("status", "failed")); break;
+    case THRESHOLD_DEFINED:
+        rv.push_back(Pair("status", "defined"));
+        break;
+    case THRESHOLD_STARTED:
+        rv.push_back(Pair("status", "started"));
+        break;
+    case THRESHOLD_LOCKED_IN:
+        rv.push_back(Pair("status", "locked_in"));
+        break;
+    case THRESHOLD_ACTIVE:
+        rv.push_back(Pair("status", "active"));
+        break;
+    case THRESHOLD_FAILED:
+        rv.push_back(Pair("status", "failed"));
+        break;
     }
-    if (THRESHOLD_STARTED == thresholdState)
-    {
+    if (THRESHOLD_STARTED == thresholdState) {
         rv.push_back(Pair("bit", consensusParams.vDeployments[id].bit));
     }
     rv.push_back(Pair("startTime", consensusParams.vDeployments[id].nStartTime));
@@ -866,7 +832,7 @@ static UniValue BIP9SoftForkDesc(const Consensus::Params& consensusParams, Conse
     return rv;
 }
 
-void BIP9SoftForkDescPushBack(UniValue& bip9_softforks, const std::string &name, const Consensus::Params& consensusParams, Consensus::DeploymentPos id)
+void BIP9SoftForkDescPushBack(UniValue& bip9_softforks, const std::string& name, const Consensus::Params& consensusParams, Consensus::DeploymentPos id)
 {
     // Deployments with timeout value of 0 are hidden.
     // A timeout value of 0 guarantees a softfork will never be activated.
@@ -911,23 +877,21 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
             "     }\n"
             "  }\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblockchaininfo", "")
-            + HelpExampleRpc("getblockchaininfo", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getblockchaininfo", "") + HelpExampleRpc("getblockchaininfo", ""));
 
     LOCK(cs_main);
 
     UniValue obj(UniValue::VOBJ);
-    obj.push_back(Pair("chain",                 Params().NetworkIDString()));
-    obj.push_back(Pair("blocks",                (int)chainActive.Height()));
-    obj.push_back(Pair("headers",               pindexBestHeader ? pindexBestHeader->nHeight : -1));
-    obj.push_back(Pair("bestblockhash",         chainActive.Tip()->GetBlockHash().GetHex()));
-    obj.push_back(Pair("difficulty",            (double)GetDifficulty()));
-    obj.push_back(Pair("mediantime",            (int64_t)chainActive.Tip()->GetMedianTimePast()));
-    obj.push_back(Pair("verificationprogress",  Checkpoints::GuessVerificationProgress(Params().Checkpoints(), chainActive.Tip())));
-    obj.push_back(Pair("chainwork",             chainActive.Tip()->nChainWork.GetHex()));
-    obj.push_back(Pair("pruned",                fPruneMode));
+    obj.push_back(Pair("chain", Params().NetworkIDString()));
+    obj.push_back(Pair("blocks", (int)chainActive.Height()));
+    obj.push_back(Pair("headers", pindexBestHeader ? pindexBestHeader->nHeight : -1));
+    obj.push_back(Pair("bestblockhash", chainActive.Tip()->GetBlockHash().GetHex()));
+    obj.push_back(Pair("difficulty", (double)GetDifficulty()));
+    obj.push_back(Pair("mediantime", (int64_t)chainActive.Tip()->GetMedianTimePast()));
+    obj.push_back(Pair("verificationprogress", Checkpoints::GuessVerificationProgress(Params().Checkpoints(), chainActive.Tip())));
+    obj.push_back(Pair("chainwork", chainActive.Tip()->nChainWork.GetHex()));
+    obj.push_back(Pair("pruned", fPruneMode));
 
     const Consensus::Params& consensusParams = Params().GetConsensus();
     CBlockIndex* tip = chainActive.Tip();
@@ -938,30 +902,28 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
     softforks.push_back(SoftForkDesc("bip65", 4, tip, consensusParams));
     BIP9SoftForkDescPushBack(bip9_softforks, "csv", consensusParams, Consensus::DEPLOYMENT_CSV);
     BIP9SoftForkDescPushBack(bip9_softforks, "segwit", consensusParams, Consensus::DEPLOYMENT_SEGWIT);
-    obj.push_back(Pair("softforks",             softforks));
+    obj.push_back(Pair("softforks", softforks));
     obj.push_back(Pair("bip9_softforks", bip9_softforks));
 
-    if (fPruneMode)
-    {
-        CBlockIndex *block = chainActive.Tip();
+    if (fPruneMode) {
+        CBlockIndex* block = chainActive.Tip();
         while (block && block->pprev && (block->pprev->nStatus & BLOCK_HAVE_DATA))
             block = block->pprev;
 
-        obj.push_back(Pair("pruneheight",        block->nHeight));
+        obj.push_back(Pair("pruneheight", block->nHeight));
     }
     return obj;
 }
 
 /** Comparison function for sorting the getchaintips heads.  */
-struct CompareBlocksByHeight
-{
+struct CompareBlocksByHeight {
     bool operator()(const CBlockIndex* a, const CBlockIndex* b) const
     {
         /* Make sure that unequal blocks with the same height do not compare
            equal. Use the pointers themselves to make a distinction. */
 
         if (a->nHeight != b->nHeight)
-          return (a->nHeight > b->nHeight);
+            return (a->nHeight > b->nHeight);
 
         return a < b;
     }
@@ -995,15 +957,13 @@ UniValue getchaintips(const UniValue& params, bool fHelp)
             "3.  \"valid-headers\"         All blocks are available for this branch, but they were never fully validated\n"
             "4.  \"valid-fork\"            This branch is not part of the active chain, but is fully validated\n"
             "5.  \"active\"                This is the tip of the active main chain, which is certainly valid\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getchaintips", "")
-            + HelpExampleRpc("getchaintips", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getchaintips", "") + HelpExampleRpc("getchaintips", ""));
 
     LOCK(cs_main);
 
     /*
-     * Idea:  the set of chain tips is chainActive.tip, plus orphan blocks which do not have another orphan building off of them. 
+     * Idea:  the set of chain tips is chainActive.tip, plus orphan blocks which do not have another orphan building off of them.
      * Algorithm:
      *  - Make one pass through mapBlockIndex, picking out the orphan blocks, and also storing a set of the orphan block's pprev pointers.
      *  - Iterate through the orphan blocks. If the block isn't pointed to by another orphan, it is a chain tip.
@@ -1013,16 +973,14 @@ UniValue getchaintips(const UniValue& params, bool fHelp)
     std::set<const CBlockIndex*> setOrphans;
     std::set<const CBlockIndex*> setPrevs;
 
-    BOOST_FOREACH(const PAIRTYPE(const uint256, CBlockIndex*)& item, mapBlockIndex)
-    {
+    BOOST_FOREACH (const PAIRTYPE(const uint256, CBlockIndex*) & item, mapBlockIndex) {
         if (!chainActive.Contains(item.second)) {
             setOrphans.insert(item.second);
             setPrevs.insert(item.second->pprev);
         }
     }
 
-    for (std::set<const CBlockIndex*>::iterator it = setOrphans.begin(); it != setOrphans.end(); ++it)
-    {
+    for (std::set<const CBlockIndex*>::iterator it = setOrphans.begin(); it != setOrphans.end(); ++it) {
         if (setPrevs.erase(*it) == 0) {
             setTips.insert(*it);
         }
@@ -1033,8 +991,7 @@ UniValue getchaintips(const UniValue& params, bool fHelp)
 
     /* Construct the output array.  */
     UniValue res(UniValue::VARR);
-    BOOST_FOREACH(const CBlockIndex* block, setTips)
-    {
+    BOOST_FOREACH (const CBlockIndex* block, setTips) {
         UniValue obj(UniValue::VOBJ);
         obj.push_back(Pair("height", block->nHeight));
         obj.push_back(Pair("hash", block->phashBlock->GetHex()));
@@ -1073,11 +1030,11 @@ UniValue getchaintips(const UniValue& params, bool fHelp)
 UniValue mempoolInfoToJSON()
 {
     UniValue ret(UniValue::VOBJ);
-    ret.push_back(Pair("size", (int64_t) mempool.size()));
-    ret.push_back(Pair("bytes", (int64_t) mempool.GetTotalTxSize()));
-    ret.push_back(Pair("usage", (int64_t) mempool.DynamicMemoryUsage()));
+    ret.push_back(Pair("size", (int64_t)mempool.size()));
+    ret.push_back(Pair("bytes", (int64_t)mempool.GetTotalTxSize()));
+    ret.push_back(Pair("usage", (int64_t)mempool.DynamicMemoryUsage()));
     size_t maxmempool = GetArg("-maxmempool", DEFAULT_MAX_MEMPOOL_SIZE) * 1000000;
-    ret.push_back(Pair("maxmempool", (int64_t) maxmempool));
+    ret.push_back(Pair("maxmempool", (int64_t)maxmempool));
     ret.push_back(Pair("mempoolminfee", ValueFromAmount(mempool.GetMinFee(maxmempool).GetFeePerK())));
 
     return ret;
@@ -1097,10 +1054,8 @@ UniValue getmempoolinfo(const UniValue& params, bool fHelp)
             "  \"maxmempool\": xxxxx,         (numeric) Maximum memory usage for the mempool\n"
             "  \"mempoolminfee\": xxxxx       (numeric) Minimum fee for tx to be accepted\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getmempoolinfo", "")
-            + HelpExampleRpc("getmempoolinfo", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getmempoolinfo", "") + HelpExampleRpc("getmempoolinfo", ""));
 
     return mempoolInfoToJSON();
 }
@@ -1114,10 +1069,8 @@ UniValue invalidateblock(const UniValue& params, bool fHelp)
             "\nArguments:\n"
             "1. hash   (string, required) the hash of the block to mark as invalid\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("invalidateblock", "\"blockhash\"")
-            + HelpExampleRpc("invalidateblock", "\"blockhash\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("invalidateblock", "\"blockhash\"") + HelpExampleRpc("invalidateblock", "\"blockhash\""));
 
     std::string strHash = params[0].get_str();
     uint256 hash(uint256S(strHash));
@@ -1153,10 +1106,8 @@ UniValue reconsiderblock(const UniValue& params, bool fHelp)
             "\nArguments:\n"
             "1. hash   (string, required) the hash of the block to reconsider\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("reconsiderblock", "\"blockhash\"")
-            + HelpExampleRpc("reconsiderblock", "\"blockhash\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("reconsiderblock", "\"blockhash\"") + HelpExampleRpc("reconsiderblock", "\"blockhash\""));
 
     std::string strHash = params[0].get_str();
     uint256 hash(uint256S(strHash));
@@ -1181,31 +1132,32 @@ UniValue reconsiderblock(const UniValue& params, bool fHelp)
 }
 
 static const CRPCCommand commands[] =
-{ //  category              name                      actor (function)         okSafeMode
-  //  --------------------- ------------------------  -----------------------  ----------
-    { "blockchain",         "getblockchaininfo",      &getblockchaininfo,      true  },
-    { "blockchain",         "getbestblockhash",       &getbestblockhash,       true  },
-    { "blockchain",         "getblockcount",          &getblockcount,          true  },
-    { "blockchain",         "getblock",               &getblock,               true  },
-    { "blockchain",         "getblockhash",           &getblockhash,           true  },
-    { "blockchain",         "getblockheader",         &getblockheader,         true  },
-    { "blockchain",         "getchaintips",           &getchaintips,           true  },
-    { "blockchain",         "getdifficulty",          &getdifficulty,          true  },
-    { "blockchain",         "getmempoolancestors",    &getmempoolancestors,    true  },
-    { "blockchain",         "getmempooldescendants",  &getmempooldescendants,  true  },
-    { "blockchain",         "getmempoolentry",        &getmempoolentry,        true  },
-    { "blockchain",         "getmempoolinfo",         &getmempoolinfo,         true  },
-    { "blockchain",         "getrawmempool",          &getrawmempool,          true  },
-    { "blockchain",         "gettxout",               &gettxout,               true  },
-    { "blockchain",         "gettxoutsetinfo",        &gettxoutsetinfo,        true  },
-    { "blockchain",         "verifychain",            &verifychain,            true  },
+    {
+        //  category              name                      actor (function)         okSafeMode
+        //  --------------------- ------------------------  -----------------------  ----------
+        {"blockchain", "getblockchaininfo", &getblockchaininfo, true},
+        {"blockchain", "getbestblockhash", &getbestblockhash, true},
+        {"blockchain", "getblockcount", &getblockcount, true},
+        {"blockchain", "getblock", &getblock, true},
+        {"blockchain", "getblockhash", &getblockhash, true},
+        {"blockchain", "getblockheader", &getblockheader, true},
+        {"blockchain", "getchaintips", &getchaintips, true},
+        {"blockchain", "getdifficulty", &getdifficulty, true},
+        {"blockchain", "getmempoolancestors", &getmempoolancestors, true},
+        {"blockchain", "getmempooldescendants", &getmempooldescendants, true},
+        {"blockchain", "getmempoolentry", &getmempoolentry, true},
+        {"blockchain", "getmempoolinfo", &getmempoolinfo, true},
+        {"blockchain", "getrawmempool", &getrawmempool, true},
+        {"blockchain", "gettxout", &gettxout, true},
+        {"blockchain", "gettxoutsetinfo", &gettxoutsetinfo, true},
+        {"blockchain", "verifychain", &verifychain, true},
 
-    /* Not shown in help */
-    { "hidden",             "invalidateblock",        &invalidateblock,        true  },
-    { "hidden",             "reconsiderblock",        &reconsiderblock,        true  },
+        /* Not shown in help */
+        {"hidden", "invalidateblock", &invalidateblock, true},
+        {"hidden", "reconsiderblock", &reconsiderblock, true},
 };
 
-void RegisterBlockchainRPCCommands(CRPCTable &t)
+void RegisterBlockchainRPCCommands(CRPCTable& t)
 {
     for (unsigned int vcidx = 0; vcidx < ARRAYLEN(commands); vcidx++)
         t.appendCommand(commands[vcidx].name, &commands[vcidx]);
