@@ -24,6 +24,7 @@ public:
     // header
     int32_t nVersion;
     uint256 hashPrevBlock;
+    uint256 hashPrevEpisode;
     uint256 hashMerkleRoot;
     uint256 hashFruits;
     uint32_t nTime;
@@ -43,6 +44,7 @@ public:
     {
         READWRITE(this->nVersion);
         READWRITE(hashPrevBlock);
+        READWRITE(hashPrevEpisode);
         READWRITE(hashMerkleRoot);
         READWRITE(hashFruits);
         READWRITE(nTime);
@@ -55,6 +57,7 @@ public:
     {
         nVersion = 0;
         hashPrevBlock.SetNull();
+        hashPrevEpisode.SetNull();
         hashMerkleRoot.SetNull();
         hashFruits.SetNull();
         nTime = 0;
@@ -121,6 +124,7 @@ public:
         CBlockHeader block;
         block.nVersion = nVersion;
         block.hashPrevBlock = hashPrevBlock;
+        block.hashPrevEpisode = hashPrevEpisode;
         block.hashMerkleRoot = hashMerkleRoot;
         block.hashFruits = hashFruits;
         block.nTime = nTime;
