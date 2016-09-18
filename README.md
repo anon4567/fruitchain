@@ -3,7 +3,7 @@
 1. [**DONE**] How to handle transaction that use generation reward in memorypool [Note: All tx in mempool must have valid input and spendcoinbase only used in removeForReorg.]
 2. [**DONE**] Fruit release parallelization. [Note: First put it into a map and SendMessage() will handle this.]
 3. [**DONE**] AcceptToFruitMemoryPool
-4. remove and add functions of FrtMemPool
+4. [**DONE**] remove and add functions of FrtMemPool
 
 ## Siqiu ##
 1. [**DONE**] Fruit contextual check 
