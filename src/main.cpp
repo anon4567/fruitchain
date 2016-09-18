@@ -3577,6 +3577,9 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         block.fChecked = true;
 
     // Check fruits
+    if (block.GetFruitsHash() != block.hashFruits) {
+        //TODO: error
+    }
     std::set<uint256> setFruits;
     for (const auto& frt : block.vfrt) {
         if (!CheckFruit(frt, state, consensusParams, fCheckPOW)) {

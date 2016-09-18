@@ -134,6 +134,15 @@ public:
         return block;
     }
 
+    uint256 GetFruitsHash()
+    {
+        uint256 hash = uint256();
+        for (std::vector<uint256>::const_iterator it = vfrt.begin(); it != vfrt.end(); ++it) {
+            hash = Hash(BEGIN(hash), END(hash), BEGIN(*it), END(*it));
+        }
+        return hash;
+    }
+
     std::string ToString() const;
 };
 
