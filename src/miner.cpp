@@ -192,6 +192,7 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
     // Fill in header
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
     UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
+    pblock->hashPrevEpisode = globalHashPrevEpisode;
     pblock->hashFruits = pblock->GetFruitsHash();
     pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
     pblock->nNonce = 0;

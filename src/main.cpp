@@ -2216,7 +2216,7 @@ void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     for (unsigned int i = 0; i < fruit_creator.size(); ++i) {
         nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i]));
     }
-    //TODO: test rewards
+    //TODO: rest rewards
     fruit_tx.push_back(nTx);
 }
 
@@ -2307,6 +2307,16 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
             outs->Clear();
         }
     }
+
+    // Update globalHashPrevEpisode
+    CBlockIndex* nblockindex = pindex->pprev;
+    if (IsEndOfEpisode(nblockindex)) {
+        nblockindex = nblockindex->pprev;
+        while (!IsEndOfEpisode(nblockindex))
+            nblockindex = nblockindex->pprev;
+        globalHashPrevEpisode = nblockindex->GetBlockHash();
+    }
+    //-------------------------------------------------------
 
     // Update frtmempool and frtmempool_used
     for (const auto& frt : pblock.vfrt) {
@@ -2673,6 +2683,12 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         LogPrint("mempool", "Erased %d orphan tx included or conflicted by block\n", nErased);
     }
 
+    // Update globalHashPrevEpisode
+    CBlockIndex* nblockindex = pindex->pprev;
+    if (IsEndOfEpisode(nblockindex)) {
+        globalHashPrevEpisode = nblockindex->GetBlockHash();
+    }
+    //-------------------------------------------------------
 
     // Update frtmempool and frtmempool_used
     for (const auto& frt : pblock.vfrt) {
