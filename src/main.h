@@ -547,6 +547,7 @@ static const unsigned int REJECT_INTERNAL = 0x100;
 /** Too high fee. Can not be triggered by P2P transactions */
 static const unsigned int REJECT_HIGHFEE = 0x100;
 /** Transaction is already known (either in mempool or blockchain) */
+/** verFruit Fruit is already known (either in frtmempool or current window) */
 static const unsigned int REJECT_ALREADY_KNOWN = 0x101;
 /** Transaction conflicts with a transaction already known */
 static const unsigned int REJECT_CONFLICT = 0x102;

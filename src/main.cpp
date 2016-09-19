@@ -1104,8 +1104,7 @@ bool CheckFruit(const CFruit& fruit, CValidationState& state, const Consensus::P
 {
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(fruit.GetHash(), fruit.nBits - BITS_FRUIT_LESS_THAN_BLOCK, consensusParams)) {
-        //return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
-        // TODO: error
+        return state.DoS(50, false, REJECT_INVALID, "fruit-high-hash", false, "fruit proof of work failed");
     }
 
     return true;
@@ -1588,20 +1587,18 @@ bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const C
 
     // is it already in the memory pool?
     if (pool.exists(hash)) {
-        // TODO: error
-        //  return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-in-mempool");
+        return state.Invalid(false, REJECT_ALREADY_KNOWN, "frt-already-in-frtmempool");
     }
 
     // 1. check if its hist_header is correspond previous blocks
     if (frt.hashPrevEpisode != hashPrevEpisode) {
-        //TODO: error
-        //  return state.Invalid(false, REJECT_ALREADY_KNOWN, "frt-already-in-frtmempool_used");
+        //This can be sent to P2P network
+        return state.Invalid(false, REJECT_INVALID, "bad-frt-hashPrevEpisode");
     }
 
     // 2. check if exists in previous blocks
     if (frtmempool_used.exists(hash)) {
-        //TODO: error
-        //  return state.Invalid(false, REJECT_ALREADY_KNOWN, "frt-already-in-frtmempool_used");
+        return state.Invalid(false, REJECT_ALREADY_KNOWN, "frt-already-in-frtmempool_used");
     }
 
     {
@@ -1616,7 +1613,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const C
         if (!fOverrideMempoolLimit) {
             LimitFrtMempoolSize(pool, GetArg("-maxfrtmempool", DEFAULT_MAX_FRTMEMPOOL_SIZE) * 1000000, GetArg("-frtmempoolexpiry", DEFAULT_FRTMEMPOOL_EXPIRY) * 60 * 60); //TODO: command and function
             if (!pool.exists(hash))
-                return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "frtmempool full");
+                return state.DoS(0, false, REJECT_INSUFFICIENTFRTMEM, "frtmempool full");
         }
     }
 
@@ -5749,6 +5746,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 int nDoS = 0;
                 if (!state.IsInvalid(nDoS) || nDoS == 0) {
                     LogPrintf("Force relaying fruit %s from whitelisted peer=%d\n", frt.GetHash().ToString(), pfrom->id);
+                    //Note: The only case that can't be relayed is that fruit has a bad proof-of-work.
                     RelayFruit(frt);
                 } else {
                     LogPrintf("Not relaying invalid fruit %s from whitelisted peer=%d (%s)\n", frt.GetHash().ToString(), pfrom->id, FormatStateMessage(state));
@@ -6309,7 +6307,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
                 ostringstream ss;
                 ss << strMsg << " code " << itostr(ccode) << ": " << strReason;
-
+                //verFruit
                 if (strMsg == NetMsgType::BLOCK || strMsg == NetMsgType::TX || strMsg == NetMsgType::FRUIT)
                 {
                     uint256 hash;
