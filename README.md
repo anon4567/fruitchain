@@ -4,6 +4,7 @@
 2. [**DONE**] Fruit release parallelization. [Note: First put it into a map and SendMessage() will handle this.]
 3. [**DONE**] AcceptToFruitMemoryPool
 4. [**DONE**] remove and add functions of FrtMemPool
+5. Error massage
 
 ## Siqiu ##
 1. [**DONE**] Fruit contextual check 
@@ -11,9 +12,8 @@
 3. [**DONE**] Update of block when mining
 4. [**DONE**] Block structure related code
 5. Genesis block
-6. Error massage
-7. [**DONE**] Add attribute first(for now) block hash of previous window to block structure, maintain this hash and change function CheckFruit
-8. [**DONE**] Fruit hash function and check
+6. [**DONE**] Add attribute first(for now) block hash of previous window to block structure, maintain this hash and change function CheckFruit
+7. [**DONE**] Fruit hash function and check
 
 
 Bitcoin Core integration/staging tree
