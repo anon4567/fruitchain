@@ -2220,6 +2220,12 @@ void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     fruit_tx.push_back(nTx);
 }
 
+bool IsEndOfEpisode(CBlockIndex* pindex)
+{
+    // genesis block not included
+    return pindex->nHeight % FRUIT_PERIOD_LENGTH == 0;
+}
+
 bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, bool* pfClean)
 {
     assert(pindex->GetBlockHash() == view.GetBestBlock());
@@ -2279,7 +2285,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
 
     //Undo episode reward tx
     std::vector<CTransaction> fruit_tx;
-    if (IsEndOfEpisode(pindex)) { //pindex->nHeight + 1 % FRUIT_PERIOD_LENGTH == 0) {  TODO: IsEndOfEpisode function
+    if (IsEndOfEpisode(pindex)) {
         CalculateRewardDistribution(fruit_tx, block, pindex, view);
     }
 
@@ -2524,7 +2530,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "    - Fork checks: %.2fms [%.2fs]\n", 0.001 * (nTime2 - nTime1), nTimeForks * 0.000001);
 
     std::vector<CTransaction> fruit_tx;
-    if (IsEndOfEpisode(pindex)) { //pindex->nHeight + 1 % FRUIT_PERIOD_LENGTH == 0) {  TODO: IsEndOfEpisode function
+    if (IsEndOfEpisode(pindex)) {
         CalculateRewardDistribution(fruit_tx, block, pindex, view);
     }
     //------------------------------------------------------
