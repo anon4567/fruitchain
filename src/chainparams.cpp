@@ -32,8 +32,10 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
     genesis.nNonce = nNonce;
     genesis.nVersion = nVersion;
     genesis.vtx.push_back(txNew);
+    genesis.hashPrevEpisode.SetNull();
     genesis.hashPrevBlock.SetNull();
     genesis.hashMerkleRoot = BlockMerkleRoot(genesis);
+    genesis.hashFruits = genesis.GetFruitsHash();
     return genesis;
 }
 

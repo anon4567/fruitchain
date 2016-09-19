@@ -6,6 +6,7 @@
 #ifndef BITCOIN_MINER_H
 #define BITCOIN_MINER_H
 
+#include "frtmempool.h"
 #include "primitives/block.h"
 #include "txmempool.h"
 
@@ -145,9 +146,11 @@ private:
     uint64_t nBlockWeight;
     uint64_t nBlockSize;
     uint64_t nBlockTx;
+    uint64_t nBlockFrt;
     uint64_t nBlockSigOpsCost;
     CAmount nFees;
     CTxMemPool::setEntries inBlock;
+    CFrtMemPool::setEntries fruitInBlock;
 
     // Chain context for the block
     int nHeight;
@@ -156,6 +159,7 @@ private:
 
     // Variables used for addPriorityTxs
     int lastFewTxs;
+    int lastFewFrts;
     bool blockFinished;
 
 public:
@@ -175,6 +179,16 @@ private:
     void addPriorityTxs();
     /** Add transactions based on feerate including unconfirmed ancestors */
     void addPackageTxs();
+
+    /** Add a fruit to the block */
+    void AddToBlock(CFrtMemPool::frtiter iter);
+
+    /** Add fruits */
+    void addFrts();
+
+    //helper function for addFrts
+    /* Test if frt will still "fit" in the block */
+    bool TestForBlock(CFrtMemPool::frtiter iter);
 
     // helper function for addPriorityTxs
     /** Test if tx will still "fit" in the block */

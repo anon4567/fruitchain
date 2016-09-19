@@ -7,6 +7,7 @@
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
 #include "primitives/transaction.h"
+#include "script/script.h"
 #include "serialize.h"
 #include "uint256.h"
 
@@ -23,11 +24,13 @@ public:
     // header
     int32_t nVersion;
     uint256 hashPrevBlock;
+    uint256 hashPrevEpisode;
     uint256 hashMerkleRoot;
     uint256 hashFruits;
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
+    CScript scriptPubKey; //pubkey of creator
 
     CBlockHeader()
     {
@@ -41,22 +44,26 @@ public:
     {
         READWRITE(this->nVersion);
         READWRITE(hashPrevBlock);
+        READWRITE(hashPrevEpisode);
         READWRITE(hashMerkleRoot);
         READWRITE(hashFruits);
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        READWRITE(*(CScriptBase*)(&scriptPubKey));
     }
 
     void SetNull()
     {
         nVersion = 0;
         hashPrevBlock.SetNull();
+        hashPrevEpisode.SetNull();
         hashMerkleRoot.SetNull();
         hashFruits.SetNull();
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+        scriptPubKey.clear();
     }
 
     bool IsNull() const
@@ -117,12 +124,23 @@ public:
         CBlockHeader block;
         block.nVersion = nVersion;
         block.hashPrevBlock = hashPrevBlock;
+        block.hashPrevEpisode = hashPrevEpisode;
         block.hashMerkleRoot = hashMerkleRoot;
         block.hashFruits = hashFruits;
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
+        block.scriptPubKey = scriptPubKey;
         return block;
+    }
+
+    uint256 GetFruitsHash()
+    {
+        uint256 hash = uint256();
+        for (std::vector<uint256>::const_iterator it = vfrt.begin(); it != vfrt.end(); ++it) {
+            hash = Hash(BEGIN(hash), END(hash), BEGIN(*it), END(*it));
+        }
+        return hash;
     }
 
     std::string ToString() const;

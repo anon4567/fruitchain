@@ -44,6 +44,7 @@ using namespace std;
 // transactions that depend on transactions that aren't yet in the block.
 
 uint64_t nLastBlockTx = 0;
+uint64_t nLastBlockFrt = 0;
 uint64_t nLastBlockSize = 0;
 uint64_t nLastBlockWeight = 0;
 
@@ -106,6 +107,7 @@ BlockAssembler::BlockAssembler(const CChainParams& _chainparams)
 void BlockAssembler::resetBlock()
 {
     inBlock.clear();
+    fruitInBlock.clear();
 
     // Reserve space for coinbase tx
     nBlockSize = 1000;
@@ -115,9 +117,11 @@ void BlockAssembler::resetBlock()
 
     // These counters do not include coinbase tx
     nBlockTx = 0;
+    nBlockFrt = 0;
     nFees = 0;
 
     lastFewTxs = 0;
+    lastFewFrts = 0;
     blockFinished = false;
 }
 
@@ -130,6 +134,9 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
     if (!pblocktemplate.get())
         return NULL;
     pblock = &pblocktemplate->block; // pointer for convenience
+
+    // Set block creator
+    pblock->scriptPubKey = scriptPubKeyIn;
 
     // Add dummy coinbase tx as first transaction
     pblock->vtx.push_back(CTransaction());
@@ -179,9 +186,14 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
     pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());
     pblocktemplate->vTxFees[0] = -nFees;
 
+    // Add fruits
+    addFrts();
+
     // Fill in header
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
     UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
+    pblock->hashPrevEpisode = globalHashPrevEpisode;
+    pblock->hashFruits = pblock->GetFruitsHash();
     pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
     pblock->nNonce = 0;
     pblocktemplate->vTxSigOpsCost[0] = WITNESS_SCALE_FACTOR * GetLegacySigOpCount(pblock->vtx[0]);
@@ -302,6 +314,41 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter iter)
     return true;
 }
 
+
+bool BlockAssembler::TestForBlock(CFrtMemPool::frtiter iter)
+{
+    if (nBlockWeight + iter->GetFrtWeight() >= nBlockMaxWeight) {
+        // If the block is so close to full that no more txs will fit
+        // or if we've tried more than 50 times to fill remaining space
+        // then flag that the block is finished
+        if (nBlockWeight > nBlockMaxWeight - 400 || lastFewFrts > 50) {
+            fruitBlockFinished = true;
+            return false;
+        }
+        // Once we're within 4000 weight of a full block, only look at 50 more txs
+        // to try to fill the remaining space.
+        if (nBlockWeight > nBlockMaxWeight - 4000) {
+            lastFewFrts++;
+        }
+        return false;
+    }
+
+    if (fNeedSizeAccounting) {
+        if (nBlockSize + ::GetSerializeSize(iter->GetFrt(), SER_NETWORK, PROTOCOL_VERSION) >= nBlockMaxSize) {
+            if (nBlockSize > nBlockMaxSize - 100 || lastFewFrts > 50) {
+                fruitBlockFinished = true;
+                return false;
+            }
+            if (nBlockSize > nBlockMaxSize - 1000) {
+                lastFewFrts++;
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void BlockAssembler::AddToBlock(CTxMemPool::txiter iter)
 {
     pblock->vtx.push_back(iter->GetTx());
@@ -326,6 +373,18 @@ void BlockAssembler::AddToBlock(CTxMemPool::txiter iter)
             CFeeRate(iter->GetModifiedFee(), iter->GetTxSize()).ToString(),
             iter->GetTx().GetHash().ToString());
     }
+}
+
+
+void BlockAssembler::AddToBlock(CFrtMemPool::frtiter iter)
+{
+    pblock->vfrt.push_back(iter->GetFrt());
+    if (fNeedSizeAccounting) {
+        nBlockSize += ::GetSerializeSize(iter->GetFrt(), SER_NETWORK, PROTOCOL_VERSION);
+    }
+    nBlockWeight += iter->GetFrtWeight();
+    ++nBlockFrt;
+    fruitInBlock.insert(iter);
 }
 
 void BlockAssembler::UpdatePackagesForAdded(const CTxMemPool::setEntries& alreadyAdded,
@@ -574,6 +633,32 @@ void BlockAssembler::addPriorityTxs()
                     waitPriMap.erase(wpiter);
                 }
             }
+        }
+    }
+    fNeedSizeAccounting = fSizeAccounting;
+}
+
+
+void BlockAssembler::addFrts()
+{
+    bool fSizeAccounting = fNeedSizeAccounting;
+    fNeedSizeAccounting = true;
+
+    // This vector will be sorted into a priority queue:
+
+    for (CFrtMemPool::indexed_fruit_set::iterator mi = frtmempool.mapFrt.begin();
+         mi != frtmempool.mapFrt.end(); ++mi) {
+        //CAmount dummy;
+        //mempool.ApplyDeltas(mi->GetTx().GetHash(), dPriority, dummy);
+
+        // If fruit already in block, skip
+        if (fruitInBlock.count(mi)) { //TODO 1
+            assert(false);
+            continue;
+        }
+
+        if (TestForBlock(mi)) {
+            AddToBlock(mi);
         }
     }
     fNeedSizeAccounting = fSizeAccounting;

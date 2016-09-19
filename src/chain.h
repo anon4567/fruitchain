@@ -277,10 +277,13 @@ public:
         block.nVersion = nVersion;
         if (pprev)
             block.hashPrevBlock = pprev->GetBlockHash();
+        block.hashPrevEpisode = hashPrevEpisode;
         block.hashMerkleRoot = hashMerkleRoot;
+        block.hashFruits = hashFruits;
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
+        block.scriptPubKey = scriptPubKey;
         return block;
     }
 
@@ -389,11 +392,14 @@ public:
 
         // block header
         READWRITE(this->nVersion);
-        READWRITE(hashPrev);
+        READWRITE(hashPrevBlock);
+        READWRITE(hashPrevEpisode);
         READWRITE(hashMerkleRoot);
+        READWRITE(hashFruits);
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        READWRITE(*(CScriptBase*)(&scriptPubKey));
     }
 
     uint256 GetBlockHash() const
@@ -401,10 +407,13 @@ public:
         CBlockHeader block;
         block.nVersion = nVersion;
         block.hashPrevBlock = hashPrev;
+        block.hashPrevEpisode = hashPrevEpisode;
         block.hashMerkleRoot = hashMerkleRoot;
+        block.hashFruits = hashFruits;
         block.nTime = nTime;
         block.nBits = nBits;
         block.nNonce = nNonce;
+        block.scriptPubKey = scriptPubKey;
         return block.GetHash();
     }
 
