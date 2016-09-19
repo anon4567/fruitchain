@@ -5,10 +5,10 @@
 
 #include "primitives/block.h"
 
+#include "crypto/common.h"
 #include "hash.h"
 #include "tinyformat.h"
 #include "utilstrencodings.h"
-#include "crypto/common.h"
 
 uint256 CBlockHeader::GetHash() const
 {
@@ -27,12 +27,10 @@ std::string CBlock::ToString() const
         nTime, nBits, nNonce,
         vtx.size(),
         vfrt.size());
-    for (unsigned int i = 0; i < vtx.size(); i++)
-    {
+    for (unsigned int i = 0; i < vtx.size(); i++) {
         s << "  " << vtx[i].ToString() << "\n";
     }
-    for (unsigned int i = 0; i < vfrt.size(); ++i)
-    {
+    for (unsigned int i = 0; i < vfrt.size(); ++i) {
         s << "  " << vfrt[i].ToString() << "\n";
     }
     return s.str();
