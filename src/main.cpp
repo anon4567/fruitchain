@@ -1592,9 +1592,11 @@ bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const C
         //  return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-in-mempool");
     }
 
-    // TODO:
     // 1. check if its hist_header is correspond previous blocks
-    
+    if (frt.hashPrevEpisode != hashPrevEpisode) {
+        //TODO: error
+        //  return state.Invalid(false, REJECT_ALREADY_KNOWN, "frt-already-in-frtmempool_used");
+    }
 
     // 2. check if exists in previous blocks
     if (frtmempool_used.exists(hash)) {

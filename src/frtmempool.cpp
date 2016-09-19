@@ -1099,7 +1099,7 @@ void CFrtMemPool::TrimToSize(size_t sizelimit/*, std::vector<uint256>* pvNoSpend
 
     unsigned nFrtnRemoved = 0;
 //    CFeeRate maxFeeRateRemoved(0);
-    while (!mapFrt.empty() && DynamicMemoryUsage() > sizelimit) {  //TODO: sizelimit need to be decided
+    while (!mapFrt.empty() && DynamicMemoryUsage() > sizelimit) {  
 //        indexed_fruit_set::index<descendant_score>::type::iterator it = mapTx.get<descendant_score>().begin();
           indexed_fruit_set::index<entry_time_fruit>::type::iterator it = mapFrt.get<entry_time_fruit>().begin();// TODO: Currently using entry_time
 
