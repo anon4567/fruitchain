@@ -12,7 +12,7 @@
 4. [**DONE**] Block structure related code
 5. Genesis block
 6. Error massage
-7. Add attribute first(for now) block hash of previous window to block structure, maintain this hash and change function CheckFruit
+7. [**DONE**] Add attribute first(for now) block hash of previous window to block structure, maintain this hash and change function CheckFruit
 8. [**DONE**] Fruit hash function and check
 
 
