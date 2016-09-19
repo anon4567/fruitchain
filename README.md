@@ -11,10 +11,13 @@
 2. [**DONE**] Maintaining frtmempool in connection and disconnection
 3. [**DONE**] Update of block when mining
 4. [**DONE**] Block structure related code
-5. Genesis block
+5. [**DONE**] Genesis block
 6. [**DONE**] Add attribute first(for now) block hash of previous window to block structure, maintain this hash and change function CheckFruit
 7. [**DONE**] Fruit hash function and check
 
+## TODO after first demo ##
+1. Completely remove generation transactions from block
+2. Variant reward distribution
 
 Bitcoin Core integration/staging tree
 =====================================
