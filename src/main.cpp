@@ -14,6 +14,7 @@
 #include "consensus/consensus.h"
 #include "consensus/merkle.h"
 #include "consensus/validation.h"
+#include "frtmempool.h"
 #include "hash.h"
 #include "init.h"
 #include "merkleblock.h"
@@ -86,6 +87,7 @@ CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
 CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 
 CTxMemPool mempool(::minRelayTxFee);
+CFrtMempool frtmempool();
 FeeFilterRounder filterRounder(::minRelayTxFee);
 
 struct IteratorComparator {
@@ -201,6 +203,7 @@ map<uint256, NodeId> mapBlockSource;
      *
      * Memory used: 1.3 MB
      */
+<<<<<<< HEAD
 std::unique_ptr<CRollingBloomFilter> recentRejects;
 uint256 hashRecentRejectsChainTip;
 
@@ -233,6 +236,13 @@ typedef std::map<uint256, std::shared_ptr<const CTransaction> > MapRelay;
 MapRelay mapRelay;
 /** Expiration-time ordered list of (expire time, relay map entry) pairs, protected by cs_main). */
 std::deque<std::pair<int64_t, MapRelay::iterator> > vRelayExpiration;
+
+/** Relay map, protected by cs_main. verFruit */
+typedef std::map<uint256, std::shared_ptr<const CFruit>> FrtMapRelay;
+FrtMapRelay mapFrtRelay;
+
+/** Expiration-time ordered list of (expire time, relay map entry) pairs, protected by cs_main). verFruit */
+std::deque<std::pair<int64_t, FrtMapRelay::iterator>> vFrtRelayExpiration;
 } // anon namespace
 
 //////////////////////////////////////////////////////////////////////////////
@@ -603,10 +613,6 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count, std::vector<CBl
         BOOST_FOREACH (CBlockIndex* pindex, vToFetch) {
             if (!pindex->IsValid(BLOCK_VALID_TREE)) {
                 // We consider the chain that this peer is on invalid.
-                return;
-            }
-            if (!State(nodeid)->fHaveWitness && IsWitnessEnabled(pindex->pprev, consensusParams)) {
-                // We wouldn't download this block or its descendants from this peer.
                 return;
             }
             if (pindex->nStatus & BLOCK_HAVE_DATA || chainActive.Contains(pindex)) {
@@ -1093,19 +1099,30 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state)
     return true;
 }
 
+//verFruit CheckFruit
 bool CheckFruit(const CFruit& fruit, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW);
 {
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(fruit.GetHash(), fruit.nBits - BITS_FRUIT_LESS_THAN_BLOCK, consensusParams)) {
-        //return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
-        // TODO: error
+        return state.DoS(50, false, REJECT_INVALID, "fruit-high-hash", false, "fruit proof of work failed");
     }
 
     return true;
 }
 
-void LimitMempoolSize(CTxMemPool& pool, size_t limit, unsigned long age)
-{
+//verFruit LimitFrtMempoolSize
+void LimitFrtMempoolSize(CFrtMemPool& pool, size_t limit, unsigned long age) {
+    int expired = pool.Expire(GetTime() - age);
+    if (expired != 0)
+        LogPrint("frtmempool", "Expired %i fruits from the memory pool\n", expired);
+
+//    std::vector<uint256> vNoSpendsRemaining;
+    pool.TrimToSize(limit/*, &vNoSpendsRemaining*/);
+//    BOOST_FOREACH(const uint256& removed, vNoSpendsRemaining)
+//        pcoinsTip->Uncache(removed);
+}
+
+void LimitMempoolSize(CTxMemPool& pool, size_t limit, unsigned long age) {
     int expired = pool.Expire(GetTime() - age);
     if (expired != 0)
         LogPrint("mempool", "Expired %i transactions from the memory pool\n", expired);
@@ -1485,13 +1502,12 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
-        PrecomputedTransactionData txdata(tx);
-        if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true, txdata)) {
+        if (!CheckInputs(tx, state, view, true, scriptVerifyFlags, true)) {
             // SCRIPT_VERIFY_CLEANSTACK requires SCRIPT_VERIFY_WITNESS, so we
             // need to turn both off, and compare against just turning off CLEANSTACK
             // to see if the failure is specifically due to witness validation.
-            if (CheckInputs(tx, state, view, true, scriptVerifyFlags & ~(SCRIPT_VERIFY_WITNESS | SCRIPT_VERIFY_CLEANSTACK), true, txdata) &&
-                !CheckInputs(tx, state, view, true, scriptVerifyFlags & ~SCRIPT_VERIFY_CLEANSTACK, true, txdata)) {
+            if (CheckInputs(tx, state, view, true, scriptVerifyFlags & ~(SCRIPT_VERIFY_WITNESS | SCRIPT_VERIFY_CLEANSTACK), true) &&
+                !CheckInputs(tx, state, view, true, scriptVerifyFlags & ~SCRIPT_VERIFY_CLEANSTACK, true)) {
                 // Only the witness is wrong, so the transaction itself may be fine.
                 state.SetCorruptionPossible();
             }
@@ -1538,38 +1554,44 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
     return true;
 }
 
+//verFruit
 bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CFruit& frt, bool fOverrideMempoolLimit, , const Consensus::Params& consensusParams, bool fCheckPOW)
 {
     const uint256 hash = frt.GetHash();
     AssertLockHeld(cs_main);
 
-    if (!CheckFruit(tx, state, consensusParams, fCheckPOW))
+    if (!CheckFruit(frt, state, consensusParams, fCheckPOW))
         return false; // state filled in by CheckTransaction
 
     // is it already in the memory pool?
     if (pool.exists(hash)) {
-        // TODO: error
-        //  return state.Invalid(false, REJECT_ALREADY_KNOWN, "txn-already-in-mempool");
+        return state.Invalid(false, REJECT_ALREADY_KNOWN, "frt-already-in-frtmempool");
     }
 
-    // TODO:
-    // 1. check if its prev_header if one of previous blocks
-    // 2. check if exists in previous blocks
+    // 1. check if its hist_header is correspond previous blocks
+    if (frt.hashPrevEpisode != hashPrevEpisode) {
+        //This can be sent to P2P network
+        return state.Invalid(false, REJECT_INVALID, "bad-frt-hashPrevEpisode");
+    }
 
+    // 2. check if exists in previous blocks
+    if (frtmempool_used.exists(hash)) {
+        return state.Invalid(false, REJECT_ALREADY_KNOWN, "frt-already-in-frtmempool_used");
+    }
 
     {
-        CTxMemPoolEntry entry(tx, nFees, GetTime(), dPriority, chainActive.Height(), pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp); //TODO: adaption
-        unsigned int nSize = entry.GetTxSize();
+        CFrtMemPoolEntry entry(frt, /*nFees,*/ GetTime(), /*dPriority,*/ chainActive.Height()/*, pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp*/); 
+//        unsigned int nSize = entry.GetFrtSize();
 
 
         // Store transaction in memory
-        pool.addUnchecked(hash, entry, setAncestors, !IsInitialBlockDownload()); //TODO: adaption
+        pool.addUnchecked(hash, entry/*, setAncestors, !IsInitialBlockDownload()*/);
 
         // trim mempool and check if tx was trimmed
         if (!fOverrideMempoolLimit) {
-            LimitFrtempoolSize(pool, GetArg("-maxfrtmempool", DEFAULT_MAX_FRTMEMPOOL_SIZE) * 1000000, GetArg("-frtmempoolexpiry", DEFAULT_FRTMEMPOOL_EXPIRY) * 60 * 60); //TODO: command and function
+            LimitFrtMempoolSize(pool, GetArg("-maxfrtmempool", DEFAULT_MAX_FRTMEMPOOL_SIZE) * 1000000, GetArg("-frtmempoolexpiry", DEFAULT_FRTMEMPOOL_EXPIRY) * 60 * 60); //TODO: command and function
             if (!pool.exists(hash))
-                return state.DoS(0, false, REJECT_INSUFFICIENTFEE, "mempool full");
+                return state.DoS(0, false, REJECT_INSUFFICIENTFRTMEM, "frtmempool full");
         }
     }
 
@@ -2011,7 +2033,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState& state, const CCoinsVi
                 assert(coins);
 
                 // Verify signature
-                CScriptCheck check(*coins, tx, i, flags, cacheStore, &txdata);
+                CScriptCheck check(*coins, tx, i, flags, cacheStore);
                 if (pvChecks) {
                     pvChecks->push_back(CScriptCheck());
                     check.swap(pvChecks->back());
@@ -2599,7 +2621,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
             std::vector<CScriptCheck> vChecks;
             bool fCacheResults = fJustCheck; /* Don't cache results if we're actually connecting blocks (still consult the cache, though) */
-            if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults, txdata[i], nScriptCheckThreads ? &vChecks : NULL))
+            if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults, nScriptCheckThreads ? &vChecks : NULL))
                 return error("ConnectBlock(): CheckInputs on %s failed with %s",
                     tx.GetHash().ToString(), FormatStateMessage(state));
             control.Add(vChecks);
@@ -4496,6 +4518,8 @@ void UnloadBlockIndex()
     pindexBestInvalid = NULL;
     pindexBestHeader = NULL;
     mempool.clear();
+    //verFruit
+    frtmempool.clear();
     mapOrphanTransactions.clear();
     mapOrphanTransactionsByPrev.clear();
     nSyncStarted = 0;
@@ -4935,29 +4959,39 @@ std::string GetWarnings(const std::string& strFor)
 // Messages
 //
 
-
 bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
     switch (inv.type) {
     case MSG_TX:
-    case MSG_WITNESS_TX: {
-        assert(recentRejects);
-        if (chainActive.Tip()->GetBlockHash() != hashRecentRejectsChainTip) {
-            // If the chain tip has changed previously rejected transactions
-            // might be now valid, e.g. due to a nLockTime'd tx becoming valid,
-            // or a double-spend. Reset the rejects filter and give those
-            // txs a second chance.
-            hashRecentRejectsChainTip = chainActive.Tip()->GetBlockHash();
-            recentRejects->reset();
-        }
+    case MSG_WITNESS_TX:
+        {
+            assert(recentRejects);
+            if (chainActive.Tip()->GetBlockHash() != hashRecentRejectsChainTip)
+            {
+                // If the chain tip has changed previously rejected transactions
+                // might be now valid, e.g. due to a nLockTime'd tx becoming valid,
+                // or a double-spend. Reset the rejects filter and give those
+                // txs a second chance.
+                hashRecentRejectsChainTip = chainActive.Tip()->GetBlockHash();
+                recentRejects->reset();
+            }
 
-        // Use pcoinsTip->HaveCoinsInCache as a quick approximation to exclude
-        // requesting or processing some txs which have already been included in a block
-        return recentRejects->contains(inv.hash) ||
-               mempool.exists(inv.hash) ||
-               mapOrphanTransactions.count(inv.hash) ||
-               pcoinsTip->HaveCoinsInCache(inv.hash);
-    }
+            // Use pcoinsTip->HaveCoinsInCache as a quick approximation to exclude
+            // requesting or processing some txs which have already been included in a block
+            return recentRejects->contains(inv.hash) ||
+                   mempool.exists(inv.hash) ||
+                   mapOrphanTransactions.count(inv.hash) ||
+                   pcoinsTip->HaveCoinsInCache(inv.hash);
+        }
+    //verFruit
+    case MSG_FRUIT:
+        {
+            assert(recentRejects); // Relate to 
+            // No chain tip effects
+            return  recentRejects->contains(inv.hash) ||
+                    //TODO OrphanFruit?
+                    frtmempool.exists(inv.hash);     
+        }
     case MSG_BLOCK:
     case MSG_WITNESS_BLOCK:
         return mapBlockIndex.count(inv.hash);
@@ -5087,6 +5121,25 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
                         push = true;
                     }
                 }
+                if (!push) {
+                    vNotFound.push_back(inv);
+                }
+            }
+            //verFruit
+            else if (inv.type == MSG_FRUIT) 
+            {
+                bool push = false;
+                auto mi = mapFrtRelay.find(inv.hash);  
+                if (mi != mapFrtRelay.end()) {
+                    pfrom->PushMessage(NetMsgType::FRUIT, *mi->second);            //TODO: No witness in Fruit
+                    push = true;
+                } /*else if (pfrom->timeLastFrtMempoolReq) {  TODO: Related to BIP35, Mempool request. May be FrtMempool request in the future
+                    auto frtinfo = frtmempool.info(inv.hash);
+                    if (frtinfo.frt && frtinfo.nTime <= pfrom->timeLastFrtMempoolReq) {
+                        pfrom->PushMessage(NetMsgType::FRUIT, *frtinfo.frt);
+                        push = true;
+                    }     
+                }*/
                 if (!push) {
                     vNotFound.push_back(inv);
                 }
@@ -5261,6 +5314,12 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                 pfrom->fGetAddr = true;
             }
             addrman.Good(pfrom->addr);
+        } else {
+            if (((CNetAddr)pfrom->addr) == (CNetAddr)addrFrom)
+            {
+                addrman.Add(addrFrom, addrFrom);
+                addrman.Good(addrFrom);
+            }
         }
 
         pfrom->fSuccessfullyConnected = true;
@@ -5397,7 +5456,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     else if (strCommand == NetMsgType::INV) {
         vector<CInv> vInv;
         vRecv >> vInv;
-        if (vInv.size() > MAX_INV_SZ) {
+        if (vInv.size() > MAX_INV_SZ) //TODO: MAX_INV_SZ may change in the future because of fruits
+        {
             LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 20);
             return error("message inv size() = %u", vInv.size());
@@ -5454,7 +5514,17 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                     }
                     LogPrint("net", "getheaders (%d) %s to peer=%d\n", pindexBestHeader->nHeight, inv.hash.ToString(), pfrom->id);
                 }
-            } else {
+            }
+            //verFruit
+            else if (inv.type == MSG_FRUIT) {
+                pfrom->AddInventoryKnown(inv); 
+                if (fBlocksOnly)
+                    LogPrint("net", "fruit (%s) inv sent in violation of protocol peer=%d\n", inv.hash.ToString(), pfrom->id); 
+                else if (!fAlreadyHave && !fImporting && !fReindex && !IsInitialBlockDownload()) //TODO: not sure the effect of fImporting and etc.
+                    pfrom->AskFor(inv); 
+            }
+            else
+            {
                 pfrom->AddInventoryKnown(inv);
                 if (fBlocksOnly)
                     LogPrint("net", "transaction (%s) inv sent in violation of protocol peer=%d\n", inv.hash.ToString(), pfrom->id);
@@ -5535,7 +5605,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::GETBLOCKTXN) {
+    else if (strCommand == NetMsgType::GETBLOCKTXN) //TODO: BIP152, a improved protocol, may apply for fruit in the future
+    {
         BlockTransactionsRequest req;
         vRecv >> req;
 
@@ -5765,7 +5836,89 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         }
         FlushStateToDisk(state, FLUSH_STATE_PERIODIC);
     }
+    //verFruit
+    else if (strCommand == NetMsgType::FRUIT) {
+        if (!fRelayTxes && (!pfrom->fWhitelisted || !GetBoolArg("-whitelistrelay", DEFAULT_WHITELISTRELAY)))
+            //TODO: may need fRelayFrts for fruit.
+        {
+            LogPrint("net", "fruit sent in violation of protocol peer=%d\n", pfrom->id);
+            return true;
+        }
 
+//        deque<COutPoint> vWorkQueue;
+        vector<uint256> vEraseQueue;
+        CFruit frt;
+        vRecv >> frt;
+
+        CInv inv(MSG_FRUIT, frt.GetHash());
+        pfrom->AddInventoryKnown(inv);
+
+        LOCK(cs_main);
+
+//        bool fMissingInputs = false; TODO orphan fruit?
+        CValidationState state;
+
+        pfrom->setAskFor.erase(inv.hash);
+        mapAlreadyAskedFor.erase(inv.hash);
+
+        if (!AlreadyHave(inv) && AcceptToFruitMemoryPool(frtmempool, state, frt, /*true, &fMissingInputs*/)) {
+            frtmempool.check(/*pcoinsTip*/);
+            RelayFruit(frt);
+/*            for (unsigned int i = 0; i < tx.vout.size(); i++) {
+                vWorkQueue.emplace_back(inv.hash, i);
+            }*/
+
+            pfrom->nLastFRTTime = GetTime(); //TODO: This is used for evict node, may be added in the future.
+
+            LogPrint("frtmempool", "AcceptToMemoryPool: peer=%d: accepted %s (poolsz %u txn, %u kB)\n",
+                pfrom->id,
+                frt.GetHash().ToString(),
+                frtmempool.size(), frtmempool.DynamicMemoryUsage() / 1000); //TODO: Fruit Size scale are not determined yet.
+
+            // Recursively process any orphan transactions that depended on this one
+        }
+        else {
+            if (!state.CorruptionPossible()) {
+                assert(recentRejects);
+                recentRejects->insert(frt.GetHash());
+            }
+
+            if (pfrom->fWhitelisted && GetBoolArg("-whitelistforcerelay", DEFAULT_WHITELISTFORCERELAY)) { //TODO: Assume same whitelist for fruit
+                // Always relay transactions received from whitelisted peers, even
+                // if they were already in the mempool or rejected from it due
+                // to policy, allowing the node to function as a gateway for
+                // nodes hidden behind it.
+                //
+                // Never relay transactions that we would assign a non-zero DoS
+                // score for, as we expect peers to do the same with us in that
+                // case.
+                int nDoS = 0;
+                if (!state.IsInvalid(nDoS) || nDoS == 0) {
+                    LogPrintf("Force relaying fruit %s from whitelisted peer=%d\n", frt.GetHash().ToString(), pfrom->id);
+                    //Note: The only case that can't be relayed is that fruit has a bad proof-of-work.
+                    RelayFruit(frt);
+                } else {
+                    LogPrintf("Not relaying invalid fruit %s from whitelisted peer=%d (%s)\n", frt.GetHash().ToString(), pfrom->id, FormatStateMessage(state));
+                }
+            }
+        }
+        int nDoS = 0;
+        if (state.IsInvalid(nDoS))
+        {
+            LogPrint("frtmempoolrej", "%s from peer=%d was not accepted: %s\n", frt.GetHash().ToString(),
+                pfrom->id,
+                FormatStateMessage(state));
+            if (state.GetRejectCode() < REJECT_INTERNAL) // Never send AcceptToMemoryPool's internal codes over P2P
+                pfrom->PushMessage(NetMsgType::REJECT, strCommand, (unsigned char)state.GetRejectCode(),
+                                   state.GetRejectReason().substr(0, MAX_REJECT_MESSAGE_LENGTH), inv.hash);
+            if (nDoS > 0 && (!state.CorruptionPossible() || State(pfrom->id)->fHaveWitness)) { //TODO: may be the same for fruit
+                // When a non-witness-supporting peer gives us a transaction that would
+                // be accepted if witness validation was off, we can't blame them for it.
+                Misbehaving(pfrom->GetId(), nDoS);
+            }
+        }
+        FlushStateToDisk(state, FLUSH_STATE_PERIODIC);
+    }
 
     else if (strCommand == NetMsgType::CMPCTBLOCK && !fImporting && !fReindex) // Ignore blocks received while importing
     {
@@ -6137,8 +6290,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
-    else if (strCommand == NetMsgType::MEMPOOL) {
-        if (!(nLocalServices & NODE_BLOOM) && !pfrom->fWhitelisted) {
+    else if (strCommand == NetMsgType::MEMPOOL) //TODO: for frtmempool in the future
+    {
+        if (!(nLocalServices & NODE_BLOOM) && !pfrom->fWhitelisted)
+        {
             LogPrint("net", "mempool request with bloom filters disabled, disconnect peer=%d\n", pfrom->GetId());
             pfrom->fDisconnect = true;
             return true;
@@ -6255,20 +6410,19 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         // Nodes must NEVER send a data item > 520 bytes (the max size for a script data object,
         // and thus, the maximum size any matched object can have) in a filteradd message
-        bool bad = false;
-        if (vData.size() > MAX_SCRIPT_ELEMENT_SIZE) {
-            bad = true;
-        } else {
-            LOCK(pfrom->cs_filter);
-            if (pfrom->pfilter) {
-                pfrom->pfilter->insert(vData);
-            } else {
-                bad = true;
-            }
-        }
-        if (bad) {
+        if (vData.size() > MAX_SCRIPT_ELEMENT_SIZE)
+        {
             LOCK(cs_main);
             Misbehaving(pfrom->GetId(), 100);
+        } else {
+            LOCK(pfrom->cs_filter);
+            if (pfrom->pfilter)
+                pfrom->pfilter->insert(vData);
+            else
+            {
+                LOCK(cs_main);
+                Misbehaving(pfrom->GetId(), 100);
+            }
         }
     }
 
@@ -6291,8 +6445,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
                 ostringstream ss;
                 ss << strMsg << " code " << itostr(ccode) << ": " << strReason;
-
-                if (strMsg == NetMsgType::BLOCK || strMsg == NetMsgType::TX) {
+                //verFruit
+                if (strMsg == NetMsgType::BLOCK || strMsg == NetMsgType::TX || strMsg == NetMsgType::FRUIT)
+                {
                     uint256 hash;
                     vRecv >> hash;
                     ss << ": hash " << hash.ToString();
@@ -6582,8 +6737,9 @@ bool SendMessages(CNode* pto)
         // Resend wallet transactions that haven't gotten in a block yet
         // Except during reindex, importing and IBD, when old wallet
         // transactions become unconfirmed and spams other nodes.
-        if (!fReindex && !fImporting && !IsInitialBlockDownload()) {
-            GetMainSignals().Broadcast(nTimeBestReceived);
+        if (!fReindex && !fImporting && !IsInitialBlockDownload())
+        {
+            GetMainSignals().Broadcast(nTimeBestReceived);      //TODO: Seems no wallet fruits
         }
 
         //
@@ -6738,11 +6894,12 @@ bool SendMessages(CNode* pto)
             // Time to send but the peer has requested we not relay transactions.
             if (fSendTrickle) {
                 LOCK(pto->cs_filter);
-                if (!pto->fRelayTxes)
-                    pto->setInventoryTxToSend.clear();
+                if (!pto->fRelayTxes) pto->setInventoryTxToSend.clear();
+                //verFruit TODO: fRelayFrts in the future
+                if (!pto->fRelayTxes) pto->setInventoryFrtToSend.clear();
             }
 
-            // Respond to BIP35 mempool requests
+            // Respond to BIP35 mempool requests TODO: frtmempool in the future
             if (fSendTrickle && pto->fSendMempool) {
                 auto vtxinfo = mempool.infoAll();
                 pto->fSendMempool = false;
@@ -6841,7 +6998,73 @@ bool SendMessages(CNode* pto)
                     pto->filterInventoryKnown.insert(hash);
                 }
             }
+			//verFruit
+    		if (fSendTrickle) {
+                // Produce a vector with all candidates for sending
+                vector<std::set<uint256>::iterator> vInvFrt;
+                vInvFrt.reserve(pto->setInventoryFrtToSend.size());
+                for (std::set<uint256>::iterator it = pto->setInventoryFrtToSend.begin(); it != pto->setInventoryFrtToSend.end(); it++) {
+                    vInvFrt.push_back(it);
+                }
+/*                CAmount filterrate = 0;
+                {
+                    LOCK(pto->cs_feeFilter);
+                    filterrate = pto->minFeeFilter;
+                }*/
+                // Topologically and fee-rate sort the inventory we send for privacy and priority reasons.
+                // A heap is used so that not all items need sorting if only a few are being sent.
+//                CompareInvMempoolOrder compareInvMempoolOrder(&mempool);
+//                std::make_heap(vInvTx.begin(), vInvTx.end(), compareInvMempoolOrder);
+                // No reason to drain out at many times the network's capacity,
+                // especially since we have many peers and some will draw much shorter delays.
+                unsigned int nRelayedFruits = 0;
+                LOCK(pto->cs_filter);
+                while (!vInvFrt.empty() && nRelayedFruits < INVENTORY_BROADCAST_MAX) {
+                    // Fetch the top element from the heap
+//                    std::pop_heap(vInvTx.begin(), vInvTx.end(), compareInvMempoolOrder);
+                    std::set<uint256>::iterator it = vInvFrt.back();
+                    vInvFrt.pop_back();
+                    uint256 hash = *it;
+                    // Remove it from the to-be-sent set
+                    pto->setInventoryFrtToSend.erase(it);
+                    // Check if not in the filter already
+                    if (pto->filterInventoryKnown.contains(hash)) {
+                        continue;
+                    }
+                    // Not in the mempool anymore? don't bother sending it.
+                    auto frtinfo = frtmempool.info(hash);
+                    if (!frtinfo.tx) {
+                        continue;
+                    }
+/*                    if (filterrate && txinfo.feeRate.GetFeePerK() < filterrate) {
+                        continue;
+                    }*/
+//                    if (pto->pfilter && !pto->pfilter->IsRelevantAndUpdate(*txinfo.tx)) continue;
+                    // Send
+                    vInv.push_back(CInv(MSG_FRT, hash));
+                    nRelayedFruits++;
+                    {
+                        // Expire old relay messages TODO: Is it ok to use the same one with Tx? Seems ok.
+                        while (!vRelayExpiration.empty() && vRelayExpiration.front().first < nNow)
+                        {
+                            mapFrtRelay.erase(vRelayExpiration.front().second);
+                            vRelayExpiration.pop_front();
+                        }
+
+                        auto ret = mapFrtRelay.insert(std::make_pair(hash, std::move(frtinfo.frt)));
+                        if (ret.second) {
+                            vRelayExpiration.push_back(std::make_pair(nNow + 15 * 60 * 1000000, ret.first));
+                        }
+                    }
+                    if (vInv.size() == MAX_INV_SZ) {
+                        pto->PushMessage(NetMsgType::INV, vInv);
+                        vInv.clear();
+                    }
+                    pto->filterInventoryKnown.insert(hash);
+                }
+            }
         }
+
         if (!vInv.empty())
             pto->PushMessage(NetMsgType::INV, vInv);
 
@@ -6900,7 +7123,8 @@ bool SendMessages(CNode* pto)
                 if (fDebug)
                     LogPrint("net", "Requesting %s peer=%d\n", inv.ToString(), pto->id);
                 vGetData.push_back(inv);
-                if (vGetData.size() >= 1000) {
+                if (vGetData.size() >= 1000)   //TODO: May change due to fruit
+                {
                     pto->PushMessage(NetMsgType::GETDATA, vGetData);
                     vGetData.clear();
                 }

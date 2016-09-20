@@ -408,6 +408,8 @@ public:
     // Set of transaction ids we still have to announce.
     // They are sorted by the mempool before relay, so the order is not important.
     std::set<uint256> setInventoryTxToSend;
+    //verFruit
+    std::set<uint256> setInventoryFrtToSend;
     // List of block ids we still have announce.
     // There is no final sorting before sending, as they are always sent immediately
     // and in the order requested.
@@ -424,10 +426,13 @@ public:
 
     // Last time a "MEMPOOL" request was serviced.
     std::atomic<int64_t> timeLastMempoolReq;
-
+    // verFruit
+    std::atomic<int64_t> timeLastFrtMempoolReq;
     // Block and TXN accept times
     std::atomic<int64_t> nLastBlockTime;
     std::atomic<int64_t> nLastTXTime;
+    //verFruit
+    std::atomic<int64_t> nLastFRTTime;
 
     // Ping time measurement:
     // The pong reply we're expecting, or 0 if no pong expected.
@@ -546,6 +551,10 @@ public:
         if (inv.type == MSG_TX) {
             if (!filterInventoryKnown.contains(inv.hash)) {
                 setInventoryTxToSend.insert(inv.hash);
+            }
+        } else if (inv.type == MSG_FRT) { //verFruit
+            if (!filterInventoryKnown.contains(inv.hash)) {     // Check whether already recieved INV from this peer or already send to this peer
+                setInventoryFrtToSend.insert(inv.hash); 
             }
         } else if (inv.type == MSG_BLOCK) {
             vInventoryBlockToSend.push_back(inv.hash);
@@ -818,6 +827,8 @@ public:
 
 class CTransaction;
 void RelayTransaction(const CTransaction& tx);
+//verFruit
+void RelayFruit(const CFruit& frt);
 
 /** Access to the (IP) address database (peers.dat) */
 class CAddrDB

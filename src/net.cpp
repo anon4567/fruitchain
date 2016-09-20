@@ -2198,6 +2198,16 @@ public:
 }
 instance_of_cnetcleanup;
 
+//verFruit
+void RelayFruit(const CFruit& frt) 
+{
+    CInv inv(MSG_FRT, frt.GetHash());
+    LOCK(cs_vNodes);
+    BOOST_FOREACH(CNode* pnode, vNodes)
+    {   
+        pnode->PushInventory(inv);
+    }
+}
 
 void RelayTransaction(const CTransaction& tx)
 {
@@ -2472,7 +2482,7 @@ CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNa
     addr(addrIn),
     nKeyedNetGroup(CalculateKeyedNetGroup(addrIn)),
     addrKnown(5000, 0.001),
-    filterInventoryKnown(50000, 0.000001)
+    filterInventoryKnown(50000, 0.000001) //TODO: Size may change due to fruit
 {
     nServices = NODE_NONE;
     nServicesExpected = NODE_NONE;
@@ -2510,6 +2520,8 @@ CNode::CNode(SOCKET hSocketIn, const CAddress& addrIn, const std::string& addrNa
     fSentAddr = false;
     pfilter = new CBloomFilter();
     timeLastMempoolReq = 0;
+    //verFruit
+    timeLastFrtMempoolReq = 0;
     nLastBlockTime = 0;
     nLastTXTime = 0;
     nPingNonceSent = 0;

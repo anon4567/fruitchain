@@ -243,6 +243,11 @@ extern const char *GETBLOCKTXN;
  * @since protocol version 70014 as described by BIP 152
  */
 extern const char *BLOCKTXN;
+/**
+ * The FRUIT message transmits a single fruit.
+ * @see 
+ */
+extern const char *FRUIT;   //verFruit
 };
 
 /* Get a vector of all valid message types (see above) */
@@ -323,7 +328,8 @@ enum GetDataMsg
     UNDEFINED = 0,
     MSG_TX,
     MSG_BLOCK,
-    MSG_TYPE_MAX = MSG_BLOCK,
+    MSG_FRT,  //verFruit
+    MSG_TYPE_MAX = MSG_FRT,   //verFruit
     // The following can only occur in getdata. Invs always use TX or BLOCK.
     MSG_FILTERED_BLOCK,
     MSG_CMPCT_BLOCK,
