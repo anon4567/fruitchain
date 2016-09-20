@@ -1543,7 +1543,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const C
     const uint256 hash = frt.GetHash();
     AssertLockHeld(cs_main);
 
-    if (!CheckFruit(tx, state, consensus, ParamsfCheckPOW))
+    if (!CheckFruit(tx, state, consensusParams, fCheckPOW))
         return false; // state filled in by CheckTransaction
 
     // is it already in the memory pool?
