@@ -2181,7 +2181,7 @@ static bool ApplyTxInUndo(const CTxInUndo& undo, CCoinsViewCache& view, const CO
     return fClean;
 }
 
-void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams)
+bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams)
 {
     /**
       * calculate reward distribution of this episode.
@@ -2204,7 +2204,7 @@ void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     //loop in reverse order
     for (int i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
         if (nblockindex == NULL) {
-            //TODO: error:
+            return error("CalculateRewardDistribution(): the %d-th block is not found", i);
         }
         CBlock tmpblock;
         const CBlock* nblock;
@@ -2212,7 +2212,7 @@ void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
             nblock = &block;
         } else {
             if (!ReadBlockFromDisk(tmpblock, nblockindex, chainparams.GetConsensus())) {
-                //TODO: error: block unloadable
+                return error("CalculateRewardDistribution(): can't read the %d-th block from disk", i);
             }
             nblock = &tmpblock;
         }
@@ -2247,6 +2247,7 @@ void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     }
     //TODO: rest rewards
     fruit_tx.push_back(nTx);
+    return true;
 }
 
 bool IsEndOfEpisode(const CBlockIndex* pindex)
@@ -2315,7 +2316,8 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     //Undo episode reward tx
     std::vector<CTransaction> fruit_tx;
     if (IsEndOfEpisode(pindex)) {
-        CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams);
+        if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
+            return error("DisconnectBlock(): try to CalculateRewardDistribution");
     }
 
     // undo transactions in reverse order
@@ -2560,7 +2562,9 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     std::vector<CTransaction> fruit_tx;
     if (IsEndOfEpisode(pindex)) {
-        CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams);
+        if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
+            return state.DoS(100, error("ConnectBlock(): try to CalculateRewardDistribution"),
+                REJECT_INVALID, "bad-blk-reward-episodecorrupted");
     }
     //------------------------------------------------------
 
@@ -3627,15 +3631,15 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
 
     // Check fruits
     if (block.GetFruitsHash() != block.hashFruits) {
-        //TODO: error
+        return state.DoS(100, false, REJECT_INVALID, "bad-frt-hash", false, "not-matched fruit hash and blk-header hash");
     }
     std::set<uint256> setFruits;
     for (const auto& frt : block.vfrt) {
         if (!CheckFruit(frt, state, consensusParams, fCheckPOW)) {
-            //TODO: error
+            return state.DoS(100, false, REJECT_INVALID, "bad-frt-ck", false, "invalid fruit");
         }
         if (setFruits.find(frt.GetHash()) != setFruits.end()) {
-            //TODO: error
+            return state.DoS(100, false, REJECT_INVALID, "bad-frt-duplicate", false, "duplicate fruit");
         }
     }
     // ---------------------------
@@ -3781,7 +3785,7 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, CValidationState& state, co
     bool prevIsValid = false;
     const CBlockIndex* nIndex = pindexPrev;
     if (frtmempool_used.exists(fruit.GetHash())) {
-        // TODO: error
+        return state.Invalid(false, REJECT_INVALID, "frt-already-used", "fruit has been used in current episode");
     }
     for (bool isLastEpisode = false; !isLastEpisode;) {
         isLastEpisode = IsEndOfEpisode(nIndex);
@@ -3872,7 +3876,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
     //Contextualcheck fruits
     for (const auto& frt : block.vfrt)
         if (!ContextualCheckFruit(frt, state, consensusParams, pindexPrev, GetAdjustedTime())) {
-            // TODO: error
+            return error("ContextualCheckBlock: ContextualCheckBlockHeader: %s, %s", frt.GetHash.ToString(), FormatStateMessage(state));
         }
     //----------------------------------
 
