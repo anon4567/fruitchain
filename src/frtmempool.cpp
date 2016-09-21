@@ -11,6 +11,7 @@
 #include "main.h"
 #include "policy/fees.h"
 #include "policy/policy.h"
+#include "serialize.h"
 #include "streams.h"
 #include "timedata.h"
 #include "util.h"
@@ -24,13 +25,13 @@ CFrtMemPoolEntry::CFrtMemPoolEntry(const CBlockHeader& _frt, //const CAmount& _n
     int64_t _nTime,
     /*double _entryPriority,*/ unsigned int _entryHeight //,
                                                          // bool poolHasNoInputsOf, CAmount _inChainInputValue,
-    /* bool _spendsCoinbase, int64_t _sigOpsCost, LockPoints lp*/) : frt(std::make_shared<CBlockHeader>(_frt)), /*nFee(_nFee),*/ nTime(_nTime), /*entryPriority(_entryPriority),*/ entryHeight(_entryHeight),
+    /* bool _spendsCoinbase, int64_t _sigOpsCost, LockPoints lp*/) : frt(std::make_shared<CBlockHeader>(_frt)), /*nFee(_nFee),*/ nTime(_nTime), /*entryPriority(_entryPriority),*/ entryHeight(_entryHeight)
 //    hadNoDependencies(poolHasNoInputsOf), inChainInputValue(_inChainInputValue),
 /*    spendsCoinbase(_spendsCoinbase),*/ //sigOpCost(_sigOpsCost)//, lockPoints(lp)
 {
-    nFrtWeight = FRT_WEIGHT;    //GetTransactionWeight(_frt);	//TODO: used in miner.cpp for block weight
-                                //    nModSize = _tx.CalculateModifiedSize(GetTxSize());
-    nUsageSize = FRT_USAGESIZE; //RecursiveDynamicUsage(*tx) + memusage::DynamicUsage(tx); //TODO: call func in core_memusage and memusage  -> tx.vin, tx.vout, tx.wit
+    nFrtWeight = GetFrtSize(); //FRT_WEIGHT;    //GetTransactionWeight(_frt);	//TODO: used in miner.cpp for block weight
+                               //    nModSize = _tx.CalculateModifiedSize(GetTxSize());
+    nUsageSize = GetFrtSize(); //FRT_USAGESIZE; //RecursiveDynamicUsage(*tx) + memusage::DynamicUsage(tx); //TODO: call func in core_memusage and memusage  -> tx.vin, tx.vout, tx.wit
 
     /*   nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
@@ -75,7 +76,8 @@ void CFrtMemPoolEntry::UpdateLockPoints(const FruitLockPoints& lp)
 
 size_t CFrtMemPoolEntry::GetFrtSize() const
 {
-    return FRT_SIZE; //GetVirtualTransactionSize(nTxWeight, sigOpCost); //TODO
+    return ::GetSerializeSize(frt, SER_NETWORK, PROTOCOL_VERSION);
+    //GetVirtualTransactionSize(nTxWeight, sigOpCost); //TODO
 }
 
 // Update the given tx for any in-mempool descendants.
