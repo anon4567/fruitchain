@@ -2346,7 +2346,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     }
 
     // Update globalHashPrevEpisode
-    const CBlockIndex nblockindex = pindex->pprev;
+    const CBlockIndex* nblockindex = pindex->pprev;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         nblockindex = nblockindex->pprev;
         while (!IsEndOfEpisode(nblockindex->nHeight))
