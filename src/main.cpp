@@ -2250,10 +2250,10 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     return true;
 }
 
-bool IsEndOfEpisode(const CBlockIndex* pindex)
+bool IsEndOfEpisode(int nHeight)
 {
     // genesis block not included
-    return pindex->nHeight % FRUIT_PERIOD_LENGTH == 0;
+    return nHeight % FRUIT_PERIOD_LENGTH == 0;
 }
 
 bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool* pfClean)
@@ -2315,7 +2315,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
 
     //Undo episode reward tx
     std::vector<CTransaction> fruit_tx;
-    if (IsEndOfEpisode(pindex)) {
+    if (IsEndOfEpisode(pindex->nHeight)) {
         if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
             return error("DisconnectBlock(): try to CalculateRewardDistribution");
     }
@@ -2346,10 +2346,10 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     }
 
     // Update globalHashPrevEpisode
-    CBlockIndex* nblockindex = pindex->pprev;
-    if (IsEndOfEpisode(nblockindex)) {
+    CBlockIndex nblockindex = pindex->pprev;
+    if (IsEndOfEpisode(nblockindex->nHeight)) {
         nblockindex = nblockindex->pprev;
-        while (!IsEndOfEpisode(nblockindex))
+        while (!IsEndOfEpisode(nblockindex->nHeight))
             nblockindex = nblockindex->pprev;
         globalHashPrevEpisode = nblockindex->GetBlockHash();
     }
@@ -2561,7 +2561,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "    - Fork checks: %.2fms [%.2fs]\n", 0.001 * (nTime2 - nTime1), nTimeForks * 0.000001);
 
     std::vector<CTransaction> fruit_tx;
-    if (IsEndOfEpisode(pindex)) {
+    if (IsEndOfEpisode(pindex->nHeight)) {
         if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
             return state.DoS(100, error("ConnectBlock(): try to CalculateRewardDistribution"),
                 REJECT_INVALID, "bad-blk-reward-episodecorrupted");
@@ -2723,7 +2723,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     // Update globalHashPrevEpisode
     CBlockIndex* nblockindex = pindex->pprev;
-    if (IsEndOfEpisode(nblockindex)) {
+    if (IsEndOfEpisode(nblockindex->nHeight)) {
         globalHashPrevEpisode = nblockindex->GetBlockHash();
     }
     //-------------------------------------------------------
@@ -3789,7 +3789,7 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, CValidationState& state, co
 
     bool prevIsValid = false;
     for (bool isLastEpisode = false; !isLastEpisode;) {
-        isLastEpisode = IsEndOfEpisode(nIndex);
+        isLastEpisode = IsEndOfEpisode(nIndex->nHeight);
         if (pindexPrev->GetBlockHash() == fruit.hashPrevBlock)
             prevIsValid = true;
         nIndex = nIndex->pprev;
