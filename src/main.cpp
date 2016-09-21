@@ -87,7 +87,7 @@ CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
 CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 
 CTxMemPool mempool(::minRelayTxFee);
-CFrtMempool frtmempool();
+CFrtMemPool frtmempool(), frtmempool_used();
 FeeFilterRounder filterRounder(::minRelayTxFee);
 
 struct IteratorComparator {
