@@ -3778,7 +3778,6 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, CValidationState& state, co
         2. not be contained in any block earlier in this episode
     */
 
-    bool prevIsValid = false;
     const CBlockIndex* nIndex = pindexPrev;
     if (frtmempool_used.exists(fruit.GetHash())) {
         // TODO: error
