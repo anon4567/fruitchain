@@ -204,11 +204,14 @@ public:
     unsigned int nStatus;
 
     //! block header
-    int nVersion;
+    int32_t nVersion;
+    uint256 hashPrevEpisode;
     uint256 hashMerkleRoot;
-    unsigned int nTime;
-    unsigned int nBits;
-    unsigned int nNonce;
+    uint256 hashFruits;
+    uint32_t nTime;
+    uint32_t nBits;
+    uint32_t nNonce;
+    CScript scriptPubKey; //pubkey of creator
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
@@ -229,10 +232,13 @@ public:
         nSequenceId = 0;
 
         nVersion = 0;
-        hashMerkleRoot = uint256();
+        hashPrevEpisode.SetNull();
+        hashMerkleRoot.SetNull();
+        hashFruits.SetNull();
         nTime = 0;
         nBits = 0;
         nNonce = 0;
+        scriptPubKey.clear();
     }
 
     CBlockIndex()
@@ -245,10 +251,13 @@ public:
         SetNull();
 
         nVersion = block.nVersion;
+        hashPrevEpisode = block.hashPrevEpisode;
         hashMerkleRoot = block.hashMerkleRoot;
+        hashFruits = block.hashFruits;
         nTime = block.nTime;
         nBits = block.nBits;
         nNonce = block.nNonce;
+        scriptPubKey = block.scriptPubKey;
     }
 
     CDiskBlockPos GetBlockPos() const
