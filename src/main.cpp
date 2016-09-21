@@ -2346,7 +2346,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     }
 
     // Update globalHashPrevEpisode
-    CBlockIndex nblockindex = pindex->pprev;
+    const CBlockIndex nblockindex = pindex->pprev;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         nblockindex = nblockindex->pprev;
         while (!IsEndOfEpisode(nblockindex->nHeight))
@@ -2722,7 +2722,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     }
 
     // Update globalHashPrevEpisode
-    CBlockIndex* nblockindex = pindex->pprev;
+    const CBlockIndex* nblockindex = pindex->pprev;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         globalHashPrevEpisode = nblockindex->GetBlockHash();
     }
