@@ -124,6 +124,7 @@ void BlockAssembler::resetBlock()
     lastFewTxs = 0;
     lastFewFrts = 0;
     blockFinished = false;
+    frtBlockFinished = false;
 }
 
 CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
@@ -323,7 +324,7 @@ bool BlockAssembler::TestForBlock(CFrtMemPool::frtiter iter)
         // or if we've tried more than 50 times to fill remaining space
         // then flag that the block is finished
         if (nBlockWeight > nBlockMaxWeight - 400 || lastFewFrts > 50) {
-            fruitBlockFinished = true;
+            frtBlockFinished = true;
             return false;
         }
         // Once we're within 4000 weight of a full block, only look at 50 more txs
@@ -337,7 +338,7 @@ bool BlockAssembler::TestForBlock(CFrtMemPool::frtiter iter)
     if (fNeedSizeAccounting) {
         if (nBlockSize + ::GetSerializeSize(iter->GetFrt(), SER_NETWORK, PROTOCOL_VERSION) >= nBlockMaxSize) {
             if (nBlockSize > nBlockMaxSize - 100 || lastFewFrts > 50) {
-                fruitBlockFinished = true;
+                frtBlockFinished = true;
                 return false;
             }
             if (nBlockSize > nBlockMaxSize - 1000) {

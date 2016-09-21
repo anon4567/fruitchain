@@ -161,6 +161,7 @@ private:
     int lastFewTxs;
     int lastFewFrts;
     bool blockFinished;
+    bool frtBlockFinished;
 
 public:
     BlockAssembler(const CChainParams& chainparams);
