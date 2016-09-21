@@ -529,7 +529,7 @@ public:
     // to track size/count of descendant transactions.  First version of
     // addUnchecked can be used to have it call CalculateMemPoolAncestors(), and
     // then invoke the second version.
-    bool addUnchecked(const uint256& hash, const CFrtMemPoolEntry& entry, bool fCurrentEstimate = true);
+    bool addUnchecked(const uint256& hash, const CFrtMemPoolEntry& entry/*, bool fCurrentEstimate = true*/);
     //    bool addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry, setEntries &setAncestors, bool fCurrentEstimate = true);
 
     void removeRecursive(const CBlockHeader& frt, std::list<CBlockHeader>& removed);
@@ -591,7 +591,7 @@ public:
     /** Populate setDescendants with all in-mempool descendants of hash.
      *  Assumes that setDescendants includes all in-mempool descendants of anything
      *  already in it.  */
-    //    void CalculateDescendants(txiter it, setEntries &setDescendants);
+    void CalculateDescendants(frtiter it, setEntries &setDescendants);
 
     /** The minimum fee to get into the mempool, which may itself not be enough
       *  for larger-sized transactions.

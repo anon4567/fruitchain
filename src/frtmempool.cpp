@@ -395,7 +395,7 @@ void CFrtMemPool::AddFruitsUpdated(unsigned int n)
     nFruitsUpdated += n;
 }
 
-bool CFrtMemPool::addUnchecked(const uint256& hash, const CFrtMemPoolEntry& entry, /*setEntries &setAncestors, bool fCurrentEstimate*/)
+bool CFrtMemPool::addUnchecked(const uint256& hash, const CFrtMemPoolEntry& entry /*setEntries &setAncestors, bool fCurrentEstimate*/)
 {
     // Add to memory pool without checking anything.
     // Used by main.cpp AcceptToMemoryPool(), which DOES do
@@ -444,7 +444,7 @@ bool CFrtMemPool::addUnchecked(const uint256& hash, const CFrtMemPoolEntry& entr
     UpdateEntryForAncestors(newit, setAncestors);*/
 
     nFruitsUpdated++;
-    totalFruitSize += entry.GetFruitSize();
+    totalFrtSize += entry.GetFrtSize();
     //    minerPolicyEstimator->processTransaction(entry, fCurrentEstimate);
 
     vFrtHashes.emplace_back(hash, newit);
@@ -455,7 +455,7 @@ bool CFrtMemPool::addUnchecked(const uint256& hash, const CFrtMemPoolEntry& entr
 
 void CFrtMemPool::removeUnchecked(frtiter it)
 {
-    const uint256 hash = it->GetFrt().GetHash();
+    //    const uint256 hash = it->GetFrt().GetHash();
     /*    BOOST_FOREACH(const CTxIn& txin, it->GetTx().vin)
         mapNextTx.erase(txin.prevout);*/
 
@@ -662,15 +662,15 @@ void CFrtMemPool::check(/*const CCoinsViewCache *pcoins*/) const
     LOCK(cs);
     list<const CFrtMemPoolEntry*> waitingOnDependants;
     for (indexed_fruit_set::const_iterator it = mapFrt.begin(); it != mapFrt.end(); it++) {
-        unsigned int i = 0;
+        //        unsigned int i = 0;
         checkTotal += it->GetFrtSize();
         innerUsage += it->DynamicMemoryUsage(); //TODO: MemoryUsage is not determined yet.
-        const CBlockHeader& frt = it->GetFrt();
+        //        const CBlockHeader& frt = it->GetFrt();
         //        txlinksMap::const_iterator linksiter = mapLinks.find(it);
         //        assert(linksiter != mapLinks.end());
         //        const TxLinks &links = linksiter->second;
         //        innerUsage += memusage::DynamicUsage(links.parents) + memusage::DynamicUsage(links.children);
-        bool fDependsWait = false;
+        //        bool fDependsWait = false;
         //        setEntries setParentCheck;
         //        int64_t parentSizes = 0;
         //        int64_t parentSigOpCost = 0;
@@ -744,7 +744,7 @@ void CFrtMemPool::check(/*const CCoinsViewCache *pcoins*/) const
             UpdateCoins(tx, mempoolDuplicate, 1000000);
         }*/
     }
-    unsigned int stepsSinceLastRemove = 0;
+    //    unsigned int stepsSinceLastRemove = 0;
     /*    while (!waitingOnDependants.empty()) {
         const CTxMemPoolEntry* entry = waitingOnDependants.front();
         waitingOnDependants.pop_front();
@@ -1116,7 +1116,7 @@ void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpen
         //        maxFeeRateRemoved = std::max(maxFeeRateRemoved, removed);
 
         setEntries stage;
-        CalculateDescendants(mapTx.project<0>(it), stage);
+        CalculateDescendants(mapFrt.project<0>(it), stage);
         nFrtnRemoved += stage.size();
 
         /*        std::vector<CBlockHeader> frtn;
@@ -1140,5 +1140,5 @@ void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpen
     }
 
     //    if (maxFeeRateRemoved > CFeeRate(0))
-    LogPrint("frtmempool", "Removed %u txn\n" /*, rolling minimum fee bumped to %s\n"*/, nTxnRemoved /*, maxFeeRateRemoved.ToString()*/);
+    LogPrint("frtmempool", "Removed %u txn\n" /*, rolling minimum fee bumped to %s\n"*/, nFrtnRemoved /*, maxFeeRateRemoved.ToString()*/);
 }
