@@ -87,7 +87,6 @@ CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
 CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 
 CTxMemPool mempool(::minRelayTxFee);
-CFrtMemPool frtmempool(), frtmempool_used();
 FeeFilterRounder filterRounder(::minRelayTxFee);
 
 struct IteratorComparator {
@@ -1103,7 +1102,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state)
 }
 
 //verFruit CheckFruit
-bool CheckFruit(const CBlockHeader& fruit, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW);
+bool CheckFruit(const CBlockHeader& fruit, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW)
 {
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(fruit.GetHash(), fruit.nBits - BITS_FRUIT_LESS_THAN_BLOCK, consensusParams)) {
