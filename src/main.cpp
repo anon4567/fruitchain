@@ -7044,14 +7044,14 @@ bool SendMessages(CNode* pto)
                     nRelayedFruits++;
                     {
                         // Expire old relay messages TODO: Is it ok to use the same one with Tx? Seems ok.
-                        while (!vRelayExpiration.empty() && vRelayExpiration.front().first < nNow) {
-                            mapFrtRelay.erase(vRelayExpiration.front().second);
-                            vRelayExpiration.pop_front();
+                        while (!vFrtRelayExpiration.empty() && vFrtRelayExpiration.front().first < nNow) {
+                            mapFrtRelay.erase(vFrtRelayExpiration.front().second);
+                            vFrtRelayExpiration.pop_front();
                         }
 
                         auto ret = mapFrtRelay.insert(std::make_pair(hash, std::move(frtinfo.frt)));
                         if (ret.second) {
-                            vRelayExpiration.push_back(std::make_pair(nNow + 15 * 60 * 1000000, ret.first));
+                            vFrtRelayExpiration.push_back(std::make_pair(nNow + 15 * 60 * 1000000, ret.first));
                         }
                     }
                     if (vInv.size() == MAX_INV_SZ) {
