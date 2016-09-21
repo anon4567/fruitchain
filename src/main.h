@@ -319,7 +319,7 @@ void PruneAndFlush();
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fOverrideMempoolLimit = false, const CAmount nAbsurdFee = 0);
 
 /** (try to) add fruit to memory pool **/
-bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CBlockHeader& frt, bool fOverrideMempoolLimit, , const Consensus::Params& consensusParams, bool fCheckPOW);
+bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CBlockHeader& frt, const Consensus::Params& consensusParams, bool fCheckPOW = true, bool fOverrideMempoolLimit = false);
 
 /** Convert CValidationState to a human-readable message for logging */
 std::string FormatStateMessage(const CValidationState& state);

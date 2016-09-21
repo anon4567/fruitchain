@@ -401,7 +401,7 @@ public:
 
         // block header
         READWRITE(this->nVersion);
-        READWRITE(hashPrevBlock);
+        READWRITE(hashPrev);
         READWRITE(hashPrevEpisode);
         READWRITE(hashMerkleRoot);
         READWRITE(hashFruits);

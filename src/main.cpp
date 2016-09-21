@@ -1561,7 +1561,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 }
 
 //verFruit
-bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CBlockHeader& frt, bool fOverrideMempoolLimit, , const Consensus::Params& consensusParams, bool fCheckPOW)
+bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CBlockHeader& frt, const Consensus::Params& consensusParams, bool fCheckPOW, bool fOverrideMempoolLimit)
 {
     const uint256 hash = frt.GetHash();
     AssertLockHeld(cs_main);
@@ -5860,7 +5860,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         pfrom->setAskFor.erase(inv.hash);
         mapAlreadyAskedFor.erase(inv.hash);
 
-        if (!AlreadyHave(inv) && AcceptToFruitMemoryPool(frtmempool, state, frt, /*true, &fMissingInputs*/)) {
+        if (!AlreadyHave(inv) && AcceptToFruitMemoryPool(frtmempool, state, frt, Params().GetConsensus())) {
             frtmempool.check(/*pcoinsTip*/);
             RelayFruit(frt);
             /*            for (unsigned int i = 0; i < tx.vout.size(); i++) {

@@ -119,7 +119,7 @@ private:
 public:
     CFrtMemPoolEntry(const CBlockHeader& _frt, //const CAmount& _nFee,
         int64_t _nTime,
-        /*double _entryPriority,*/ unsigned int _entryHeight,
+        /*double _entryPriority,*/ unsigned int _entryHeight
         //bool poolHasNoInputsOf, CAmount _inChainInputValue, bool spendsCoinbase,
         /*int64_t nSigOpsCost, FruitLockPoints lp*/);
     CFrtMemPoolEntry(const CFrtMemPoolEntry& other);
