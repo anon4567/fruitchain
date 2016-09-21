@@ -32,7 +32,7 @@ std::string CBlock::ToString() const
         s << "  " << vtx[i].ToString() << "\n";
     }
     for (unsigned int i = 0; i < vfrt.size(); ++i) {
-        s << "  " << vfrt[i].ToString() << "\n";
+        s << "  " << vfrt[i].GetHash().ToString() << "\n";
     }
     return s.str();
 }
