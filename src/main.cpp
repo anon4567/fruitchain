@@ -1113,12 +1113,12 @@ bool CheckFruit(const CBlockHeader& fruit, CValidationState& state, const Consen
 }
 
 //verFruit LimitFrtMempoolSize
-void LimitFrtMempoolSize(CFrtMemPool& pool, size_t limit, unsigned long age)
+void LimitFrtMempoolSize(CFrtMemPool& pool, size_t limit)
 {
-    int expired = pool.Expire(GetTime() - age);
+    /*int expired = pool.Expire(GetTime() - age);
     if (expired != 0)
         LogPrint("frtmempool", "Expired %i fruits from the memory pool\n", expired);
-
+*/
     //    std::vector<uint256> vNoSpendsRemaining;
     pool.TrimToSize(limit /*, &vNoSpendsRemaining*/);
     //    BOOST_FOREACH(const uint256& removed, vNoSpendsRemaining)
@@ -1574,7 +1574,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const C
     }
 
     // 1. check if its hist_header is correspond previous blocks
-    if (frt.hashPrevEpisode != hashPrevEpisode) {
+    if (frt.hashPrevEpisode != globalHashPrevEpisode) {
         //This can be sent to P2P network
         return state.Invalid(false, REJECT_INVALID, "bad-frt-hashPrevEpisode");
     }
@@ -1594,7 +1594,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const C
 
         // trim mempool and check if tx was trimmed
         if (!fOverrideMempoolLimit) {
-            LimitFrtMempoolSize(pool, GetArg("-maxfrtmempool", DEFAULT_MAX_FRTMEMPOOL_SIZE) * 1000000, GetArg("-frtmempoolexpiry", DEFAULT_FRTMEMPOOL_EXPIRY) * 60 * 60); //TODO: command and function
+            LimitFrtMempoolSize(pool, GetArg("-maxfrtmempool", DEFAULT_MAX_FRTMEMPOOL_SIZE) * 1000000); //TODO: command and function
             if (!pool.exists(hash))
                 return state.DoS(0, false, REJECT_INSUFFICIENTFRTMEM, "frtmempool full");
         }
@@ -2179,7 +2179,7 @@ static bool ApplyTxInUndo(const CTxInUndo& undo, CCoinsViewCache& view, const CO
     return fClean;
 }
 
-void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view)
+void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams)
 {
     /**
       * calculate reward distribution of this episode.
@@ -2194,17 +2194,17 @@ void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     std::vector<CScript> fruit_creator;
     std::vector<CScript> block_creator;
     CAmount S = 0;
-    CBlockIndex* nblockindex = pindex;
+    const CBlockIndex* nblockindex = pindex;
     f.resize(FRUIT_PERIOD_LENGTH);
     fee.resize(FRUIT_PERIOD_LENGTH);
     reward_block_creator.resize(FRUIT_PERIOD_LENGTH);
     block_creator.resize(FRUIT_PERIOD_LENGTH);
     //loop in reverse order
-    for (uint i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
+    for (int i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
         if (nblockindex == NULL) {
             //TODO: error:
         }
-        CBlock* nblock;
+        const CBlock* nblock;
         if (nblockindex->GetBlockHash() == pindex->GetBlockHash()) {
             nblock = &block;
         } else {
@@ -2233,7 +2233,7 @@ void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     CMutableTransaction nTx;
     nTx.vin.resize(1);
     nTx.vin[0].prevout.SetNull();
-    nTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
+    nTx.vin[0].scriptSig = CScript() << pindex->nHeight << OP_0;
     for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
         reward_block_creator[i] += reward_per_fruit_co * f[i];
         nTx.vout.push_back(CTxOut(reward_block_creator[i], block_creator[i]));
@@ -2245,13 +2245,13 @@ void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     fruit_tx.push_back(nTx);
 }
 
-bool IsEndOfEpisode(CBlockIndex* pindex)
+bool IsEndOfEpisode(const CBlockIndex* pindex)
 {
     // genesis block not included
     return pindex->nHeight % FRUIT_PERIOD_LENGTH == 0;
 }
 
-bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, bool* pfClean)
+bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool* pfClean)
 {
     assert(pindex->GetBlockHash() == view.GetBestBlock());
 
@@ -2311,7 +2311,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     //Undo episode reward tx
     std::vector<CTransaction> fruit_tx;
     if (IsEndOfEpisode(pindex)) {
-        CalculateRewardDistribution(fruit_tx, block, pindex, view);
+        CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams);
     }
 
     // undo transactions in reverse order
@@ -2350,7 +2350,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     //-------------------------------------------------------
 
     // Update frtmempool and frtmempool_used
-    for (const auto& frt : pblock.vfrt) {
+    for (const auto& frt : block.vfrt) {
         frtmempool.add(frt, GetTime(), chainActive.Height());
         frtmempool_used.remove(frt);
     }
@@ -2556,7 +2556,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     std::vector<CTransaction> fruit_tx;
     if (IsEndOfEpisode(pindex)) {
-        CalculateRewardDistribution(fruit_tx, block, pindex, view);
+        CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams);
     }
     //------------------------------------------------------
 
@@ -2721,7 +2721,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     //-------------------------------------------------------
 
     // Update frtmempool and frtmempool_used
-    for (const auto& frt : pblock.vfrt) {
+    for (const auto& frt : block.vfrt) {
         frtmempool_used.add(frt, GetTime(), chainActive.Height());
         frtmempool.remove(frt);
     }
@@ -2930,7 +2930,7 @@ bool static DisconnectTip(CValidationState& state, const CChainParams& chainpara
     int64_t nStart = GetTimeMicros();
     {
         CCoinsViewCache view(pcoinsTip);
-        if (!DisconnectBlock(block, state, pindexDelete, view))
+        if (!DisconnectBlock(block, state, pindexDelete, view, chainparams))
             return error("DisconnectTip(): DisconnectBlock %s failed", pindexDelete->GetBlockHash().ToString());
         assert(view.Flush());
     }
@@ -3749,24 +3749,24 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, CValidationState& state, co
 {
     const int nHeight = pindexPrev == NULL ? 0 : pindexPrev->nHeight + 1;
     // Check proof of work
-    if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
+    if (fruit.nBits != GetNextWorkRequired(pindexPrev, &fruit, consensusParams))
         return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false, "incorrect proof of work");
 
     // Check timestamp against prev
-    if (block.GetBlockTime() <= pindexPrev->GetMedianTimePast())
-        return state.Invalid(false, REJECT_INVALID, "time-too-old", "block's timestamp is too early");
+    if (fruit.GetBlockTime() <= pindexPrev->GetMedianTimePast())
+        return state.Invalid(false, REJECT_INVALID, "time-too-old", "fruit's timestamp is too early");
 
     // Check timestamp
-    if (block.GetBlockTime() > nAdjustedTime + 2 * 60 * 60)
-        return state.Invalid(false, REJECT_INVALID, "time-too-new", "block timestamp too far in the future");
+    if (fruit.GetBlockTime() > nAdjustedTime + 2 * 60 * 60)
+        return state.Invalid(false, REJECT_INVALID, "time-too-new", "fruit timestamp too far in the future");
 
     // Reject outdated version blocks when 95% (75% on testnet) of the network has upgraded:
     // check for version 2, 3 and 4 upgrades
-    if ((block.nVersion < 2 && nHeight >= consensusParams.BIP34Height) ||
-        (block.nVersion < 3 && nHeight >= consensusParams.BIP66Height) ||
-        (block.nVersion < 4 && nHeight >= consensusParams.BIP65Height))
-        return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", block.nVersion),
-            strprintf("rejected nVersion=0x%08x block", block.nVersion));
+    if ((fruit.nVersion < 2 && nHeight >= consensusParams.BIP34Height) ||
+        (fruit.nVersion < 3 && nHeight >= consensusParams.BIP66Height) ||
+        (fruit.nVersion < 4 && nHeight >= consensusParams.BIP65Height))
+        return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", fruit.nVersion),
+            strprintf("rejected nVersion=0x%08x block", fruit.nVersion));
 
 
     /**
@@ -3775,14 +3775,15 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, CValidationState& state, co
     */
 
     bool prevIsValid = false;
-    CBlockIndex* nIndex = pindexPrev;
+    const CBlockIndex* nIndex = pindexPrev;
     if (frtmempool_used.exists(fruit.GetHash())) {
         // TODO: error
     }
     do {
         bool isLastEpisode = IsEndOfEpisode(nIndex);
-        if (pindexPrev->GetHash() == fruit.hashPrevBlock)
+        if (pindexPrev->GetBlockHash() == fruit.hashPrevBlock)
             prevIsValid = true;
+        nIndex = nIndex->pprev;
     } while (!isLastEpisode);
 
     return true;
@@ -3866,7 +3867,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
 
     //Contextualcheck fruits
     for (const auto& frt : block.vfrt)
-        if (!ContextualCheckFruit(frt)) {
+        if (!ContextualCheckFruit(frt, state, consensusParams, pindexPrev, GetAdjustedTime())) {
             // TODO: error
         }
     //----------------------------------
@@ -4395,7 +4396,7 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView* coinsview,
         // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
         if (nCheckLevel >= 3 && pindex == pindexState && (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <= nCoinCacheUsage) {
             bool fClean = true;
-            if (!DisconnectBlock(block, state, pindex, coins, &fClean))
+            if (!DisconnectBlock(block, state, pindex, coins, chainparams, &fClean))
                 return error("VerifyDB(): *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
             pindexState = pindex->pprev;
             if (!fClean) {
@@ -7029,7 +7030,7 @@ bool SendMessages(CNode* pto)
                     }
                     // Not in the mempool anymore? don't bother sending it.
                     auto frtinfo = frtmempool.info(hash);
-                    if (!frtinfo.tx) {
+                    if (!frtinfo.frt) {
                         continue;
                     }
                     /*                    if (filterrate && txinfo.feeRate.GetFeePerK() < filterrate) {

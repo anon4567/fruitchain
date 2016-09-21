@@ -136,7 +136,7 @@ public:
         return block;
     }
 
-    uint256 GetFruitsHash()
+    uint256 GetFruitsHash() const
     {
         uint256 hash = uint256();
         for (std::vector<CBlockHeader>::const_iterator it = vfrt.begin(); it != vfrt.end(); ++it) {
