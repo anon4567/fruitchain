@@ -2094,7 +2094,7 @@ public:
 //verFruit
 void RelayFruit(const CBlockHeader& frt)
 {
-    CInv inv(MSG_FRT, frt.GetHash());
+    CInv inv(MSG_FRUIT, frt.GetHash());
     LOCK(cs_vNodes);
     BOOST_FOREACH (CNode* pnode, vNodes) {
         pnode->PushInventory(inv);
