@@ -17,13 +17,13 @@
 #include "sync.h"
 
 #undef foreach
-#include "boost/multi_index_container.hpp"
-#include "boost/multi_index/ordered_index.hpp"
 #include "boost/multi_index/hashed_index.hpp"
+#include "boost/multi_index/ordered_index.hpp"
+#include "boost/multi_index_container.hpp"
 
-//class CFruitIndex;    verFruit 
+//class CFruitIndex;    verFruit
 /**
-    Based on TxMempool. 
+    Based on TxMempool.
     Get rid of anything about fee and priority because there is no fruit fee
     Get rid of anything about ancester and descendant because fruits are independent.
     Get rid of anything about CCoin because there is no direct connection between fruit and UTXO
@@ -87,40 +87,41 @@ class CFrtMemPoolEntry
 {
 private:
     std::shared_ptr<const CFruit> frt;
-//    CAmount nFee;              //!< Cached to avoid expensive parent-transaction lookups
-    size_t nFrtWeight;          //!< ... and avoid recomputing tx weight (also used for GetTxSize())
-//    size_t nModSize;           //!< ... and modified size for priority
-    size_t nUsageSize;         //!< ... and total memory usage
-    int64_t nTime;             //!< Local time when entering the mempool
-//    double entryPriority;      //!< Priority when entering the mempool
-    unsigned int entryHeight;  //!< Chain height when entering the mempool
-//    bool hadNoDependencies;    //!< Not dependent on any other txs when it entered the mempool
-//    CAmount inChainInputValue; //!< Sum of all txin values that are already in blockchain
-//    bool spendsCoinbase;       //!< keep track of transactions that spend a coinbase
-//    int64_t sigOpCost;         //!< Total sigop cost
-//    int64_t feeDelta;          //!< Used for determining the priority of the transaction for mining in a block
-//    FruitLockPoints lockPoints;     //!< Track the height and time at which tx was final
+    //    CAmount nFee;              //!< Cached to avoid expensive parent-transaction lookups
+    size_t nFrtWeight;        //!< ... and avoid recomputing tx weight (also used for GetTxSize())
+                              //    size_t nModSize;           //!< ... and modified size for priority
+    size_t nUsageSize;        //!< ... and total memory usage
+    int64_t nTime;            //!< Local time when entering the mempool
+                              //    double entryPriority;      //!< Priority when entering the mempool
+    unsigned int entryHeight; //!< Chain height when entering the mempool
+    //    bool hadNoDependencies;    //!< Not dependent on any other txs when it entered the mempool
+    //    CAmount inChainInputValue; //!< Sum of all txin values that are already in blockchain
+    //    bool spendsCoinbase;       //!< keep track of transactions that spend a coinbase
+    //    int64_t sigOpCost;         //!< Total sigop cost
+    //    int64_t feeDelta;          //!< Used for determining the priority of the transaction for mining in a block
+    //    FruitLockPoints lockPoints;     //!< Track the height and time at which tx was final
 
     // Information about descendants of this transaction that are in the
     // mempool; if we remove this transaction we must remove all of these
     // descendants as well.  if nCountWithDescendants is 0, treat this entry as
     // dirty, and nSizeWithDescendants and nModFeesWithDescendants will not be
     // correct.
-//    uint64_t nCountWithDescendants;  //!< number of descendant transactions
-//    uint64_t nSizeWithDescendants;   //!< ... and size
-//    CAmount nModFeesWithDescendants; //!< ... and total fees (all including us)
+    //    uint64_t nCountWithDescendants;  //!< number of descendant transactions
+    //    uint64_t nSizeWithDescendants;   //!< ... and size
+    //    CAmount nModFeesWithDescendants; //!< ... and total fees (all including us)
 
     // Analogous statistics for ancestor transactions
-//    uint64_t nCountWithAncestors;
-//    uint64_t nSizeWithAncestors;
-//    CAmount nModFeesWithAncestors;
-//    int64_t nSigOpCostWithAncestors;
+    //    uint64_t nCountWithAncestors;
+    //    uint64_t nSizeWithAncestors;
+    //    CAmount nModFeesWithAncestors;
+    //    int64_t nSigOpCostWithAncestors;
 
 public:
     CFrtMemPoolEntry(const CFruit& _frt, //const CAmount& _nFee,
-                    int64_t _nTime, /*double _entryPriority,*/ unsigned int _entryHeight,
-                    //bool poolHasNoInputsOf, CAmount _inChainInputValue, bool spendsCoinbase,
-                    /*int64_t nSigOpsCost, FruitLockPoints lp*/);
+        int64_t _nTime,
+        /*double _entryPriority,*/ unsigned int _entryHeight,
+        //bool poolHasNoInputsOf, CAmount _inChainInputValue, bool spendsCoinbase,
+        /*int64_t nSigOpsCost, FruitLockPoints lp*/);
     CFrtMemPoolEntry(const CFrtMemPoolEntry& other);
 
     const CFruit& GetFrt() const { return *this->frt; }
@@ -129,38 +130,38 @@ public:
      * Fast calculation of lower bound of current priority as update
      * from entry priority. Only inputs that were originally in-chain will age.
      */
-//    double GetPriority(unsigned int currentHeight) const;
-//    const CAmount& GetFee() const { return nFee; }
+    //    double GetPriority(unsigned int currentHeight) const;
+    //    const CAmount& GetFee() const { return nFee; }
     size_t GetFrtSize() const;
     size_t GetFrtWeight() const { return nFrtWeight; }
     int64_t GetTime() const { return nTime; }
     unsigned int GetHeight() const { return entryHeight; }
-//    bool WasClearAtEntry() const { return hadNoDependencies; }
-//    int64_t GetSigOpCost() const { return sigOpCost; }
-//    int64_t GetModifiedFee() const { return nFee + feeDelta; }
+    //    bool WasClearAtEntry() const { return hadNoDependencies; }
+    //    int64_t GetSigOpCost() const { return sigOpCost; }
+    //    int64_t GetModifiedFee() const { return nFee + feeDelta; }
     size_t DynamicMemoryUsage() const { return nUsageSize; }
-//    const FruitLockPoints& GetLockPoints() const { return lockPoints; }
+    //    const FruitLockPoints& GetLockPoints() const { return lockPoints; }
 
     // Adjusts the descendant state, if this entry is not dirty.
-//    void UpdateDescendantState(int64_t modifySize, CAmount modifyFee, int64_t modifyCount);
+    //    void UpdateDescendantState(int64_t modifySize, CAmount modifyFee, int64_t modifyCount);
     // Adjusts the ancestor state
-//    void UpdateAncestorState(int64_t modifySize, CAmount modifyFee, int64_t modifyCount, int modifySigOps);
+    //    void UpdateAncestorState(int64_t modifySize, CAmount modifyFee, int64_t modifyCount, int modifySigOps);
     // Updates the fee delta used for mining priority score, and the
     // modified fees with descendants.
-//    void UpdateFeeDelta(int64_t feeDelta);
+    //    void UpdateFeeDelta(int64_t feeDelta);
     // Update the LockPoints after a reorg
-//    void UpdateLockPoints(const FruitLockPoints& lp);
+    //    void UpdateLockPoints(const FruitLockPoints& lp);
 
-//    uint64_t GetCountWithDescendants() const { return nCountWithDescendants; }
-//    uint64_t GetSizeWithDescendants() const { return nSizeWithDescendants; }
-//    CAmount GetModFeesWithDescendants() const { return nModFeesWithDescendants; }
+    //    uint64_t GetCountWithDescendants() const { return nCountWithDescendants; }
+    //    uint64_t GetSizeWithDescendants() const { return nSizeWithDescendants; }
+    //    CAmount GetModFeesWithDescendants() const { return nModFeesWithDescendants; }
 
-//    bool GetSpendsCoinbase() const { return spendsCoinbase; }
+    //    bool GetSpendsCoinbase() const { return spendsCoinbase; }
 
-//    uint64_t GetCountWithAncestors() const { return nCountWithAncestors; }
-//    uint64_t GetSizeWithAncestors() const { return nSizeWithAncestors; }
-//    CAmount GetModFeesWithAncestors() const { return nModFeesWithAncestors; }
-//    int64_t GetSigOpCostWithAncestors() const { return nSigOpCostWithAncestors; }
+    //    uint64_t GetCountWithAncestors() const { return nCountWithAncestors; }
+    //    uint64_t GetSizeWithAncestors() const { return nSizeWithAncestors; }
+    //    CAmount GetModFeesWithAncestors() const { return nModFeesWithAncestors; }
+    //    int64_t GetSigOpCostWithAncestors() const { return nSigOpCostWithAncestors; }
 
     mutable size_t vFrtHashesIdx; //!< Index in mempool's vTxHashes
 };
@@ -219,10 +220,9 @@ private:
 };*/
 
 // extracts a TxMemPoolEntry's transaction hash
-struct mempoolentry_frtid
-{
+struct mempoolentry_frtid {
     typedef uint256 result_type;
-    result_type operator() (const CFrtMemPoolEntry &entry) const
+    result_type operator()(const CFrtMemPoolEntry& entry) const
     {
         return entry.GetFrt().GetHash();
     }
@@ -318,18 +318,21 @@ public:
 };*/
 
 // Multi_index tag names
-struct descendant_score_fruit {};
-struct entry_time_fruit {};
-struct mining_score_fruit {};
-struct ancestor_score_fruit {};
+struct descendant_score_fruit {
+};
+struct entry_time_fruit {
+};
+struct mining_score_fruit {
+};
+struct ancestor_score_fruit {
+};
 
 //class CBlockPolicyEstimator;
 
 /**
  * Information about a mempool transaction.
  */
-struct FrtMempoolInfo
-{
+struct FrtMempoolInfo {
     /** The transaction itself */
     std::shared_ptr<const CFruit> frt;
 
@@ -337,7 +340,7 @@ struct FrtMempoolInfo
     int64_t nTime;
 
     /** Feerate of the transaction. */
-//    CFeeRate feeRate;
+    //    CFeeRate feeRate;
 };
 
 /**
@@ -422,22 +425,21 @@ class CFrtMemPool
 private:
     uint32_t nCheckFrequency; //!< Value n means that n times in 2^32 we check.
     unsigned int nFruitsUpdated;
-//    CBlockPolicyEstimator* minerPolicyEstimator;
+    //    CBlockPolicyEstimator* minerPolicyEstimator;
 
-    uint64_t totalFrtSize;      //!< sum of all mempool tx' byte sizes
+    uint64_t totalFrtSize;     //!< sum of all mempool tx' byte sizes
     uint64_t cachedInnerUsage; //!< sum of dynamic memory usage of all the map elements (NOT the maps themselves)
 
-//    CFeeRate minReasonableRelayFee;
+    //    CFeeRate minReasonableRelayFee;
 
-//    mutable int64_t lastRollingFeeUpdate; //1. when block is connected
-//    mutable bool blockSinceLastRollingFeeBump; //1. same as above (1.)
-//    mutable double rollingMinimumFeeRate; //!< minimum fee to get into the pool, decreases exponentially
+    //    mutable int64_t lastRollingFeeUpdate; //1. when block is connected
+    //    mutable bool blockSinceLastRollingFeeBump; //1. same as above (1.)
+    //    mutable double rollingMinimumFeeRate; //!< minimum fee to get into the pool, decreases exponentially
 
-//    void trackPackageRemoved(const CFeeRate& rate); // : ??
+    //    void trackPackageRemoved(const CFeeRate& rate); // : ??
 
 public:
-
-//    static const int ROLLING_FEE_HALFLIFE = 60 * 60 * 12; // public only for testing
+    //    static const int ROLLING_FEE_HALFLIFE = 60 * 60 * 12; // public only for testing
 
     typedef boost::multi_index_container<
         CFrtMemPoolEntry,
@@ -445,7 +447,7 @@ public:
             // sorted by txid
             boost::multi_index::hashed_unique<mempoolentry_frtid, SaltedTxidHasher>, //TODO: SaltedFrtidHasher? Seems ok to use the same one.
             // sorted by fee rate
-/*            boost::multi_index::ordered_non_unique<
+            /*            boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<descendant_score>,
                 boost::multi_index::identity<CTxMemPoolEntry>,
                 CompareTxMemPoolEntryByDescendantScore
@@ -454,10 +456,9 @@ public:
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<entry_time_fruit>,
                 boost::multi_index::identity<CFrtMemPoolEntry>,
-                CompareFrtMemPoolEntryByEntryTime
-            >//,
+                CompareFrtMemPoolEntryByEntryTime> //,
             // sorted by score (for mining prioritization)
-/*            boost::multi_index::ordered_unique<
+            /*            boost::multi_index::ordered_unique<
                 boost::multi_index::tag<mining_score>,
                 boost::multi_index::identity<CTxMemPoolEntry>,
                 CompareTxMemPoolEntryByScore
@@ -468,8 +469,8 @@ public:
                 boost::multi_index::identity<CTxMemPoolEntry>,
                 CompareTxMemPoolEntryByAncestorFee
             >*/
-        >
-    > indexed_fruit_set;
+            > >
+        indexed_fruit_set;
 
     mutable CCriticalSection cs;
     indexed_fruit_set mapFrt;
@@ -478,40 +479,41 @@ public:
     std::vector<std::pair<uint256, frtiter> > vFrtHashes; //!< All tx hashes/entries in mapTx, in random order
 
     struct CompareIteratorByHash {
-        bool operator()(const frtiter &a, const frtiter &b) const {
+        bool operator()(const frtiter& a, const frtiter& b) const
+        {
             return a->GetFrt().GetHash() < b->GetFrt().GetHash();
         }
     };
     typedef std::set<frtiter, CompareIteratorByHash> setEntries;
 
-//    const setEntries & GetMemPoolParents(txiter entry) const;
-//    const setEntries & GetMemPoolChildren(txiter entry) const;
+    //    const setEntries & GetMemPoolParents(txiter entry) const;
+    //    const setEntries & GetMemPoolChildren(txiter entry) const;
 private:
     typedef std::map<frtiter, setEntries, CompareIteratorByHash> cacheMap;
 
-/*    struct TxLinks {
+    /*    struct TxLinks {
         setEntries parents;
         setEntries children;
     };*/
 
-//    typedef std::map<txiter, TxLinks, CompareIteratorByHash> txlinksMap;
-//    txlinksMap mapLinks;
+    //    typedef std::map<txiter, TxLinks, CompareIteratorByHash> txlinksMap;
+    //    txlinksMap mapLinks;
 
-//    void UpdateParent(txiter entry, txiter parent, bool add);
-//    void UpdateChild(txiter entry, txiter child, bool add);
+    //    void UpdateParent(txiter entry, txiter parent, bool add);
+    //    void UpdateChild(txiter entry, txiter child, bool add);
 
     std::vector<indexed_fruit_set::const_iterator> GetSortedDepthAndScore() const;
 
 public:
-//    indirectmap<COutPoint, const CTransaction*> mapNextTx;
-//    std::map<uint256, std::pair<double, CAmount> > mapDeltas;
+    //    indirectmap<COutPoint, const CTransaction*> mapNextTx;
+    //    std::map<uint256, std::pair<double, CAmount> > mapDeltas;
 
     /** Create a new CTxMemPool.
      *  minReasonableRelayFee should be a feerate which is, roughly, somewhere
      *  around what it "costs" to relay a transaction around the network and
      *  below which we would reasonably say a transaction has 0-effective-fee.
      */
-//    CTxMemPool(const CFeeRate& _minReasonableRelayFee);
+    //    CTxMemPool(const CFeeRate& _minReasonableRelayFee);
     CFrtMemPool();
     ~CFrtMemPool();
 
@@ -521,38 +523,37 @@ public:
      * all inputs are in the mapNextTx array). If sanity-checking is turned off,
      * check does nothing.
      */
-    void check(/*const CCoinsViewCache *pcoins*/) const; 
+    void check(/*const CCoinsViewCache *pcoins*/) const;
     void setSanityCheck(double dFrequency = 1.0) { nCheckFrequency = dFrequency * 4294967295.0; }
-
     // addUnchecked must updated state for all ancestors of a given transaction,
     // to track size/count of descendant transactions.  First version of
     // addUnchecked can be used to have it call CalculateMemPoolAncestors(), and
     // then invoke the second version.
-    bool addUnchecked(const uint256& hash, const CFrtMemPoolEntry &entry, bool fCurrentEstimate = true);
-//    bool addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry, setEntries &setAncestors, bool fCurrentEstimate = true);
+    bool addUnchecked(const uint256& hash, const CFrtMemPoolEntry& entry, bool fCurrentEstimate = true);
+    //    bool addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry, setEntries &setAncestors, bool fCurrentEstimate = true);
 
-    void removeRecursive(const CFruit &frt, std::list<CFruit>& removed);
-//    void removeForReorg(const CCoinsViewCache *pcoins, unsigned int nMemPoolHeight, int flags); //TODO: seems not need
-//    void removeConflicts(const CBlock &frt, std::list<CBlock>& removed);
-    void removeForBlock(const std::vector<CFruit>& vfrt/*, unsigned int nBlockHeight,
+    void removeRecursive(const CFruit& frt, std::list<CFruit>& removed);
+    //    void removeForReorg(const CCoinsViewCache *pcoins, unsigned int nMemPoolHeight, int flags); //TODO: seems not need
+    //    void removeConflicts(const CBlock &frt, std::list<CBlock>& removed);
+    void removeForBlock(const std::vector<CFruit>& vfrt /*, unsigned int nBlockHeight,
                         std::list<CBlock>& conflicts, bool fCurrentEstimate = true*/);
     void clear();
     void _clear(); //lock free
-//    bool CompareDepthAndScore(const uint256& hasha, const uint256& hashb);
+                   //    bool CompareDepthAndScore(const uint256& hasha, const uint256& hashb);
     void queryHashes(std::vector<uint256>& vfrtid);
-//    void pruneSpent(const uint256& hash, CCoins &coins); 
+    //    void pruneSpent(const uint256& hash, CCoins &coins);
     unsigned int GetFruitsUpdated() const;
     void AddFruitsUpdated(unsigned int n);
     /**
      * Check that none of this transactions inputs are in the mempool, and thus
      * the tx is not dependent on other mempool transactions to be included in a block.
      */
-//    bool HasNoInputsOf(const CTransaction& tx) const; 
+    //    bool HasNoInputsOf(const CTransaction& tx) const;
 
     /** Affect CreateNewBlock prioritisation of transactions */
-//    void PrioritiseTransaction(const uint256 hash, const std::string strHash, double dPriorityDelta, const CAmount& nFeeDelta);
-//    void ApplyDeltas(const uint256 hash, double &dPriorityDelta, CAmount &nFeeDelta) const;
-//    void ClearPrioritisation(const uint256 hash);
+    //    void PrioritiseTransaction(const uint256 hash, const std::string strHash, double dPriorityDelta, const CAmount& nFeeDelta);
+    //    void ApplyDeltas(const uint256 hash, double &dPriorityDelta, CAmount &nFeeDelta) const;
+    //    void ClearPrioritisation(const uint256 hash);
 
 public:
     /** Remove a set of transactions from the mempool.
@@ -562,7 +563,7 @@ public:
      *  Set updateDescendants to true when removing a tx that was in a block, so
      *  that any in-mempool descendants have their ancestor state updated.
      */
-    void RemoveStaged(setEntries &stage/*, bool updateDescendants*/); 
+    void RemoveStaged(setEntries& stage /*, bool updateDescendants*/);
 
     /** When adding transactions from a disconnected block back to the mempool,
      *  new mempool entries may have children in the mempool (which is generally
@@ -573,7 +574,7 @@ public:
      *  for).  Note: hashesToUpdate should be the set of transactions from the
      *  disconnected block that have been accepted back into the mempool.
      */
-//    void UpdateFruitFromBlock(const std::vector<uint256> &hashesToUpdate); 
+    //    void UpdateFruitFromBlock(const std::vector<uint256> &hashesToUpdate);
 
     /** Try to calculate all in-mempool ancestors of entry.
      *  (these are all calculated including the tx itself)
@@ -585,12 +586,12 @@ public:
      *  fSearchForParents = whether to search a tx's vin for in-mempool parents, or
      *    look up parents from mapLinks. Must be true for entries not in the mempool
      */
-//    bool CalculateMemPoolAncestors(const CTxMemPoolEntry &entry, setEntries &setAncestors, uint64_t limitAncestorCount, uint64_t limitAncestorSize, uint64_t limitDescendantCount, uint64_t limitDescendantSize, std::string &errString, bool fSearchForParents = true) const;
+    //    bool CalculateMemPoolAncestors(const CTxMemPoolEntry &entry, setEntries &setAncestors, uint64_t limitAncestorCount, uint64_t limitAncestorSize, uint64_t limitDescendantCount, uint64_t limitDescendantSize, std::string &errString, bool fSearchForParents = true) const;
 
     /** Populate setDescendants with all in-mempool descendants of hash.
      *  Assumes that setDescendants includes all in-mempool descendants of anything
      *  already in it.  */
-//    void CalculateDescendants(txiter it, setEntries &setDescendants);
+    //    void CalculateDescendants(txiter it, setEntries &setDescendants);
 
     /** The minimum fee to get into the mempool, which may itself not be enough
       *  for larger-sized transactions.
@@ -598,13 +599,13 @@ public:
       *  takes the fee rate to go back down all the way to 0. When the feerate
       *  would otherwise be half of this, it is set to 0 instead.
       */
-//    CFeeRate GetMinFee(size_t sizelimit) const;
+    //    CFeeRate GetMinFee(size_t sizelimit) const;
 
     /** Remove transactions from the mempool until its dynamic size is <= sizelimit.
       *  pvNoSpendsRemaining, if set, will be populated with the list of transactions
       *  which are not in mempool which no longer have any spends in this mempool.
       */
-    void TrimToSize(size_t sizelimit/*, std::vector<uint256>* pvNoSpendsRemaining=NULL*/);
+    void TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpendsRemaining=NULL*/);
 
     /** Expire all transaction (and their dependencies) in the mempool older than time. Return the number of removed transactions. */
     int Expire(int64_t time);
@@ -628,14 +629,14 @@ public:
     }
 
     //Note for add() and remove(): No additional check here, please ensure that add good fruit and remove exist fruit.
-    void add(const CFruit& frt, int64_t nTime, unsigned int entryHeight) 
+    void add(const CFruit& frt, int64_t nTime, unsigned int entryHeight)
     {
         const uint256 hash = frt.GetHash();
         CFrtMemPoolEntry entry(frt, nTime, entryHeight);
         addUnchecked(hash, entry);
     }
 
-    void remove(const CFruit& frt)  
+    void remove(const CFruit& frt)
     {
         LOCK(cs);
         frtiter it = mapFrt.find(frt.GetHash());
@@ -652,23 +653,23 @@ public:
      *  If no answer can be given at nBlocks, return an estimate
      *  at the lowest number of blocks where one can be given
      */
-//    CFeeRate estimateSmartFee(int nBlocks, int *answerFoundAtBlocks = NULL) const;
+    //    CFeeRate estimateSmartFee(int nBlocks, int *answerFoundAtBlocks = NULL) const;
 
     /** Estimate fee rate needed to get into the next nBlocks */
-//    CFeeRate estimateFee(int nBlocks) const;
+    //    CFeeRate estimateFee(int nBlocks) const;
 
     /** Estimate priority needed to get into the next nBlocks
      *  If no answer can be given at nBlocks, return an estimate
      *  at the lowest number of blocks where one can be given
      */
-//    double estimateSmartPriority(int nBlocks, int *answerFoundAtBlocks = NULL) const;
+    //    double estimateSmartPriority(int nBlocks, int *answerFoundAtBlocks = NULL) const;
 
     /** Estimate priority needed to get into the next nBlocks */
-//    double estimatePriority(int nBlocks) const;
-    
+    //    double estimatePriority(int nBlocks) const;
+
     /** Write/Read estimates to disk */
-//    bool WriteFeeEstimates(CAutoFile& fileout) const;
-//    bool ReadFeeEstimates(CAutoFile& filein);
+    //    bool WriteFeeEstimates(CAutoFile& fileout) const;
+    //    bool ReadFeeEstimates(CAutoFile& filein);
 
     size_t DynamicMemoryUsage() const;
 
@@ -686,19 +687,19 @@ private:
      *  being updated, so that future invocations don't need to walk the
      *  same transaction again, if encountered in another transaction chain.
      */
-/*    void UpdateForDescendants(txiter updateIt,
+    /*    void UpdateForDescendants(txiter updateIt,
             cacheMap &cachedDescendants,
             const std::set<uint256> &setExclude);*/
     /** Update ancestors of hash to add/remove it as a descendant transaction. */
-//    void UpdateAncestorsOf(bool add, txiter hash, setEntries &setAncestors);
+    //    void UpdateAncestorsOf(bool add, txiter hash, setEntries &setAncestors);
     /** Set ancestor state for an entry */
-//    void UpdateEntryForAncestors(txiter it, const setEntries &setAncestors);
+    //    void UpdateEntryForAncestors(txiter it, const setEntries &setAncestors);
     /** For each transaction being removed, update ancestors and any direct children.
       * If updateDescendants is true, then also update in-mempool descendants'
       * ancestor state. */
-//    void UpdateForRemoveFromMempool(const setEntries &entriesToRemove, bool updateDescendants);
+    //    void UpdateForRemoveFromMempool(const setEntries &entriesToRemove, bool updateDescendants);
     /** Sever link between specified transaction and direct children. */
-//    void UpdateChildrenForRemoval(txiter entry);
+    //    void UpdateChildrenForRemoval(txiter entry);
 
     /** Before calling removeUnchecked for a given transaction,
      *  UpdateForRemoveFromMempool must be called on the entire (dependent) set
@@ -711,7 +712,7 @@ private:
     void removeUnchecked(frtiter entry);
 };
 
-/** 
+/**
  * CCoinsView that brings transactions from a memorypool into view.
  * It does not check for spendings by memory pool transactions.
  */

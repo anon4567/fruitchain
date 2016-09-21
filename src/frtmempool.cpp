@@ -9,8 +9,8 @@
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
 #include "main.h"
-#include "policy/policy.h"
 #include "policy/fees.h"
+#include "policy/policy.h"
 #include "streams.h"
 #include "timedata.h"
 #include "util.h"
@@ -21,28 +21,28 @@
 using namespace std;
 //TODO: FRT_WEIGHT, FRT_USAGE_SIZE, FRT_SIZE to be decided
 CFrtMemPoolEntry::CFrtMemPoolEntry(const CFruit& _frt, //const CAmount& _nFee,
-                                 int64_t _nTime, /*double _entryPriority,*/ unsigned int _entryHeight//,
-                                // bool poolHasNoInputsOf, CAmount _inChainInputValue,
-                                /* bool _spendsCoinbase, int64_t _sigOpsCost, LockPoints lp*/):
-    frt(std::make_shared<CFruit>(_frt)), /*nFee(_nFee),*/ nTime(_nTime), /*entryPriority(_entryPriority),*/ entryHeight(_entryHeight),
+    int64_t _nTime,
+    /*double _entryPriority,*/ unsigned int _entryHeight //,
+                                                         // bool poolHasNoInputsOf, CAmount _inChainInputValue,
+    /* bool _spendsCoinbase, int64_t _sigOpsCost, LockPoints lp*/) : frt(std::make_shared<CFruit>(_frt)), /*nFee(_nFee),*/ nTime(_nTime), /*entryPriority(_entryPriority),*/ entryHeight(_entryHeight),
 //    hadNoDependencies(poolHasNoInputsOf), inChainInputValue(_inChainInputValue),
 /*    spendsCoinbase(_spendsCoinbase),*/ //sigOpCost(_sigOpsCost)//, lockPoints(lp)
 {
-    nFrtWeight = FRT_WEIGHT; //GetTransactionWeight(_frt);	//TODO: used in miner.cpp for block weight
-//    nModSize = _tx.CalculateModifiedSize(GetTxSize());
-    nUsageSize = FRT_USAGESIZE;  //RecursiveDynamicUsage(*tx) + memusage::DynamicUsage(tx); //TODO: call func in core_memusage and memusage  -> tx.vin, tx.vout, tx.wit
+    nFrtWeight = FRT_WEIGHT;    //GetTransactionWeight(_frt);	//TODO: used in miner.cpp for block weight
+                                //    nModSize = _tx.CalculateModifiedSize(GetTxSize());
+    nUsageSize = FRT_USAGESIZE; //RecursiveDynamicUsage(*tx) + memusage::DynamicUsage(tx); //TODO: call func in core_memusage and memusage  -> tx.vin, tx.vout, tx.wit
 
- /*   nCountWithDescendants = 1;
+    /*   nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
     nModFeesWithDescendants = nFee;
-    CAmount nValueIn = _tx.GetValueOut()+nFee; 
+    CAmount nValueIn = _tx.GetValueOut()+nFee;
     assert(inChainInputValue <= nValueIn); */
 
-//    feeDelta = 0;
+    //    feeDelta = 0;
 
- /*   nCountWithAncestors = 1;
+    /*   nCountWithAncestors = 1;
     nSizeWithAncestors = GetTxSize();
-    nModFeesWithAncestors = nFee; 
+    nModFeesWithAncestors = nFee;
     nSigOpCostWithAncestors = sigOpCost; */
 }
 
@@ -75,7 +75,7 @@ void CFrtMemPoolEntry::UpdateLockPoints(const FruitLockPoints& lp)
 
 size_t CFrtMemPoolEntry::GetFrtSize() const
 {
-    return FRT_SIZE;//GetVirtualTransactionSize(nTxWeight, sigOpCost); //TODO
+    return FRT_SIZE; //GetVirtualTransactionSize(nTxWeight, sigOpCost); //TODO
 }
 
 // Update the given tx for any in-mempool descendants.
@@ -306,7 +306,7 @@ void CFrtMemPool::UpdateForRemoveFromMempool(const setEntries &entriesToRemove, 
         // should be a bit faster.
         // However, if we happen to be in the middle of processing a reorg, then
         // the mempool can be in an inconsistent state.  In this case, the set
-        // of ancestors reachable via mapLinks will be the same as the set of 
+        // of ancestors reachable via mapLinks will be the same as the set of
         // ancestors whose packages include this transaction, because when we
         // add a new transaction to the mempool in addUnchecked(), we assume it
         // has no children, and in the case of a reorg where that assumption is
@@ -350,8 +350,7 @@ void CTxMemPoolEntry::UpdateAncestorState(int64_t modifySize, CAmount modifyFee,
     assert(int(nSigOpCostWithAncestors) >= 0);
 }*/
 
-CFrtMemPool::CFrtMemPool() :
-    nFruitsUpdated(0)
+CFrtMemPool::CFrtMemPool() : nFruitsUpdated(0)
 {
     _clear(); //lock free clear
 
@@ -360,13 +359,13 @@ CFrtMemPool::CFrtMemPool() :
     // of transactions in the pool
     nCheckFrequency = 0;
 
-//    minerPolicyEstimator = new CBlockPolicyEstimator(_minReasonableRelayFee);
-//    minReasonableRelayFee = _minReasonableRelayFee;
+    //    minerPolicyEstimator = new CBlockPolicyEstimator(_minReasonableRelayFee);
+    //    minReasonableRelayFee = _minReasonableRelayFee;
 }
 
 CFrtMemPool::~CFrtMemPool()
 {
-//    delete minerPolicyEstimator;
+    //    delete minerPolicyEstimator;
 }
 /*
 void CTxMemPool::pruneSpent(const uint256 &hashTx, CCoins &coins)
@@ -394,19 +393,19 @@ void CFrtMemPool::AddFruitsUpdated(unsigned int n)
     nFruitsUpdated += n;
 }
 
-bool CFrtMemPool::addUnchecked(const uint256& hash, const CFrtMemPoolEntry &entry, /*setEntries &setAncestors, bool fCurrentEstimate*/)
+bool CFrtMemPool::addUnchecked(const uint256& hash, const CFrtMemPoolEntry& entry, /*setEntries &setAncestors, bool fCurrentEstimate*/)
 {
     // Add to memory pool without checking anything.
-    // Used by main.cpp AcceptToMemoryPool(), which DOES do 
+    // Used by main.cpp AcceptToMemoryPool(), which DOES do
     // all the appropriate checks.
     LOCK(cs);
     indexed_fruit_set::iterator newit = mapFrt.insert(entry).first;
-//    mapLinks.insert(make_pair(newit, TxLinks()));
+    //    mapLinks.insert(make_pair(newit, TxLinks()));
 
     // Update transaction for any feeDelta created by PrioritiseTransaction
     // txTODO: refactor so that the fee delta is calculated before inserting
     // into mapTx.
-/*    std::map<uint256, std::pair<double, CAmount> >::const_iterator pos = mapDeltas.find(hash);
+    /*    std::map<uint256, std::pair<double, CAmount> >::const_iterator pos = mapDeltas.find(hash);
     if (pos != mapDeltas.end()) {
         const std::pair<double, CAmount> &deltas = pos->second;
         if (deltas.second) {
@@ -419,7 +418,7 @@ bool CFrtMemPool::addUnchecked(const uint256& hash, const CFrtMemPoolEntry &entr
     // further updated.)
     cachedInnerUsage += entry.DynamicMemoryUsage();
 
-/*    const CTransaction& tx = newit->GetTx();
+    /*    const CTransaction& tx = newit->GetTx();
     std::set<uint256> setParentTransactions;
     for (unsigned int i = 0; i < tx.vin.size(); i++) {
         mapNextTx.insert(std::make_pair(&tx.vin[i].prevout, &tx));
@@ -433,7 +432,7 @@ bool CFrtMemPool::addUnchecked(const uint256& hash, const CFrtMemPoolEntry &entr
     // to clean up the mess we're leaving here.
 
     // Update ancestors with information about this tx
-/*    BOOST_FOREACH (const uint256 &phash, setParentTransactions) {
+    /*    BOOST_FOREACH (const uint256 &phash, setParentTransactions) {
         txiter pit = mapTx.find(phash);
         if (pit != mapTx.end()) {
             UpdateParent(newit, pit, true);
@@ -444,7 +443,7 @@ bool CFrtMemPool::addUnchecked(const uint256& hash, const CFrtMemPoolEntry &entr
 
     nFruitsUpdated++;
     totalFruitSize += entry.GetFruitSize();
-//    minerPolicyEstimator->processTransaction(entry, fCurrentEstimate);
+    //    minerPolicyEstimator->processTransaction(entry, fCurrentEstimate);
 
     vFrtHashes.emplace_back(hash, newit);
     newit->vFrtHashesIdx = vFrtHashes.size() - 1;
@@ -455,7 +454,7 @@ bool CFrtMemPool::addUnchecked(const uint256& hash, const CFrtMemPoolEntry &entr
 void CFrtMemPool::removeUnchecked(frtiter it)
 {
     const uint256 hash = it->GetFrt().GetHash();
-/*    BOOST_FOREACH(const CTxIn& txin, it->GetTx().vin)
+    /*    BOOST_FOREACH(const CTxIn& txin, it->GetTx().vin)
         mapNextTx.erase(txin.prevout);*/
 
     if (vFrtHashes.size() > 1) {
@@ -469,11 +468,11 @@ void CFrtMemPool::removeUnchecked(frtiter it)
 
     totalFrtSize -= it->GetFrtSize();
     cachedInnerUsage -= it->DynamicMemoryUsage();
-//    cachedInnerUsage -= memusage::DynamicUsage(mapLinks[it].parents) + memusage::DynamicUsage(mapLinks[it].children);
-//    mapLinks.erase(it);
+    //    cachedInnerUsage -= memusage::DynamicUsage(mapLinks[it].parents) + memusage::DynamicUsage(mapLinks[it].children);
+    //    mapLinks.erase(it);
     mapFrt.erase(it);
     nFruitsUpdated++;
-//    minerPolicyEstimator->removeTx(hash);
+    //    minerPolicyEstimator->removeTx(hash);
 }
 
 // Calculates descendants of entry that are not already in setDescendants, and adds to
@@ -483,7 +482,7 @@ void CFrtMemPool::removeUnchecked(frtiter it)
 // in-mempool descendants of it are already in setDescendants as well, so that we
 // can save time by not iterating over those entries.
 //the only "Descendant" is entryit itself
-void CFrtMemPool::CalculateDescendants(frtiter entryit, setEntries &setDescendants)
+void CFrtMemPool::CalculateDescendants(frtiter entryit, setEntries& setDescendants)
 {
     setEntries stage;
     if (setDescendants.count(entryit) == 0) {
@@ -497,7 +496,7 @@ void CFrtMemPool::CalculateDescendants(frtiter entryit, setEntries &setDescendan
         setDescendants.insert(it);
         stage.erase(it);
 
-/*        const setEntries &setChildren = GetMemPoolChildren(it);
+        /*        const setEntries &setChildren = GetMemPoolChildren(it);
         BOOST_FOREACH(const txiter &childiter, setChildren) {
             if (!setDescendants.count(childiter)) {
                 stage.insert(childiter);
@@ -505,7 +504,7 @@ void CFrtMemPool::CalculateDescendants(frtiter entryit, setEntries &setDescendan
         }*/
     }
 }
-void CFrtMemPool::removeRecursive(const CFruit &origFrt, std::list<CFruit>& removed)
+void CFrtMemPool::removeRecursive(const CFruit& origFrt, std::list<CFruit>& removed)
 {
     // Remove transaction from memory pool
     {
@@ -519,7 +518,7 @@ void CFrtMemPool::removeRecursive(const CFruit &origFrt, std::list<CFruit>& remo
             // be sure to remove any children that are in the pool. This can
             // happen during chain re-orgs if origTx isn't re-accepted into
             // the mempool for any reason.
-/*            for (unsigned int i = 0; i < origTx.vout.size(); i++) {
+            /*            for (unsigned int i = 0; i < origTx.vout.size(); i++) {
                 auto it = mapNextTx.find(COutPoint(origTx.GetHash(), i));
                 if (it == mapNextTx.end())
                     continue;
@@ -529,13 +528,13 @@ void CFrtMemPool::removeRecursive(const CFruit &origFrt, std::list<CFruit>& remo
             }*/
         }
         setEntries setAllRemoves;
-        BOOST_FOREACH(frtiter it, frtToRemove) {
+        BOOST_FOREACH (frtiter it, frtToRemove) {
             CalculateDescendants(it, setAllRemoves);
         }
-        BOOST_FOREACH(frtiter it, setAllRemoves) {
+        BOOST_FOREACH (frtiter it, setAllRemoves) {
             removed.push_back(it->GetFrt());
         }
-        RemoveStaged(setAllRemoves/*, false*/);
+        RemoveStaged(setAllRemoves /*, false*/);
     }
 }
 /*TODO: seem no need for fruit
@@ -595,46 +594,44 @@ void CTxMemPool::removeConflicts(const CTransaction &tx, std::list<CTransaction>
 /**
  * Called when a block is connected. Removes from mempool and updates the miner fee estimator.
  */
-void CFrtMemPool::removeForBlock(const std::vector<CFruit>& vfrt/*, unsigned int nBlockHeight,
+void CFrtMemPool::removeForBlock(const std::vector<CFruit>& vfrt /*, unsigned int nBlockHeight,
                                 std::list<CBlock>& conflicts, bool fCurrentEstimate*/)
 {
     LOCK(cs);
     std::vector<CFrtMemPoolEntry> entries;
-    BOOST_FOREACH(const CFruit& frt, vfrt)
-    {
+    BOOST_FOREACH (const CFruit& frt, vfrt) {
         uint256 hash = frt.GetHash();
 
         indexed_fruit_set::iterator i = mapFrt.find(hash);
         if (i != mapFrt.end())
             entries.push_back(*i);
     }
-    BOOST_FOREACH(const CFruit& frt, vfrt)
-    {
+    BOOST_FOREACH (const CFruit& frt, vfrt) {
         frtiter it = mapFrt.find(frt.GetHash());
         if (it != mapFrt.end()) {
             setEntries stage;
             stage.insert(it);
-            RemoveStaged(stage/*, true*/);
+            RemoveStaged(stage /*, true*/);
         }
-//        removeConflicts(tx, conflicts);
-//        ClearPrioritisation(tx.GetHash());
+        //        removeConflicts(tx, conflicts);
+        //        ClearPrioritisation(tx.GetHash());
     }
     // After the txs in the new block have been removed from the mempool, update policy estimates
-//    minerPolicyEstimator->processBlock(nBlockHeight, entries, fCurrentEstimate);
-//    lastRollingFeeUpdate = GetTime();
-//    blockSinceLastRollingFeeBump = true;
+    //    minerPolicyEstimator->processBlock(nBlockHeight, entries, fCurrentEstimate);
+    //    lastRollingFeeUpdate = GetTime();
+    //    blockSinceLastRollingFeeBump = true;
 }
 
 void CFrtMemPool::_clear()
 {
-//    mapLinks.clear();
+    //    mapLinks.clear();
     mapFrt.clear();
-//    mapNextTx.clear();
+    //    mapNextTx.clear();
     totalFrtSize = 0;
     cachedInnerUsage = 0;
-//    lastRollingFeeUpdate = GetTime();
-//    blockSinceLastRollingFeeBump = false;
-//    rollingMinimumFeeRate = 0;
+    //    lastRollingFeeUpdate = GetTime();
+    //    blockSinceLastRollingFeeBump = false;
+    //    rollingMinimumFeeRate = 0;
     ++nFruitsUpdated;
 }
 
@@ -652,13 +649,13 @@ void CFrtMemPool::check(/*const CCoinsViewCache *pcoins*/) const
     if (insecure_rand() >= nCheckFrequency)
         return;
 
-    LogPrint("frtmempool", "Checking frtmempool with %u fruits\n"/* and %u inputs\n"*/, (unsigned int)mapFrt.size()/*, (unsigned int)mapNextTx.size()*/);
+    LogPrint("frtmempool", "Checking frtmempool with %u fruits\n" /* and %u inputs\n"*/, (unsigned int)mapFrt.size() /*, (unsigned int)mapNextTx.size()*/);
 
     uint64_t checkTotal = 0;
     uint64_t innerUsage = 0;
 
-//    CCoinsViewCache mempoolDuplicate(const_cast<CCoinsViewCache*>(pcoins)); 
-//    const int64_t nSpendHeight = GetSpendHeight(mempoolDuplicate);
+    //    CCoinsViewCache mempoolDuplicate(const_cast<CCoinsViewCache*>(pcoins));
+    //    const int64_t nSpendHeight = GetSpendHeight(mempoolDuplicate);
 
     LOCK(cs);
     list<const CFrtMemPoolEntry*> waitingOnDependants;
@@ -667,15 +664,15 @@ void CFrtMemPool::check(/*const CCoinsViewCache *pcoins*/) const
         checkTotal += it->GetFrtSize();
         innerUsage += it->DynamicMemoryUsage(); //TODO: MemoryUsage is not determined yet.
         const CFruit& frt = it->GetFrt();
-//        txlinksMap::const_iterator linksiter = mapLinks.find(it);
-//        assert(linksiter != mapLinks.end());
-//        const TxLinks &links = linksiter->second;
-//        innerUsage += memusage::DynamicUsage(links.parents) + memusage::DynamicUsage(links.children); 
+        //        txlinksMap::const_iterator linksiter = mapLinks.find(it);
+        //        assert(linksiter != mapLinks.end());
+        //        const TxLinks &links = linksiter->second;
+        //        innerUsage += memusage::DynamicUsage(links.parents) + memusage::DynamicUsage(links.children);
         bool fDependsWait = false;
-//        setEntries setParentCheck;
-//        int64_t parentSizes = 0;
-//        int64_t parentSigOpCost = 0;
-/*        BOOST_FOREACH(const CTxIn &txin, tx.vin) {
+        //        setEntries setParentCheck;
+        //        int64_t parentSizes = 0;
+        //        int64_t parentSigOpCost = 0;
+        /*        BOOST_FOREACH(const CTxIn &txin, tx.vin) {
             // Check that every mempool transaction's inputs refer to available coins, or other mempool tx's.
             indexed_transaction_set::const_iterator it2 = mapTx.find(txin.prevout.hash);
             if (it2 != mapTx.end()) {
@@ -697,56 +694,56 @@ void CFrtMemPool::check(/*const CCoinsViewCache *pcoins*/) const
             assert(it3->second == &tx);
             i++;
         }*/
-//        assert(setParentCheck == GetMemPoolParents(it));
+        //        assert(setParentCheck == GetMemPoolParents(it));
         // Verify ancestor state is correct.
-//        setEntries setAncestors;
-//        uint64_t nNoLimit = std::numeric_limits<uint64_t>::max();
-//        std::string dummy;
-//        CalculateMemPoolAncestors(*it, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, dummy);
-//        uint64_t nCountCheck = setAncestors.size() + 1;
-//        uint64_t nSizeCheck = it->GetFrtSize();
-//        CAmount nFeesCheck = it->GetModifiedFee();
-//        int64_t nSigOpCheck = it->GetSigOpCost();
+        //        setEntries setAncestors;
+        //        uint64_t nNoLimit = std::numeric_limits<uint64_t>::max();
+        //        std::string dummy;
+        //        CalculateMemPoolAncestors(*it, setAncestors, nNoLimit, nNoLimit, nNoLimit, nNoLimit, dummy);
+        //        uint64_t nCountCheck = setAncestors.size() + 1;
+        //        uint64_t nSizeCheck = it->GetFrtSize();
+        //        CAmount nFeesCheck = it->GetModifiedFee();
+        //        int64_t nSigOpCheck = it->GetSigOpCost();
 
-/*        BOOST_FOREACH(txiter ancestorIt, setAncestors) {
+        /*        BOOST_FOREACH(txiter ancestorIt, setAncestors) {
             nSizeCheck += ancestorIt->GetTxSize();
             nFeesCheck += ancestorIt->GetModifiedFee();
             nSigOpCheck += ancestorIt->GetSigOpCost();
         }*/
 
-//        assert(it->GetCountWithAncestors() == nCountCheck);
-//        assert(it->GetSizeWithAncestors() == nSizeCheck);
-//        assert(it->GetSigOpCostWithAncestors() == nSigOpCheck);
-//        assert(it->GetModFeesWithAncestors() == nFeesCheck);
+        //        assert(it->GetCountWithAncestors() == nCountCheck);
+        //        assert(it->GetSizeWithAncestors() == nSizeCheck);
+        //        assert(it->GetSigOpCostWithAncestors() == nSigOpCheck);
+        //        assert(it->GetModFeesWithAncestors() == nFeesCheck);
 
         // Check children against mapNextTx
-//        CTxMemPool::setEntries setChildrenCheck;
-//        auto iter = mapNextTx.lower_bound(COutPoint(it->GetTx().GetHash(), 0));
-//        int64_t childSizes = 0;
-/*        for (; iter != mapNextTx.end() && iter->first->hash == it->GetTx().GetHash(); ++iter) {
+        //        CTxMemPool::setEntries setChildrenCheck;
+        //        auto iter = mapNextTx.lower_bound(COutPoint(it->GetTx().GetHash(), 0));
+        //        int64_t childSizes = 0;
+        /*        for (; iter != mapNextTx.end() && iter->first->hash == it->GetTx().GetHash(); ++iter) {
             txiter childit = mapTx.find(iter->second->GetHash());
             assert(childit != mapTx.end()); // mapNextTx points to in-mempool transactions
             if (setChildrenCheck.insert(childit).second) {
                 childSizes += childit->GetTxSize();
             }
         }*/
-//        assert(setChildrenCheck == GetMemPoolChildren(it));
+        //        assert(setChildrenCheck == GetMemPoolChildren(it));
         // Also check to make sure size is greater than sum with immediate children.
         // just a sanity check, not definitive that this calc is correct...
-//        assert(it->GetSizeWithDescendants() >= childSizes + it->GetTxSize());
+        //        assert(it->GetSizeWithDescendants() >= childSizes + it->GetTxSize());
 
-/*        if (fDependsWait)
+        /*        if (fDependsWait)
             waitingOnDependants.push_back(&(*it));
         else {
-            CValidationState state;                     
+            CValidationState state;
             bool fCheckResult = tx.IsCoinBase() ||
                 Consensus::CheckTxInputs(tx, state, mempoolDuplicate, nSpendHeight);
             assert(fCheckResult);
-            UpdateCoins(tx, mempoolDuplicate, 1000000);         
+            UpdateCoins(tx, mempoolDuplicate, 1000000);
         }*/
     }
     unsigned int stepsSinceLastRemove = 0;
-/*    while (!waitingOnDependants.empty()) {
+    /*    while (!waitingOnDependants.empty()) {
         const CTxMemPoolEntry* entry = waitingOnDependants.front();
         waitingOnDependants.pop_front();
         CValidationState state;
@@ -815,7 +812,7 @@ std::vector<CFrtMemPool::indexed_fruit_set::const_iterator> CFrtMemPool::GetSort
     for (indexed_fruit_set::iterator mi = mapFrt.begin(); mi != mapFrt.end(); ++mi) {
         iters.push_back(mi);
     }
-//    std::sort(iters.begin(), iters.end(), DepthAndScoreComparator());
+    //    std::sort(iters.begin(), iters.end(), DepthAndScoreComparator());
     return iters;
 }
 
@@ -840,7 +837,7 @@ std::vector<FrtMempoolInfo> CFrtMemPool::infoAll() const
     std::vector<FrtMempoolInfo> ret;
     ret.reserve(mapFrt.size());
     for (auto it : iters) {
-        ret.push_back(FrtMempoolInfo{it->GetSharedFrt(), it->GetTime()/*, CFeeRate(it->GetFee(), it->GetTxSize())*/});
+        ret.push_back(FrtMempoolInfo{it->GetSharedFrt(), it->GetTime() /*, CFeeRate(it->GetFee(), it->GetTxSize())*/});
     }
 
     return ret;
@@ -861,7 +858,7 @@ FrtMempoolInfo CFrtMemPool::info(const uint256& hash) const
     indexed_fruit_set::const_iterator i = mapFrt.find(hash);
     if (i == mapFrt.end())
         return FrtMempoolInfo();
-    return FrtMempoolInfo{i->GetSharedFrt(), i->GetTime()/*, CFeeRate(i->GetFee(), i->GetTxSize())*/};
+    return FrtMempoolInfo{i->GetSharedFrt(), i->GetTime() /*, CFeeRate(i->GetFee(), i->GetTxSize())*/};
 }
 /*
 CFeeRate CTxMemPool::estimateFee(int nBlocks) const
@@ -968,7 +965,7 @@ bool CTxMemPool::HasNoInputsOf(const CTransaction &tx) const
     return true;
 }*/
 
-/*CCoinsViewMemPool::CCoinsViewMemPool(CCoinsView* baseIn, const CTxMemPool& mempoolIn) : CCoinsViewBacked(baseIn), mempool(mempoolIn) { } 
+/*CCoinsViewMemPool::CCoinsViewMemPool(CCoinsView* baseIn, const CTxMemPool& mempoolIn) : CCoinsViewBacked(baseIn), mempool(mempoolIn) { }
 
 bool CCoinsViewMemPool::GetCoins(const uint256 &txid, CCoins &coins) const {
     // If an entry in the mempool exists, always return that one, as it's guaranteed to never
@@ -986,21 +983,24 @@ bool CCoinsViewMemPool::HaveCoins(const uint256 &txid) const {
     return mempool.exists(txid) || base->HaveCoins(txid);
 }*/
 //TODO: Need to be decided
-size_t CFrtMemPool::DynamicMemoryUsage() const {
+size_t CFrtMemPool::DynamicMemoryUsage() const
+{
     LOCK(cs);
     // Estimate the overhead of mapTx to be 15 pointers + an allocation, as no exact formula for boost::multi_index_contained is implemented.
     return memusage::MallocUsage(sizeof(CFrtMemPoolEntry) + 15 * sizeof(void*)) * mapFrt.size() + /*memusage::DynamicUsage(mapNextTx) + memusage::DynamicUsage(mapDeltas) + memusage::DynamicUsage(mapLinks) +*/ memusage::DynamicUsage(vFrtHashes) + cachedInnerUsage;
 }
 
-void CFrtMemPool::RemoveStaged(setEntries &stage/*, bool updateDescendants*/) {
+void CFrtMemPool::RemoveStaged(setEntries& stage /*, bool updateDescendants*/)
+{
     AssertLockHeld(cs);
-//    UpdateForRemoveFromMempool(stage, updateDescendants);
-    BOOST_FOREACH(const frtiter& it, stage) {
+    //    UpdateForRemoveFromMempool(stage, updateDescendants);
+    BOOST_FOREACH (const frtiter& it, stage) {
         removeUnchecked(it);
     }
 }
 
-int CFrtMemPool::Expire(int64_t time) {
+int CFrtMemPool::Expire(int64_t time)
+{
     LOCK(cs);
     indexed_fruit_set::index<entry_time>::type::iterator it = mapFrt.get<entry_time>().begin();
     setEntries toremove;
@@ -1009,10 +1009,10 @@ int CFrtMemPool::Expire(int64_t time) {
         it++;
     }
     setEntries stage;
-    BOOST_FOREACH(frtiter removeit, toremove) {
+    BOOST_FOREACH (frtiter removeit, toremove) {
         CalculateDescendants(removeit, stage);
     }
-    RemoveStaged(stage/*, false*/);
+    RemoveStaged(stage /*, false*/);
     return stage.size();
 }
 /*
@@ -1094,36 +1094,37 @@ void CTxMemPool::trackPackageRemoved(const CFeeRate& rate) {
     }
 }*/
 //no priority thus remove the first fruit. TODO: Other order?
-void CFrtMemPool::TrimToSize(size_t sizelimit/*, std::vector<uint256>* pvNoSpendsRemaining*/) {
+void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpendsRemaining*/)
+{
     LOCK(cs);
 
     unsigned nFrtnRemoved = 0;
-//    CFeeRate maxFeeRateRemoved(0);
-    while (!mapFrt.empty() && DynamicMemoryUsage() > sizelimit) {  
-//        indexed_fruit_set::index<descendant_score>::type::iterator it = mapTx.get<descendant_score>().begin();
-          indexed_fruit_set::index<entry_time_fruit>::type::iterator it = mapFrt.get<entry_time_fruit>().begin();// TODO: Currently using entry_time
+    //    CFeeRate maxFeeRateRemoved(0);
+    while (!mapFrt.empty() && DynamicMemoryUsage() > sizelimit) {
+        //        indexed_fruit_set::index<descendant_score>::type::iterator it = mapTx.get<descendant_score>().begin();
+        indexed_fruit_set::index<entry_time_fruit>::type::iterator it = mapFrt.get<entry_time_fruit>().begin(); // TODO: Currently using entry_time
 
         // We set the new mempool min fee to the feerate of the removed set, plus the
         // "minimum reasonable fee rate" (ie some value under which we consider txn
         // to have 0 fee). This way, we don't allow txn to enter mempool with feerate
         // equal to txn which were removed with no block in between.
-//        CFeeRate removed(it->GetModFeesWithDescendants(), it->GetSizeWithDescendants());
-//        removed += minReasonableRelayFee;
-//        trackPackageRemoved(removed);
-//        maxFeeRateRemoved = std::max(maxFeeRateRemoved, removed);
+        //        CFeeRate removed(it->GetModFeesWithDescendants(), it->GetSizeWithDescendants());
+        //        removed += minReasonableRelayFee;
+        //        trackPackageRemoved(removed);
+        //        maxFeeRateRemoved = std::max(maxFeeRateRemoved, removed);
 
         setEntries stage;
         CalculateDescendants(mapTx.project<0>(it), stage);
         nFrtnRemoved += stage.size();
 
-/*        std::vector<CFruit> frtn;
+        /*        std::vector<CFruit> frtn;
         if (pvNoSpendsRemaining) {
             frtn.reserve(stage.size());
             BOOST_FOREACH(frtiter it, stage)
                 frtn.push_back(it->GetFrt());
         }*/
-        RemoveStaged(stage/*, false*/);
-/*        if (pvNoSpendsRemaining) {
+        RemoveStaged(stage /*, false*/);
+        /*        if (pvNoSpendsRemaining) {
             BOOST_FOREACH(const CBlock& frt, frtn) {
                 BOOST_FOREACH(const CTxIn& txin, tx.vin) {
                     if (exists(txin.prevout.hash))
@@ -1136,6 +1137,6 @@ void CFrtMemPool::TrimToSize(size_t sizelimit/*, std::vector<uint256>* pvNoSpend
         }*/
     }
 
-//    if (maxFeeRateRemoved > CFeeRate(0))
-        LogPrint("frtmempool", "Removed %u txn\n"/*, rolling minimum fee bumped to %s\n"*/, nTxnRemoved/*, maxFeeRateRemoved.ToString()*/);
+    //    if (maxFeeRateRemoved > CFeeRate(0))
+    LogPrint("frtmempool", "Removed %u txn\n" /*, rolling minimum fee bumped to %s\n"*/, nTxnRemoved /*, maxFeeRateRemoved.ToString()*/);
 }
