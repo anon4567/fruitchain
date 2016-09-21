@@ -792,7 +792,8 @@ public:
 class CTransaction;
 void RelayTransaction(const CTransaction& tx);
 //verFruit
-void RelayFruit(const CFruit& frt);
+class CBlockHeader;
+void RelayFruit(const CBlockHeader& frt);
 
 /** Access to the (IP) address database (peers.dat) */
 class CAddrDB

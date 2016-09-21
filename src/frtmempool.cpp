@@ -20,11 +20,11 @@
 
 using namespace std;
 //TODO: FRT_WEIGHT, FRT_USAGE_SIZE, FRT_SIZE to be decided
-CFrtMemPoolEntry::CFrtMemPoolEntry(const CFruit& _frt, //const CAmount& _nFee,
+CFrtMemPoolEntry::CFrtMemPoolEntry(const CBlockHeader& _frt, //const CAmount& _nFee,
     int64_t _nTime,
     /*double _entryPriority,*/ unsigned int _entryHeight //,
                                                          // bool poolHasNoInputsOf, CAmount _inChainInputValue,
-    /* bool _spendsCoinbase, int64_t _sigOpsCost, LockPoints lp*/) : frt(std::make_shared<CFruit>(_frt)), /*nFee(_nFee),*/ nTime(_nTime), /*entryPriority(_entryPriority),*/ entryHeight(_entryHeight),
+    /* bool _spendsCoinbase, int64_t _sigOpsCost, LockPoints lp*/) : frt(std::make_shared<CBlockHeader>(_frt)), /*nFee(_nFee),*/ nTime(_nTime), /*entryPriority(_entryPriority),*/ entryHeight(_entryHeight),
 //    hadNoDependencies(poolHasNoInputsOf), inChainInputValue(_inChainInputValue),
 /*    spendsCoinbase(_spendsCoinbase),*/ //sigOpCost(_sigOpsCost)//, lockPoints(lp)
 {
@@ -504,7 +504,7 @@ void CFrtMemPool::CalculateDescendants(frtiter entryit, setEntries& setDescendan
         }*/
     }
 }
-void CFrtMemPool::removeRecursive(const CFruit& origFrt, std::list<CFruit>& removed)
+void CFrtMemPool::removeRecursive(const CBlockHeader& origFrt, std::list<CBlockHeader>& removed)
 {
     // Remove transaction from memory pool
     {
@@ -594,19 +594,19 @@ void CTxMemPool::removeConflicts(const CTransaction &tx, std::list<CTransaction>
 /**
  * Called when a block is connected. Removes from mempool and updates the miner fee estimator.
  */
-void CFrtMemPool::removeForBlock(const std::vector<CFruit>& vfrt /*, unsigned int nBlockHeight,
+void CFrtMemPool::removeForBlock(const std::vector<CBlockHeader>& vfrt /*, unsigned int nBlockHeight,
                                 std::list<CBlock>& conflicts, bool fCurrentEstimate*/)
 {
     LOCK(cs);
     std::vector<CFrtMemPoolEntry> entries;
-    BOOST_FOREACH (const CFruit& frt, vfrt) {
+    BOOST_FOREACH (const CBlockHeader& frt, vfrt) {
         uint256 hash = frt.GetHash();
 
         indexed_fruit_set::iterator i = mapFrt.find(hash);
         if (i != mapFrt.end())
             entries.push_back(*i);
     }
-    BOOST_FOREACH (const CFruit& frt, vfrt) {
+    BOOST_FOREACH (const CBlockHeader& frt, vfrt) {
         frtiter it = mapFrt.find(frt.GetHash());
         if (it != mapFrt.end()) {
             setEntries stage;
@@ -663,7 +663,7 @@ void CFrtMemPool::check(/*const CCoinsViewCache *pcoins*/) const
         unsigned int i = 0;
         checkTotal += it->GetFrtSize();
         innerUsage += it->DynamicMemoryUsage(); //TODO: MemoryUsage is not determined yet.
-        const CFruit& frt = it->GetFrt();
+        const CBlockHeader& frt = it->GetFrt();
         //        txlinksMap::const_iterator linksiter = mapLinks.find(it);
         //        assert(linksiter != mapLinks.end());
         //        const TxLinks &links = linksiter->second;
@@ -843,7 +843,7 @@ std::vector<FrtMempoolInfo> CFrtMemPool::infoAll() const
     return ret;
 }
 
-std::shared_ptr<const CFruit> CFrtMemPool::get(const uint256& hash) const
+std::shared_ptr<const CBlockHeader> CFrtMemPool::get(const uint256& hash) const
 {
     LOCK(cs);
     indexed_fruit_set::const_iterator i = mapFrt.find(hash);
@@ -1117,7 +1117,7 @@ void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpen
         CalculateDescendants(mapTx.project<0>(it), stage);
         nFrtnRemoved += stage.size();
 
-        /*        std::vector<CFruit> frtn;
+        /*        std::vector<CBlockHeader> frtn;
         if (pvNoSpendsRemaining) {
             frtn.reserve(stage.size());
             BOOST_FOREACH(frtiter it, stage)

@@ -2092,7 +2092,7 @@ public:
 } instance_of_cnetcleanup;
 
 //verFruit
-void RelayFruit(const CFruit& frt)
+void RelayFruit(const CBlockHeader& frt)
 {
     CInv inv(MSG_FRT, frt.GetHash());
     LOCK(cs_vNodes);

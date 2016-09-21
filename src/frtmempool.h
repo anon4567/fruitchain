@@ -21,7 +21,7 @@
 #include "boost/multi_index/ordered_index.hpp"
 #include "boost/multi_index_container.hpp"
 
-//class CFruitIndex;    verFruit
+//class CBlockHeaderIndex;    verFruit
 /**
     Based on TxMempool.
     Get rid of anything about fee and priority because there is no fruit fee
@@ -86,7 +86,7 @@ class CFrtMemPool;
 class CFrtMemPoolEntry
 {
 private:
-    std::shared_ptr<const CFruit> frt;
+    std::shared_ptr<const CBlockHeader> frt;
     //    CAmount nFee;              //!< Cached to avoid expensive parent-transaction lookups
     size_t nFrtWeight;        //!< ... and avoid recomputing tx weight (also used for GetTxSize())
                               //    size_t nModSize;           //!< ... and modified size for priority
@@ -117,15 +117,15 @@ private:
     //    int64_t nSigOpCostWithAncestors;
 
 public:
-    CFrtMemPoolEntry(const CFruit& _frt, //const CAmount& _nFee,
+    CFrtMemPoolEntry(const CBlockHeader& _frt, //const CAmount& _nFee,
         int64_t _nTime,
         /*double _entryPriority,*/ unsigned int _entryHeight,
         //bool poolHasNoInputsOf, CAmount _inChainInputValue, bool spendsCoinbase,
         /*int64_t nSigOpsCost, FruitLockPoints lp*/);
     CFrtMemPoolEntry(const CFrtMemPoolEntry& other);
 
-    const CFruit& GetFrt() const { return *this->frt; }
-    std::shared_ptr<const CFruit> GetSharedFrt() const { return this->frt; }
+    const CBlockHeader& GetFrt() const { return *this->frt; }
+    std::shared_ptr<const CBlockHeader> GetSharedFrt() const { return this->frt; }
     /**
      * Fast calculation of lower bound of current priority as update
      * from entry priority. Only inputs that were originally in-chain will age.
@@ -334,7 +334,7 @@ struct ancestor_score_fruit {
  */
 struct FrtMempoolInfo {
     /** The transaction itself */
-    std::shared_ptr<const CFruit> frt;
+    std::shared_ptr<const CBlockHeader> frt;
 
     /** Time the transaction entered the mempool. */
     int64_t nTime;
@@ -532,10 +532,10 @@ public:
     bool addUnchecked(const uint256& hash, const CFrtMemPoolEntry& entry, bool fCurrentEstimate = true);
     //    bool addUnchecked(const uint256& hash, const CTxMemPoolEntry &entry, setEntries &setAncestors, bool fCurrentEstimate = true);
 
-    void removeRecursive(const CFruit& frt, std::list<CFruit>& removed);
+    void removeRecursive(const CBlockHeader& frt, std::list<CBlockHeader>& removed);
     //    void removeForReorg(const CCoinsViewCache *pcoins, unsigned int nMemPoolHeight, int flags); //TODO: seems not need
     //    void removeConflicts(const CBlock &frt, std::list<CBlock>& removed);
-    void removeForBlock(const std::vector<CFruit>& vfrt /*, unsigned int nBlockHeight,
+    void removeForBlock(const std::vector<CBlockHeader>& vfrt /*, unsigned int nBlockHeight,
                         std::list<CBlock>& conflicts, bool fCurrentEstimate = true*/);
     void clear();
     void _clear(); //lock free
@@ -629,14 +629,14 @@ public:
     }
 
     //Note for add() and remove(): No additional check here, please ensure that add good fruit and remove exist fruit.
-    void add(const CFruit& frt, int64_t nTime, unsigned int entryHeight)
+    void add(const CBlockHeader& frt, int64_t nTime, unsigned int entryHeight)
     {
         const uint256 hash = frt.GetHash();
         CFrtMemPoolEntry entry(frt, nTime, entryHeight);
         addUnchecked(hash, entry);
     }
 
-    void remove(const CFruit& frt)
+    void remove(const CBlockHeader& frt)
     {
         LOCK(cs);
         frtiter it = mapFrt.find(frt.GetHash());
@@ -645,7 +645,7 @@ public:
         RemoveStaged(stage);
     }
 
-    std::shared_ptr<const CFruit> get(const uint256& hash) const;
+    std::shared_ptr<const CBlockHeader> get(const uint256& hash) const;
     FrtMempoolInfo info(const uint256& hash) const;
     std::vector<FrtMempoolInfo> infoAll() const;
 

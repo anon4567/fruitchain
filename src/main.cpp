@@ -237,7 +237,7 @@ MapRelay mapRelay;
 std::deque<std::pair<int64_t, MapRelay::iterator> > vRelayExpiration;
 
 /** Relay map, protected by cs_main. verFruit */
-typedef std::map<uint256, std::shared_ptr<const CFruit> > FrtMapRelay;
+typedef std::map<uint256, std::shared_ptr<const CBlockHeader> > FrtMapRelay;
 FrtMapRelay mapFrtRelay;
 
 /** Expiration-time ordered list of (expire time, relay map entry) pairs, protected by cs_main). verFruit */
@@ -1103,7 +1103,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state)
 }
 
 //verFruit CheckFruit
-bool CheckFruit(const CFruit& fruit, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW);
+bool CheckFruit(const CBlockHeader& fruit, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW);
 {
     // Check proof of work matches claimed amount
     if (fCheckPOW && !CheckProofOfWork(fruit.GetHash(), fruit.nBits - BITS_FRUIT_LESS_THAN_BLOCK, consensusParams)) {
@@ -1561,7 +1561,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 }
 
 //verFruit
-bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CFruit& frt, bool fOverrideMempoolLimit, , const Consensus::Params& consensusParams, bool fCheckPOW)
+bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CBlockHeader& frt, bool fOverrideMempoolLimit, , const Consensus::Params& consensusParams, bool fCheckPOW)
 {
     const uint256 hash = frt.GetHash();
     AssertLockHeld(cs_main);
@@ -3746,7 +3746,7 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
 }
 
 
-bool ContextualCheckFruit(const CFruit& fruit, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, int64_t nAdjustedTime)
+bool ContextualCheckFruit(const CBlockHeader& fruit, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, int64_t nAdjustedTime)
 {
     const int nHeight = pindexPrev == NULL ? 0 : pindexPrev->nHeight + 1;
     // Check proof of work
@@ -5846,7 +5846,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         //        deque<COutPoint> vWorkQueue;
         vector<uint256> vEraseQueue;
-        CFruit frt;
+        CBlockHeader frt;
         vRecv >> frt;
 
         CInv inv(MSG_FRUIT, frt.GetHash());
