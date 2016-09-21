@@ -1004,9 +1004,9 @@ void CFrtMemPool::RemoveStaged(setEntries& stage /*, bool updateDescendants*/)
 int CFrtMemPool::Expire(int64_t time)
 {
     LOCK(cs);
-    indexed_fruit_set::index<entry_time>::type::iterator it = mapFrt.get<entry_time>().begin();
+    indexed_fruit_set::index<entry_time_fruit>::type::iterator it = mapFrt.get<entry_time_fruit>().begin();
     setEntries toremove;
-    while (it != mapFrt.get<entry_time>().end() && it->GetTime() < time) {
+    while (it != mapFrt.get<entry_time_fruit>().end() && it->GetTime() < time) {
         toremove.insert(mapFrt.project<0>(it));
         it++;
     }
