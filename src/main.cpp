@@ -3786,11 +3786,16 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, CValidationState& state, co
     if (frtmempool_used.exists(fruit.GetHash())) {
         return state.Invalid(false, REJECT_INVALID, "frt-already-used", "fruit has been used in current episode");
     }
+
+    bool prevIsValid = false;
     for (bool isLastEpisode = false; !isLastEpisode;) {
         isLastEpisode = IsEndOfEpisode(nIndex);
         if (pindexPrev->GetBlockHash() == fruit.hashPrevBlock)
             prevIsValid = true;
         nIndex = nIndex->pprev;
+    }
+    if (!prevIsValid) {
+        // TODO: prev is not valid
     }
 
     return true;
@@ -3875,7 +3880,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
     //Contextualcheck fruits
     for (const auto& frt : block.vfrt)
         if (!ContextualCheckFruit(frt, state, consensusParams, pindexPrev, GetAdjustedTime())) {
-            return error("ContextualCheckBlock: ContextualCheckBlockHeader: %s, %s", frt.GetHash.ToString(), FormatStateMessage(state));
+            return error("ContextualCheckBlock: ContextualCheckBlockHeader: %s, %s", frt.GetHash().ToString(), FormatStateMessage(state));
         }
     //----------------------------------
 
