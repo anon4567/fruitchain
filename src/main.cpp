@@ -3795,7 +3795,7 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, CValidationState& state, co
         nIndex = nIndex->pprev;
     }
     if (!prevIsValid) {
-        // TODO: prev is not valid
+        return state.DoS(100, false, REJECT_INVALID, "bad-prev", false, "incorrect prev block");
     }
 
     return true;
