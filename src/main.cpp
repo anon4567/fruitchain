@@ -2204,13 +2204,15 @@ void CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         if (nblockindex == NULL) {
             //TODO: error:
         }
+        CBlock tmpblock;
         const CBlock* nblock;
         if (nblockindex->GetBlockHash() == pindex->GetBlockHash()) {
             nblock = &block;
         } else {
-            if (!ReadBlockFromDisk(nblock, nblockindex, chainparams.GetConsensus())) {
+            if (!ReadBlockFromDisk(tmpblock, nblockindex, chainparams.GetConsensus())) {
                 //TODO: error: block unloadable
             }
+            nblock = &tmpblock;
         }
         f[i] = nblock->vfrt.size();
         F += f[i];
@@ -3779,12 +3781,12 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, CValidationState& state, co
     if (frtmempool_used.exists(fruit.GetHash())) {
         // TODO: error
     }
-    do {
-        bool isLastEpisode = IsEndOfEpisode(nIndex);
+    for (bool isLastEpisode = false; !isLastEpisode;) {
+        isLastEpisode = IsEndOfEpisode(nIndex);
         if (pindexPrev->GetBlockHash() == fruit.hashPrevBlock)
             prevIsValid = true;
         nIndex = nIndex->pprev;
-    } while (!isLastEpisode);
+    }
 
     return true;
 }
@@ -7038,7 +7040,7 @@ bool SendMessages(CNode* pto)
                     }*/
                     //                    if (pto->pfilter && !pto->pfilter->IsRelevantAndUpdate(*txinfo.tx)) continue;
                     // Send
-                    vInv.push_back(CInv(MSG_FRT, hash));
+                    vInv.push_back(CInv(MSG_FRUIT, hash));
                     nRelayedFruits++;
                     {
                         // Expire old relay messages TODO: Is it ok to use the same one with Tx? Seems ok.
