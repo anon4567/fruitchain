@@ -37,6 +37,7 @@ class CChainParams;
 class CInv;
 class CScriptCheck;
 class CTxMemPool;
+class CFrtMemPool;
 class CValidationInterface;
 class CValidationState;
 
