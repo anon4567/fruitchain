@@ -550,7 +550,7 @@ public:
             if (!filterInventoryKnown.contains(inv.hash)) {
                 setInventoryTxToSend.insert(inv.hash);
             }
-        } else if (inv.type == MSG_FRT) {                   //verFruit
+        } else if (inv.type == MSG_FRUIT) {                 //verFruit
             if (!filterInventoryKnown.contains(inv.hash)) { // Check whether already recieved INV from this peer or already send to this peer
                 setInventoryFrtToSend.insert(inv.hash);
             }
