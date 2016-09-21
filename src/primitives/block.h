@@ -6,6 +6,7 @@
 #ifndef BITCOIN_PRIMITIVES_BLOCK_H
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
+#include "hash.h"
 #include "primitives/transaction.h"
 #include "script/script.h"
 #include "serialize.h"
@@ -137,7 +138,7 @@ public:
     uint256 GetFruitsHash()
     {
         uint256 hash = uint256();
-        for (std::vector<uint256>::const_iterator it = vfrt.begin(); it != vfrt.end(); ++it) {
+        for (std::vector<CBlockHeader>::const_iterator it = vfrt.begin(); it != vfrt.end(); ++it) {
             hash = Hash(BEGIN(hash), END(hash), BEGIN(*it), END(*it));
         }
         return hash;
