@@ -104,6 +104,14 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     result.push_back(Pair("version", block.nVersion));
     result.push_back(Pair("versionHex", strprintf("%08x", block.nVersion)));
     result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
+
+    //For fruitchain
+    result.push_back(Pair("prevEpisodeHash", block.hashPrevEpisode.GetHex()));
+    result.push_back(Pair("fruitsHash", block.hashFruits.GetHex()));
+    UniValue o(UniValue::VOBJ);
+    ScriptPubKeyToJSON(block.scriptPubKey, o, true);
+    result.push_back(Pair("creatorScriptPubKey", o));
+
     UniValue txs(UniValue::VARR);
     BOOST_FOREACH (const CTransaction& tx, block.vtx) {
         if (txDetails) {

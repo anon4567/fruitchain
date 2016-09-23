@@ -2183,6 +2183,7 @@ static bool ApplyTxInUndo(const CTxInUndo& undo, CCoinsViewCache& view, const CO
 
 bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams)
 {
+    // It should be assumed that phashBlock in pindex is NULL currently
     /**
       * calculate reward distribution of this episode.
       * total reward S = FEE_POOL_FRACTION * nfees + GetBlockSubsidy(nHeight, chainparams.GetConsensus()) for each block
@@ -2190,7 +2191,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
       * then for each fruit, its collector get co = REWARD_COLLECT_FRACTION * (1 / F) * S, its creator get cr = (1 / F) * S - co
       * additionally, creator of block i get fee[i] - FEE_POOL_FRACTION * fee[i] for reward
       */
-    LogPrintf("Calculate reward distribution start");
+    LogPrintf("Calculate reward distribution start, pindex->phashBlock: %d\n", pindex->phashBlock);
     std::vector<uint32_t> f;
     uint32_t F = 0;
     std::vector<CAmount> fee, reward_block_creator;
@@ -2204,12 +2205,15 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     block_creator.resize(FRUIT_PERIOD_LENGTH);
     //loop in reverse order
     for (int i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
+        LogPrintf("look at block %d: start\n", i);
+
         if (nblockindex == NULL) {
             return error("CalculateRewardDistribution(): the %d-th block is not found", i);
         }
         CBlock tmpblock;
         const CBlock* nblock;
-        if (nblockindex->GetBlockHash() == pindex->GetBlockHash()) {
+        LogPrintf("look at block %d\n", i);
+        if (nblockindex == pindex) {
             nblock = &block;
         } else {
             if (!ReadBlockFromDisk(tmpblock, nblockindex, chainparams.GetConsensus())) {
@@ -2217,15 +2221,18 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
             }
             nblock = &tmpblock;
         }
+        LogPrintf("look at block %d: fee: %lld, #frt: %u\n", i, fee[i], f[i]);
         f[i] = nblock->vfrt.size();
         F += f[i];
 
         fee[i] = 0;
         for (const auto& tx : nblock->vtx) {
             //Note that in fruitchain there is no generation tx
-            fee[i] += view.GetValueIn(tx) - tx.GetValueOut();
+            if (!tx.IsCoinBase())
+                fee[i] += view.GetValueIn(tx) - tx.GetValueOut();
         }
 
+        LogPrintf("look at block %d: fee: %lld, #frt: %u\n", i, fee[i], f[i]);
         reward_block_creator[i] = (1 - FEE_POOL_FRACTION) * fee[i];
         S += GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus()) + fee[i] - reward_block_creator[i];
         for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
@@ -2235,10 +2242,12 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         // Temporarily regard block a fruit
         F += 1;
         fruit_creator.push_back(nblock->scriptPubKey);
+        //------------------------------------
 
         block_creator[i] = nblock->scriptPubKey;
     }
     CAmount reward_per_fruit_cr = S * 0.9 / F, reward_per_fruit_co = S / F - reward_per_fruit_cr; //TODO: variant reward for fruit in different blocks
+    LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld", reward_per_fruit_cr, reward_per_fruit_co);
     // Create generation tx
     CMutableTransaction nTx;
     nTx.vin.resize(1);
@@ -3401,6 +3410,7 @@ bool ResetBlockFailureFlags(CBlockIndex* pindex)
 
 CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
 {
+    LogPrintf("AddToBlockIndex %s", block.GetHash().GetHex());
     // Check for duplicate
     uint256 hash = block.GetHash();
     BlockMap::iterator it = mapBlockIndex.find(hash);
