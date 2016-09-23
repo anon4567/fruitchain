@@ -203,6 +203,9 @@ public:
     //! Verification status of this block. See enum BlockStatus
     unsigned int nStatus;
 
+    //For fruitchain
+    CAmount nFees;
+
     //! block header
     int32_t nVersion;
     uint256 hashPrevEpisode;
@@ -230,6 +233,7 @@ public:
         nChainTx = 0;
         nStatus = 0;
         nSequenceId = 0;
+        nFees = 0;
 
         nVersion = 0;
         hashPrevEpisode.SetNull();

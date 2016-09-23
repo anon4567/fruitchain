@@ -2232,12 +2232,14 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
 
         F += f[i];
 
-        fee[i] = 0;
-        for (const auto& tx : nblock->vtx) {
+        fee[i] = nblockindex->nFees;
+        /*for (const auto& tx : nblock->vtx) {
             //Note that in fruitchain there is no generation tx
-            if (!tx.IsCoinBase())
+            if (!tx.IsCoinBase()) {
+                LogPrintf("calculate tx fee: %s\n", tx.ToString().c_str());
                 fee[i] += view.GetValueIn(tx) - tx.GetValueOut();
-        }
+            }
+        }*/
 
         LogPrintf("look at block %d: fee: %lld, #frt: %u\n", i, fee[i], f[i]);
         reward_block_creator[i] = (1 - FEE_POOL_FRACTION) * fee[i];
@@ -2663,11 +2665,14 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (i > 0) {
             blockundo.vtxundo.push_back(CTxUndo());
         }
+        LogPrintf("Update utxo: %s\n", tx.ToString().c_str());
         UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
 
         vPos.push_back(std::make_pair(tx.GetHash(), pos));
         pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
     }
+
+    pindex->nFees = nFees;
 
     int64_t nTime3 = GetTimeMicros();
     nTimeConnect += nTime3 - nTime2;
