@@ -2222,7 +2222,14 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
             nblock = &tmpblock;
         }
         LogPrintf("look at block %d: fee: %lld, #frt: %u\n", i, fee[i], f[i]);
+
         f[i] = nblock->vfrt.size();
+
+        // Temporarily regard block a fruit
+        f[i] += 1;
+        fruit_creator.push_back(nblock->scriptPubKey);
+        //------------------------------------
+
         F += f[i];
 
         fee[i] = 0;
@@ -2239,15 +2246,10 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
             fruit_creator.push_back(nblock->vfrt[i].scriptPubKey);
         }
 
-        // Temporarily regard block a fruit
-        F += 1;
-        fruit_creator.push_back(nblock->scriptPubKey);
-        //------------------------------------
-
         block_creator[i] = nblock->scriptPubKey;
     }
     CAmount reward_per_fruit_cr = S * 0.9 / F, reward_per_fruit_co = S / F - reward_per_fruit_cr; //TODO: variant reward for fruit in different blocks
-    LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld", reward_per_fruit_cr, reward_per_fruit_co);
+    LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld\n", reward_per_fruit_cr, reward_per_fruit_co);
     // Create generation tx
     CMutableTransaction nTx;
     nTx.vin.resize(1);
@@ -2262,7 +2264,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     }
     //TODO: rest rewards
     fruit_tx.push_back(nTx);
-    LogPrintf("Calculate reward distribution end");
+    LogPrintf("Calculate reward distribution end\n");
     return true;
 }
 
@@ -2581,6 +2583,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
             return state.DoS(100, error("ConnectBlock(): try to CalculateRewardDistribution"),
                 REJECT_INVALID, "bad-blk-reward-episodecorrupted");
+        LogPrintf("End of Episode: %u\n", fruit_tx.size());
     }
     //------------------------------------------------------
 
@@ -2686,6 +2689,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     //-------------------------------------------------
     for (unsigned int i = 0; i < fruit_tx.size(); i++) {
         const CTransaction& tx = fruit_tx[i];
+        LogPrintf("generation transaction: %s\n", tx.ToString().c_str());
         CTxUndo undoDummy;
         UpdateCoins(tx, view, undoDummy, pindex->nHeight);
     }
