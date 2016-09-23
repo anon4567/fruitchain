@@ -2190,6 +2190,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
       * then for each fruit, its collector get co = REWARD_COLLECT_FRACTION * (1 / F) * S, its creator get cr = (1 / F) * S - co
       * additionally, creator of block i get fee[i] - FEE_POOL_FRACTION * fee[i] for reward
       */
+    LogPrintf("Calculate reward distribution start");
     std::vector<uint32_t> f;
     uint32_t F = 0;
     std::vector<CAmount> fee, reward_block_creator;
@@ -2230,6 +2231,11 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
             fruit_creator.push_back(nblock->vfrt[i].scriptPubKey);
         }
+
+        // Temporarily regard block a fruit
+        F += 1;
+        fruit_creator.push_back(nblock->scriptPubKey);
+
         block_creator[i] = nblock->scriptPubKey;
     }
     CAmount reward_per_fruit_cr = S * 0.9 / F, reward_per_fruit_co = S / F - reward_per_fruit_cr; //TODO: variant reward for fruit in different blocks
@@ -2247,6 +2253,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     }
     //TODO: rest rewards
     fruit_tx.push_back(nTx);
+    LogPrintf("Calculate reward distribution end");
     return true;
 }
 
