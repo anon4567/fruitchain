@@ -2363,6 +2363,8 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
             // remove outputs
             outs->Clear();
         }
+
+        SyncWithWallets(tx, pindex->pprev);
     }
 
     // Update globalHashPrevEpisode
@@ -2478,7 +2480,7 @@ static int64_t nTimeIndex = 0;
 static int64_t nTimeCallbacks = 0;
 static int64_t nTimeTotal = 0;
 
-bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck)
+bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck, std::vector<std::tuple<CTransaction, CBlockIndex*, int> >* pTxChanged)
 {
     AssertLockHeld(cs_main);
 
@@ -2697,6 +2699,10 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         LogPrintf("generation transaction: %s\n", tx.ToString().c_str());
         CTxUndo undoDummy;
         UpdateCoins(tx, view, undoDummy, pindex->nHeight);
+        if (pTxChanged != NULL) {
+            pTxChanged->push_back(std::make_tuple(tx, pindex, i));
+        }
+        //SyncWithWallets(tx, pindex, 0);
     }
     //----------------------------------------------------
 
@@ -3031,7 +3037,7 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
     LogPrint("bench", "  - Load block from disk: %.2fms [%.2fs]\n", (nTime2 - nTime1) * 0.001, nTimeReadFromDisk * 0.000001);
     {
         CCoinsViewCache view(pcoinsTip);
-        bool rv = ConnectBlock(*pblock, state, pindexNew, view, chainparams);
+        bool rv = ConnectBlock(*pblock, state, pindexNew, view, chainparams, false, &txChanged);
         GetMainSignals().BlockChecked(*pblock, state);
         if (!rv) {
             if (state.IsInvalid())
