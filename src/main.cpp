@@ -2689,6 +2689,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     //-------------------------------------------------
     for (unsigned int i = 0; i < fruit_tx.size(); i++) {
         const CTransaction& tx = fruit_tx[i];
+        LogPrintf("generation transaction hash: %s\n", tx.GetHash().ToString());
         LogPrintf("generation transaction: %s\n", tx.ToString().c_str());
         CTxUndo undoDummy;
         UpdateCoins(tx, view, undoDummy, pindex->nHeight);
