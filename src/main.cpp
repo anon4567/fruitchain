@@ -2232,12 +2232,14 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
 
         F += f[i];
 
-        fee[i] = 0;
-        for (const auto& tx : nblock->vtx) {
+        fee[i] = nblockindex->nFees;
+        /*for (const auto& tx : nblock->vtx) {
             //Note that in fruitchain there is no generation tx
-            if (!tx.IsCoinBase())
+            if (!tx.IsCoinBase()) {
+                LogPrintf("calculate tx fee: %s\n", tx.ToString().c_str());
                 fee[i] += view.GetValueIn(tx) - tx.GetValueOut();
-        }
+            }
+        }*/
 
         LogPrintf("look at block %d: fee: %lld, #frt: %u\n", i, fee[i], f[i]);
         reward_block_creator[i] = (1 - FEE_POOL_FRACTION) * fee[i];
@@ -2361,6 +2363,8 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
             // remove outputs
             outs->Clear();
         }
+
+        SyncWithWallets(tx, pindex->pprev);
     }
 
     // Update globalHashPrevEpisode
@@ -2476,7 +2480,7 @@ static int64_t nTimeIndex = 0;
 static int64_t nTimeCallbacks = 0;
 static int64_t nTimeTotal = 0;
 
-bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck)
+bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck, std::vector<std::tuple<CTransaction, CBlockIndex*, int> >* pTxChanged)
 {
     AssertLockHeld(cs_main);
 
@@ -2663,11 +2667,14 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (i > 0) {
             blockundo.vtxundo.push_back(CTxUndo());
         }
+        LogPrintf("Update utxo: %s\n", tx.ToString().c_str());
         UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
 
         vPos.push_back(std::make_pair(tx.GetHash(), pos));
         pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
     }
+
+    pindex->nFees = nFees;
 
     int64_t nTime3 = GetTimeMicros();
     nTimeConnect += nTime3 - nTime2;
@@ -2693,6 +2700,10 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         LogPrintf("generation transaction: %s\n", tx.ToString().c_str());
         CTxUndo undoDummy;
         UpdateCoins(tx, view, undoDummy, pindex->nHeight);
+        if (pTxChanged != NULL) {
+            pTxChanged->push_back(std::make_tuple(tx, pindex, i));
+        }
+        //SyncWithWallets(tx, pindex, 0);
     }
     //----------------------------------------------------
 
@@ -3027,7 +3038,7 @@ bool static ConnectTip(CValidationState& state, const CChainParams& chainparams,
     LogPrint("bench", "  - Load block from disk: %.2fms [%.2fs]\n", (nTime2 - nTime1) * 0.001, nTimeReadFromDisk * 0.000001);
     {
         CCoinsViewCache view(pcoinsTip);
-        bool rv = ConnectBlock(*pblock, state, pindexNew, view, chainparams);
+        bool rv = ConnectBlock(*pblock, state, pindexNew, view, chainparams, false, &txChanged);
         GetMainSignals().BlockChecked(*pblock, state);
         if (!rv) {
             if (state.IsInvalid())
