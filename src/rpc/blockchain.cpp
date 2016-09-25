@@ -203,6 +203,39 @@ std::string EntryDescriptionString()
                            "       ... ]\n";
 }
 
+//verFruit
+void entryToJSON(UniValue& info, const CFrtMemPoolEntry& e)
+{
+    AssertLockHeld(frtmempool.cs);
+
+    info.push_back(Pair("size", (int)e.GetFrtSize()));
+//    info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
+//    info.push_back(Pair("modifiedfee", ValueFromAmount(e.GetModifiedFee())));
+    info.push_back(Pair("time", e.GetTime()));
+    info.push_back(Pair("height", (int)e.GetHeight()));
+//    info.push_back(Pair("startingpriority", e.GetPriority(e.GetHeight())));
+//    info.push_back(Pair("currentpriority", e.GetPriority(chainActive.Height())));
+//    info.push_back(Pair("descendantcount", e.GetCountWithDescendants()));
+//    info.push_back(Pair("descendantsize", e.GetSizeWithDescendants()));
+//    info.push_back(Pair("descendantfees", e.GetModFeesWithDescendants()));
+//    info.push_back(Pair("ancestorcount", e.GetCountWithAncestors()));
+//    info.push_back(Pair("ancestorsize", e.GetSizeWithAncestors()));
+//    info.push_back(Pair("ancestorfees", e.GetModFeesWithAncestors()));
+//    const CFruit& frt = e.GetFrt();
+//    set<string> setDepends;
+/*    BOOST_FOREACH (const CTxIn& txin, tx.vin) {
+        if (mempool.exists(txin.prevout.hash))
+            setDepends.insert(txin.prevout.hash.ToString());
+    }*/
+
+//    UniValue depends(UniValue::VARR);
+/*    BOOST_FOREACH (const string& dep, setDepends) {
+        depends.push_back(dep);
+    }*/
+
+//    info.push_back(Pair("depends", depends));
+}
+
 void entryToJSON(UniValue& info, const CTxMemPoolEntry& e)
 {
     AssertLockHeld(mempool.cs);
@@ -235,6 +268,31 @@ void entryToJSON(UniValue& info, const CTxMemPoolEntry& e)
     info.push_back(Pair("depends", depends));
 }
 
+//verFruit
+UniValue frtmempoolToJSON(bool fVerbose = false)
+{
+    if (fVerbose) {
+        LOCK(frtmempool.cs);
+        UniValue o(UniValue::VOBJ);
+        BOOST_FOREACH (const CFrtMemPoolEntry& e, frtmempool.mapFrt) {
+            const uint256& hash = e.GetFrt().GetHash();
+            UniValue info(UniValue::VOBJ);
+            entryToJSON(info, e);
+            o.push_back(Pair(hash.ToString(), info));
+        }
+        return o;
+    } else {
+        vector<uint256> vfrtid;
+        frtmempool.queryHashes(vfrtid);
+
+        UniValue a(UniValue::VARR);
+        BOOST_FOREACH (const uint256& hash, vfrtid)
+            a.push_back(hash.ToString());
+
+        return a;
+    }
+}
+
 UniValue mempoolToJSON(bool fVerbose = false)
 {
     if (fVerbose) {
@@ -257,6 +315,35 @@ UniValue mempoolToJSON(bool fVerbose = false)
 
         return a;
     }
+}
+
+//verFruit
+UniValue getrawfrtmempool(const UniValue& params, bool fHelp)
+{
+    if (fHelp || params.size() > 1)
+        throw runtime_error(
+            "getrawfrtmempool ( verbose )\n"
+            "\nReturns all fruit ids in fruit memory pool as a json array of string fruit ids.\n"
+            "\nArguments:\n"
+            "1. verbose           (boolean, optional, default=false) true for a json object, false for array of fruit ids\n"
+            "\nResult: (for verbose = false):\n"
+            "[                     (json array of string)\n"
+            "  \"fruitid\"     (string) The fruit id\n"
+            "  ,...\n"
+            "]\n"
+            "\nResult: (for verbose = true):\n"
+            "{                           (json object)\n"
+            "  \"fruitid\" : {       (json object)\n" +
+            EntryDescriptionString() + "  }, ...\n"
+                                       "}\n"
+                                       "\nExamples\n" +
+            HelpExampleCli("getrawfrtmempool", "true") + HelpExampleRpc("getrawfrtmempool", "true"));
+
+    bool fVerbose = false;
+    if (params.size() > 0)
+        fVerbose = params[0].get_bool();
+
+    return frtmempoolToJSON(fVerbose);
 }
 
 UniValue getrawmempool(const UniValue& params, bool fHelp)
@@ -1157,6 +1244,8 @@ static const CRPCCommand commands[] =
         {"blockchain", "getmempoolentry", &getmempoolentry, true},
         {"blockchain", "getmempoolinfo", &getmempoolinfo, true},
         {"blockchain", "getrawmempool", &getrawmempool, true},
+        //verFruit
+        {"blockchain", "getrawfrtmempool", &getrawfrtmempool, true},
         {"blockchain", "gettxout", &gettxout, true},
         {"blockchain", "gettxoutsetinfo", &gettxoutsetinfo, true},
         {"blockchain", "verifychain", &verifychain, true},
