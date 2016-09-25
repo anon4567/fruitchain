@@ -5522,6 +5522,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
 
     else if (strCommand == NetMsgType::INV) {
+        LogPrintf("DEBUG: receive INV!!!\n");
         vector<CInv> vInv;
         vRecv >> vInv;
         if (vInv.size() > MAX_INV_SZ) //TODO: MAX_INV_SZ may change in the future because of fruits
@@ -5585,6 +5586,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             }
             //verFruit
             else if (inv.type == MSG_FRUIT) {
+                LogPrintf("DEBUG: Receive FrtInv!!!\n");
                 pfrom->AddInventoryKnown(inv);
                 if (fBlocksOnly)
                     LogPrint("net", "fruit (%s) inv sent in violation of protocol peer=%d\n", inv.hash.ToString(), pfrom->id);
@@ -7065,9 +7067,11 @@ bool SendMessages(CNode* pto)
             //verFruit
             if (fSendTrickle) {
                 // Produce a vector with all candidates for sending
+                LogPrintf("DEBUG: Begin Send FrtInv!!!\n");
                 vector<std::set<uint256>::iterator> vInvFrt;
                 vInvFrt.reserve(pto->setInventoryFrtToSend.size());
                 for (std::set<uint256>::iterator it = pto->setInventoryFrtToSend.begin(); it != pto->setInventoryFrtToSend.end(); it++) {
+                    LogPrintf("DEBUG: Push one FrtInv!!!\n");
                     vInvFrt.push_back(it);
                 }
                 /*                CAmount filterrate = 0;
@@ -7086,6 +7090,7 @@ bool SendMessages(CNode* pto)
                 while (!vInvFrt.empty() && nRelayedFruits < INVENTORY_BROADCAST_MAX) {
                     // Fetch the top element from the heap
                     //                    std::pop_heap(vInvTx.begin(), vInvTx.end(), compareInvMempoolOrder);
+                    LogPrintf("DEBUG: Pop one FrtInv!!!\n");
                     std::set<uint256>::iterator it = vInvFrt.back();
                     vInvFrt.pop_back();
                     uint256 hash = *it;

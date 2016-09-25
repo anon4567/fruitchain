@@ -2094,9 +2094,11 @@ public:
 //verFruit
 void RelayFruit(const CBlockHeader& frt)
 {
+    LogPrintf("DEBUG: Begin Relay!!!\n");
     CInv inv(MSG_FRUIT, frt.GetHash());
     LOCK(cs_vNodes);
     BOOST_FOREACH (CNode* pnode, vNodes) {
+        LogPrintf("DEBUG: Relay Round!!!\n");
         pnode->PushInventory(inv);
     }
 }
