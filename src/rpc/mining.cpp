@@ -101,6 +101,7 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
     int nHeightStart = 0;
     int nHeightEnd = 0;
     int nHeight = 0;
+    LogPrintf("Start mining!\n");
 
     { // Don't keep cs_main locked
         LOCK(cs_main);
@@ -108,19 +109,25 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
         nHeight = nHeightStart;
         nHeightEnd = nHeightStart + nGenerate;
     }
+    LogPrintf("mining! 1\n");
     unsigned int nExtraNonce = 0;
     UniValue blockHashes(UniValue::VARR);
     while (nHeight < nHeightEnd) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript->reserveScript));
+        LogPrintf("mining! 2\n");
         if (!pblocktemplate.get())
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
+        LogPrintf("mining! 3\n");
         CBlock* pblock = &pblocktemplate->block;
         {
             LOCK(cs_main);
             IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
         }
+        uint32_t fruitDifficulty = GetFruitDifficulty(pblock->nBits, Params().GetConsensus());
+        LogPrintf("One mining try %h | %h \n", pblock->nBits, fruitDifficulty);
         while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
-            if (CheckProofOfWork(pblock->GetHash(), pblock->nBits - BITS_FRUIT_LESS_THAN_BLOCK, Params().GetConsensus())) {
+            if (CheckProofOfWork(pblock->GetHash(), fruitDifficulty, Params().GetConsensus())) {
+                LogPrintf("Fruit found! : %s\n", pblock->ToString().c_str());
                 RelayFruit(pblock->GetBlockHeader()); // TODO
             }
             ++pblock->nNonce;
@@ -132,6 +139,7 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
         if (pblock->nNonce == nInnerLoopCount) {
             continue;
         }
+        LogPrintf("Block found %d %d\n", CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus()), CheckProofOfWork(pblock->GetHash(), fruitDifficulty, Params().GetConsensus()));
         CValidationState state;
         if (!ProcessNewBlock(state, Params(), NULL, pblock, true, NULL))
             throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
