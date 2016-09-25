@@ -270,20 +270,21 @@ public:
  *
  *  Sort by score of entry ((fee+delta)/size) in descending order
  */
-/*
-class CompareTxMemPoolEntryByScore
+
+class CompareFrtMemPoolEntryByScore
 {
 public:
-    bool operator()(const CTxMemPoolEntry& a, const CTxMemPoolEntry& b)
+    bool operator()(const CFrtMemPoolEntry& a, const CFrtMemPoolEntry& b)
     {
-        double f1 = (double)a.GetModifiedFee() * b.GetTxSize();
+/*        double f1 = (double)a.GetModifiedFee() * b.GetTxSize();
         double f2 = (double)b.GetModifiedFee() * a.GetTxSize();
         if (f1 == f2) {
             return b.GetTx().GetHash() < a.GetTx().GetHash();
         }
-        return f1 > f2;
+        return f1 > f2;*/
+        return b.GetFrt().GetHash() < a.GetFrt().GetHash();
     }
-};*/
+};
 
 class CompareFrtMemPoolEntryByEntryTime
 {
@@ -456,15 +457,15 @@ public:
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<entry_time_fruit>,
                 boost::multi_index::identity<CFrtMemPoolEntry>,
-                CompareFrtMemPoolEntryByEntryTime> //,
+                CompareFrtMemPoolEntryByEntryTime> ,
             // sorted by score (for mining prioritization)
-            /*            boost::multi_index::ordered_unique<
-                boost::multi_index::tag<mining_score>,
-                boost::multi_index::identity<CTxMemPoolEntry>,
-                CompareTxMemPoolEntryByScore
-            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<mining_score_fruit>,
+                boost::multi_index::identity<CFrtMemPoolEntry>,
+                CompareFrtMemPoolEntryByScore
+            >//,
             // sorted by fee rate with ancestors
-            boost::multi_index::ordered_non_unique<
+            /*            boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ancestor_score>,
                 boost::multi_index::identity<CTxMemPoolEntry>,
                 CompareTxMemPoolEntryByAncestorFee
@@ -609,6 +610,8 @@ public:
 
     /** Expire all transaction (and their dependencies) in the mempool older than time. Return the number of removed transactions. */
     int Expire(int64_t time);
+
+    int ExpireDifficulty(uint32_t difficulty);
 
     unsigned long size()
     {
