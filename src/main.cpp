@@ -2397,10 +2397,11 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     const CBlockIndex* nblockindex = pindex->pprev;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         LogPrintf("DEBUG: begin update global hash prev episode\n");
+        frtmempool.clear();
+        frtmempool_used.clear();
         if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
             globalHashPrevEpisode.SetNull();
-        }
-        else {
+        } else {
             nblockindex = nblockindex->pprev;
             while (!IsEndOfEpisode(nblockindex->nHeight))
                 nblockindex = nblockindex->pprev;
@@ -2421,14 +2422,14 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
-    
+
     if (pfClean) {
         *pfClean = fClean;
         return true;
     }
-    
+
     LogPrintf("DEBUG: ready return");
-    
+
     return fClean;
 }
 
@@ -2729,6 +2730,10 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     nTimeVerify += nTime4 - nTime2;
     LogPrint("bench", "    - Verify %u txins: %.2fms (%.3fms/txin) [%.2fs]\n", nInputs - 1, 0.001 * (nTime4 - nTime2), nInputs <= 1 ? 0 : 0.001 * (nTime4 - nTime2) / (nInputs - 1), nTimeVerify * 0.000001);
 
+
+    if (fJustCheck)
+        return true;
+
     //-------------------------------------------------
     for (unsigned int i = 0; i < fruit_tx.size(); i++) {
         const CTransaction& tx = fruit_tx[i];
@@ -2742,10 +2747,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         //SyncWithWallets(tx, pindex, 0);
     }
     //----------------------------------------------------
-
-    if (fJustCheck)
-        return true;
-
     // Write undo information to disk
     if (pindex->GetUndoPos().IsNull() || !pindex->IsValid(BLOCK_VALID_SCRIPTS)) {
         if (pindex->GetUndoPos().IsNull()) {
@@ -2789,12 +2790,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         LogPrint("mempool", "Erased %d orphan tx included or conflicted by block\n", nErased);
     }
 
-    // Update globalHashPrevEpisode
-    const CBlockIndex* nblockindex = pindex->pprev;
-    if (IsEndOfEpisode(nblockindex->nHeight)) {
-        globalHashPrevEpisode = nblockindex->GetBlockHash();
-    }
-    //-------------------------------------------------------
 
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
@@ -2802,6 +2797,16 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         frtmempool.remove(frt);
     }
     //----------------------------
+
+    // Update globalHashPrevEpisode
+    const CBlockIndex* nblockindex = pindex->pprev;
+    if (IsEndOfEpisode(nblockindex->nHeight)) {
+        globalHashPrevEpisode = nblockindex->GetBlockHash();
+        frtmempool.clear();
+        frtmempool_used.clear();
+    }
+    //-------------------------------------------------------
+
 
     int64_t nTime6 = GetTimeMicros();
     nTimeCallbacks += nTime6 - nTime5;
@@ -3822,28 +3827,28 @@ bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& sta
 }
 
 
-bool ContextualCheckFruit(const CBlockHeader& fruit, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, int64_t nAdjustedTime)
+bool ContextualCheckFruit(const CBlockHeader& fruit, const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev, int64_t nAdjustedTime)
 {
     const int nHeight = pindexPrev == NULL ? 0 : pindexPrev->nHeight + 1;
     // Check proof of work
-    if (fruit.nBits != GetNextWorkRequired(pindexPrev, &fruit, consensusParams))
-        return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false, "incorrect proof of work");
+    if (fruit.nBits != GetFruitDifficulty(GetNextWorkRequired(pindexPrev, &block, consensusParams)))
+        return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false, "incorrect proof of work of fruit");
 
-    // Check timestamp against prev
+    /*    // Check timestamp against prev
     if (fruit.GetBlockTime() <= pindexPrev->GetMedianTimePast())
-        return state.Invalid(false, REJECT_INVALID, "time-too-old", "fruit's timestamp is too early");
+        return state.Invalid(false, REJECT_INVALID, "time-too-old", "fruit's timestamp is too early");*/
 
-    // Check timestamp
+    /*// Check timestamp
     if (fruit.GetBlockTime() > nAdjustedTime + 2 * 60 * 60)
-        return state.Invalid(false, REJECT_INVALID, "time-too-new", "fruit timestamp too far in the future");
+        return state.Invalid(false, REJECT_INVALID, "time-too-new", "fruit timestamp too far in the future");*/
 
     // Reject outdated version blocks when 95% (75% on testnet) of the network has upgraded:
     // check for version 2, 3 and 4 upgrades
-    if ((fruit.nVersion < 2 && nHeight >= consensusParams.BIP34Height) ||
+    /*    if ((fruit.nVersion < 2 && nHeight >= consensusParams.BIP34Height) ||
         (fruit.nVersion < 3 && nHeight >= consensusParams.BIP66Height) ||
         (fruit.nVersion < 4 && nHeight >= consensusParams.BIP65Height))
         return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", fruit.nVersion),
-            strprintf("rejected nVersion=0x%08x block", fruit.nVersion));
+            strprintf("rejected nVersion=0x%08x block", fruit.nVersion));*/
 
 
     /**
@@ -3851,21 +3856,23 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, CValidationState& state, co
         2. not be contained in any block earlier in this episode
     */
 
-    const CBlockIndex* nIndex = pindexPrev;
+    //const CBlockIndex* nIndex = pindexPrev;
     if (frtmempool_used.exists(fruit.GetHash())) {
         return state.Invalid(false, REJECT_INVALID, "frt-already-used", "fruit has been used in current episode");
     }
 
-    bool prevIsValid = false;
+    /*bool prevIsValid = false;
     for (bool isLastEpisode = false; !isLastEpisode;) {
         isLastEpisode = IsEndOfEpisode(nIndex->nHeight);
         if (pindexPrev->GetBlockHash() == fruit.hashPrevBlock)
             prevIsValid = true;
         nIndex = nIndex->pprev;
     }
-    if (!prevIsValid) {
-        return state.DoS(100, false, REJECT_INVALID, "bad-prev", false, "incorrect prev block");
+    */
+    if (globalHashPrevEpisode != fruit.hashPrevEpisode) {
+        return state.DoS(100, false, REJECT_INVALID, "bad-prev", false, "incorrect prev episode");
     }
+
 
     return true;
 }
@@ -3948,7 +3955,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
 
     //Contextualcheck fruits
     for (const auto& frt : block.vfrt)
-        if (!ContextualCheckFruit(frt, state, consensusParams, pindexPrev, GetAdjustedTime())) {
+        if (!ContextualCheckFruit(frt, block, state, consensusParams, pindexPrev, GetAdjustedTime())) {
             return error("ContextualCheckBlock: ContextualCheckBlockHeader: %s, %s", frt.GetHash().ToString(), FormatStateMessage(state));
         }
     //----------------------------------

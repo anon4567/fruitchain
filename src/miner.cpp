@@ -188,15 +188,15 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
     pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());
     pblocktemplate->vTxFees[0] = -nFees;
 
+    pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
     // Add fruits
-    addFrts();
+    addFrts(GetFruitDifficulty(pblock->nBits), Params().Getconsensus());
 
     // Fill in header
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
     UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
     pblock->hashPrevEpisode = globalHashPrevEpisode;
     pblock->hashFruits = pblock->GetFruitsHash();
-    pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
     pblock->nNonce = 0;
     pblocktemplate->vTxSigOpsCost[0] = WITNESS_SCALE_FACTOR * GetLegacySigOpCount(pblock->vtx[0]);
 
@@ -641,12 +641,13 @@ void BlockAssembler::addPriorityTxs()
 }
 
 
-void BlockAssembler::addFrts()
+void BlockAssembler::addFrts(uint32_t diff)
 {
     bool fSizeAccounting = fNeedSizeAccounting;
     fNeedSizeAccounting = true;
 
     // This vector will be sorted into a priority queue:
+    frtmempool.Expire(diff);
 
     for (CFrtMemPool::indexed_fruit_set::iterator mi = frtmempool.mapFrt.begin();
          mi != frtmempool.mapFrt.end(); ++mi) {

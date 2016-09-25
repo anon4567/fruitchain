@@ -33,6 +33,8 @@ CFrtMemPoolEntry::CFrtMemPoolEntry(const CBlockHeader& _frt, //const CAmount& _n
                                //    nModSize = _tx.CalculateModifiedSize(GetTxSize());
     nUsageSize = GetFrtSize(); //FRT_USAGESIZE; //RecursiveDynamicUsage(*tx) + memusage::DynamicUsage(tx); //TODO: call func in core_memusage and memusage  -> tx.vin, tx.vout, tx.wit
 
+
+    LogPrintf("size of CBlockHeader: %d\n", nFrtWeight);
     /*   nCountWithDescendants = 1;
     nSizeWithDescendants = GetTxSize();
     nModFeesWithDescendants = nFee;
