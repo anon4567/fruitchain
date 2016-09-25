@@ -9,6 +9,7 @@
 #include "chain.h"
 #include "primitives/block.h"
 #include "uint256.h"
+#include "util.h"
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader* pblock, const Consensus::Params& params)
 {
@@ -84,6 +85,32 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params&
 
     bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
 
+    //LogPrintf("check pow: neg: %d, of: %d, tgt: %s, hash: %s\n", fNegative, fOverflow, bnTarget.ToString().c_str(), hash.GetHex().c_str());
+    // Check range
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
+        return false;
+
+    // Check proof of work matches claimed amount
+    if (UintToArith256(hash) > bnTarget)
+        return false;
+
+    return true;
+}
+
+bool CheckFruitProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
+{
+    bool fNegative;
+    bool fOverflow;
+    arith_uint256 bnTarget;
+
+    // temporarily uncheck genesisblock
+    if (hash == params.hashGenesisBlock) {
+        return true;
+    }
+
+    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
+
+    //LogPrintf("check pow: neg: %d, of: %d, tgt: %s, hash: %s\n", fNegative, fOverflow, bnTarget.ToString().c_str(), hash.GetHex().c_str());
     // Check range
     if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
         return false;

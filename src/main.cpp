@@ -1103,11 +1103,29 @@ bool CheckTransaction(const CTransaction& tx, CValidationState& state)
     return true;
 }
 
+
+uint32_t GetFruitDifficulty(uint32_t nBits, const Consensus::Params& params)
+{
+    bool fNegative;
+    bool fOverflow;
+    arith_uint256 bnTarget;
+    const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
+
+    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
+
+    bnTarget *= TIMES_FRUIT_LESS_THAN_BLOCK;
+
+    if (bnTarget > bnPowLimit)
+        bnTarget = bnPowLimit;
+
+    return bnTarget.GetCompact();
+}
+
 //verFruit CheckFruit
 bool CheckFruit(const CBlockHeader& fruit, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW)
 {
     // Check proof of work matches claimed amount
-    if (fCheckPOW && !CheckProofOfWork(fruit.GetHash(), fruit.nBits - BITS_FRUIT_LESS_THAN_BLOCK, consensusParams)) {
+    if (fCheckPOW && !CheckProofOfWork(fruit.GetHash(), GetFruitDifficulty(fruit.nBits, consensusParams), consensusParams)) {
         return state.DoS(50, false, REJECT_INVALID, "fruit-high-hash", false, "fruit proof of work failed");
     }
 
@@ -2672,7 +2690,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (i > 0) {
             blockundo.vtxundo.push_back(CTxUndo());
         }
-        LogPrintf("Update utxo: %s\n", tx.ToString().c_str());
+        //LogPrintf("Update utxo: %s\n", tx.ToString().c_str());
         UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
 
         vPos.push_back(std::make_pair(tx.GetHash(), pos));

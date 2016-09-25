@@ -155,7 +155,7 @@ static const int MAX_UNCONNECTING_HEADERS = 10;
 static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
 /** Number of bits that fruits are easier than blocks */
-static const uint32_t BITS_FRUIT_LESS_THAN_BLOCK = 10;
+static const uint32_t TIMES_FRUIT_LESS_THAN_BLOCK = 4;
 
 
 struct BlockHasher {
@@ -282,6 +282,9 @@ bool GetTransaction(const uint256& hash, CTransaction& tx, const Consensus::Para
 /** Find the best known block, and make it the tip of the block chain */
 bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams, const CBlock* pblock = NULL);
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams);
+
+/** Calculate difficulty of fruit */
+uint32_t GetFruitDifficulty(uint32_t nBits, const Consensus::Params& params);
 
 /**
  * Prune block and undo files (blk???.dat and undo???.dat) so that the disk space used is less than a user-defined target.
