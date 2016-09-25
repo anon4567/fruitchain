@@ -15,6 +15,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 {
     unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
 
+    //LogPrintf("Get next: pindexLast: %d, nHeight: %d, interval: %d\n", pindexLast, pindexLast->nHeight, params.DifficultyAdjustmentInterval());
     // Genesis block
     if (pindexLast == NULL)
         return nProofOfWorkLimit;
@@ -65,6 +66,7 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
     bnNew.SetCompact(pindexLast->nBits);
     bnNew *= nActualTimespan;
     bnNew /= params.nPowTargetTimespan;
+    //LogPrintf("calc next nbits: actual: %lld, tgt: %lld, bnNew: %s\n", nActualTimespan, params.nPowTargetTimespan, bnNew.ToString().c_str());
 
     if (bnNew > bnPowLimit)
         bnNew = bnPowLimit;
@@ -73,31 +75,6 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
 }
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
-{
-    bool fNegative;
-    bool fOverflow;
-    arith_uint256 bnTarget;
-
-    // temporarily uncheck genesisblock
-    if (hash == params.hashGenesisBlock) {
-        return true;
-    }
-
-    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
-
-    //LogPrintf("check pow: neg: %d, of: %d, tgt: %s, hash: %s\n", fNegative, fOverflow, bnTarget.ToString().c_str(), hash.GetHex().c_str());
-    // Check range
-    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
-        return false;
-
-    // Check proof of work matches claimed amount
-    if (UintToArith256(hash) > bnTarget)
-        return false;
-
-    return true;
-}
-
-bool CheckFruitProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
 {
     bool fNegative;
     bool fOverflow;
