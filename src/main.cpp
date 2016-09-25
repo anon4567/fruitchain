@@ -2278,8 +2278,10 @@ bool IsEndOfEpisode(int nHeight)
 
 bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool* pfClean)
 {
+    LogPrintf("DEBUG: begin disconnect block\n");
     assert(pindex->GetBlockHash() == view.GetBestBlock());
 
+    LogPrintf("DEBUG: block hash equal to best block pass\n");
     if (pfClean)
         *pfClean = false;
 
@@ -2287,18 +2289,23 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
 
     CBlockUndo blockUndo;
     CDiskBlockPos pos = pindex->GetUndoPos();
+    LogPrintf("DEBUG: get undo pass\n");
     if (pos.IsNull())
         return error("DisconnectBlock(): no undo data available");
     if (!UndoReadFromDisk(blockUndo, pos, pindex->pprev->GetBlockHash()))
         return error("DisconnectBlock(): failure reading undo data");
+    LogPrintf("DEBUG: undo read from disk pass\n");
 
     if (blockUndo.vtxundo.size() + 1 != block.vtx.size())
         return error("DisconnectBlock(): block and undo data inconsistent");
+    LogPrintf("DEBUG: block and undo data inconsistent pass\n");
 
     // undo transactions in reverse order
     for (int i = block.vtx.size() - 1; i >= 0; i--) {
+        LogPrintf("DEBUG: undo begin!!!\n");
         const CTransaction& tx = block.vtx[i];
         uint256 hash = tx.GetHash();
+        LogPrintf("DEBUG: get hash pass\n");
 
         // Check that all outputs are available and match the outputs in the block itself
         // exactly.
@@ -2367,32 +2374,43 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         SyncWithWallets(tx, pindex->pprev);
     }
 
+    LogPrintf("DEBUG: so far so good\n");
     // Update globalHashPrevEpisode
     const CBlockIndex* nblockindex = pindex->pprev;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
-        nblockindex = nblockindex->pprev;
-        while (!IsEndOfEpisode(nblockindex->nHeight))
+        LogPrintf("DEBUG: begin update global hash prev episode\n");
+        if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
+            globalHashPrevEpisode.SetNull();
+        }
+        else {
             nblockindex = nblockindex->pprev;
-        globalHashPrevEpisode = nblockindex->GetBlockHash();
+            while (!IsEndOfEpisode(nblockindex->nHeight))
+                nblockindex = nblockindex->pprev;
+            globalHashPrevEpisode = nblockindex->GetBlockHash();
+        }
     }
     //-------------------------------------------------------
-
+    LogPrintf("DEBUG: global hash prev episode pass\n");
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
+        LogPrintf("DEBUG: begin update frtmempool\n");
         frtmempool.add(frt, GetTime(), chainActive.Height());
         frtmempool_used.remove(frt);
     }
     //----------------------------
     //------------------------------------------------------
+    LogPrintf("DEBUG: update frtmempool pass\n");
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
-
+    
     if (pfClean) {
         *pfClean = fClean;
         return true;
     }
-
+    
+    LogPrintf("DEBUG: ready return");
+    
     return fClean;
 }
 
@@ -4406,29 +4424,37 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView* coinsview,
     int reportDone = 0;
     LogPrintf("[0%%]...");
     for (CBlockIndex* pindex = chainActive.Tip(); pindex && pindex->pprev; pindex = pindex->pprev) {
+        LogPrintf("\nDEBUG: round begin!!!\n");
+        LogPrintf("DEBUG: get pindex\n");
         boost::this_thread::interruption_point();
         int percentageDone = std::max(1, std::min(99, (int)(((double)(chainActive.Height() - pindex->nHeight)) / (double)nCheckDepth * (nCheckLevel >= 4 ? 50 : 100))));
+        LogPrintf("DEBUG: get percentageDone %i\n", percentageDone);
         if (reportDone < percentageDone / 10) {
             // report every 10% step
             LogPrintf("[%d%%]...", percentageDone);
             reportDone = percentageDone / 10;
         }
         uiInterface.ShowProgress(_("Verifying blocks..."), percentageDone);
+        LogPrintf("DEBUG: verifying blocks...\n");
         if (pindex->nHeight < chainActive.Height() - nCheckDepth)
             break;
+        LogPrintf("DEBUG: nHeight pass\n");
         if (fPruneMode && !(pindex->nStatus & BLOCK_HAVE_DATA)) {
             // If pruning, only go back as far as we have data.
             LogPrintf("VerifyDB(): block verification stopping at height %d (pruning, no data)\n", pindex->nHeight);
             break;
         }
+        LogPrintf("DEBUG: fprunemode pass\n");
         CBlock block;
         // check level 0: read from disk
         if (!ReadBlockFromDisk(block, pindex, chainparams.GetConsensus()))
             return error("VerifyDB(): *** ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+        LogPrintf("DEBUG: read from disk pass\n");
         // check level 1: verify block validity
         if (nCheckLevel >= 1 && !CheckBlock(block, state, chainparams.GetConsensus()))
             return error("%s: *** found bad block at %d, hash=%s (%s)\n", __func__,
                 pindex->nHeight, pindex->GetBlockHash().ToString(), FormatStateMessage(state));
+        LogPrintf("DEBUG: check block pass\n");
         // check level 2: verify undo validity
         if (nCheckLevel >= 2 && pindex) {
             CBlockUndo undo;
@@ -4438,11 +4464,14 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView* coinsview,
                     return error("VerifyDB(): *** found bad undo data at %d, hash=%s\n", pindex->nHeight, pindex->GetBlockHash().ToString());
             }
         }
+        LogPrintf("DEBUG: verify undo pass\n");
         // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
         if (nCheckLevel >= 3 && pindex == pindexState && (coins.DynamicMemoryUsage() + pcoinsTip->DynamicMemoryUsage()) <= nCoinCacheUsage) {
+            LogPrintf("DEBUG: begin to check for inconsistencies\n");
             bool fClean = true;
             if (!DisconnectBlock(block, state, pindex, coins, chainparams, &fClean))
                 return error("VerifyDB(): *** irrecoverable inconsistency in block data at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
+            LogPrintf("DEBUG: disconnect block pass\n");
             pindexState = pindex->pprev;
             if (!fClean) {
                 nGoodTransactions = 0;
@@ -4450,12 +4479,12 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView* coinsview,
             } else
                 nGoodTransactions += block.vtx.size();
         }
+        LogPrintf("DEBUG: check for inconsistencies pass\n");
         if (ShutdownRequested())
             return true;
     }
     if (pindexFailure)
         return error("VerifyDB(): *** coin database inconsistencies found (last %i blocks, %i good transactions before that)\n", chainActive.Height() - pindexFailure->nHeight + 1, nGoodTransactions);
-
     // check level 4: try reconnecting blocks
     if (nCheckLevel >= 4) {
         CBlockIndex* pindex = pindexState;

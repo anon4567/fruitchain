@@ -1,0 +1,2588 @@
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make stop
+bitcoin-cli -datadir=1  stop
+Bitcoin server stopping
+bitcoin-cli -datadir=2  stop
+Bitcoin server stopping
+bitcoin-cli -datadir=3  stop
+Bitcoin server stopping
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make clean
+rm -rf 1/regtest
+rm -rf 2/regtest
+rm -rf 3/regtest
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make start
+bitcoind -datadir=1  -daemon
+Bitcoin server starting
+bitcoind -datadir=2  -daemon
+Bitcoin server starting
+bitcoind -datadir=3  -daemon
+Bitcoin server starting
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make getinfo
+bitcoin-cli -datadir=1  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 0.00000000,
+  "blocks": 0,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=2  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 0.00000000,
+  "blocks": 0,
+  "timeoffset": 0,
+  "connections": 2,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=3  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 0.00000000,
+  "blocks": 0,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate1
+bitcoin-cli -datadir=1  generate 1
+[
+  "2f48a7a14521058f6ffe498a3a522428744fca5450448022b24a32908ef68b04"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate2
+bitcoin-cli -datadir=2  generate 1
+[
+  "0d2ad8168ee5d8e39c5a1ad6272b5e75c23a845fd0a103cd4b694a49f7c8dc58"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate3
+bitcoin-cli -datadir=3  generate 1
+[
+  "4e0fe1ce43043c22d66c979c57ef949051d76177e6fd52eed5b9a2b8c840aeaa"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "47c5cbb8029abaafbea60057a6df5e53d790855530a7bdc9a87fdf5c01df12eb"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "7b633db43eefa9b5c418f44c4bbe78891be756e320313fa7bbfbde9242266b9c"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "050498bd05ea7922f1edcbdb0a7c9a13f4e1c7e256e3ed9bef16ca2e9408a261"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "68e9744e80aad97c8f9b99c05613a252b91283038071746eab909e5af2b280ed"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "727aa06e3c15f535975dff576d151c718a18ef07dc14e5cf33192b859832ee8f"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "0ec3d90858ae45816ba697db7ca839bcdb832acb843c628320bc7db26e46eba3"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "2db7c7a972b9f99339a8a2b72c2ac0a3efb6c959e05e0e8d1772562fa10e9278"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "3bfc58fb96a1d1375c0fc9fe2a7b12cc15ca968e278d62cb4b07a8a3681a6f55"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "05c7693765196cacb0d34ff6492102976106c39c9ba07f16aee3817b00e359d0"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "6bd45960b48e89e96e2f51ba656fb47c66f7d99ab9a96cd732146db2873893e0"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "16dcb7db0c60dca9bd0f4359156fc907bdb5a77f9679a631dea8804e5bba1131"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "62e0d629943552f62987ea814b92be5b935eae212cea503bbcf3ef8a56ed6471"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "18e743ac2b570902f24eba49a44eda9c3454953d3322fab1c09ec7aaef236ab1"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "1e07fb04ff4b69e6925bfcec81836bd1a2e12ef01d3d6ded16ba7d7382833b35"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=2 listunspent
+[
+  {
+    "txid": "cdbc1bea47686770388e5f7ac1a615a51328aa62416f7ba662bc53f35f782a9c",
+    "vout": 0,
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "scriptPubKey": "210204cc52c2791d8ffc2020fbfdea9a91de62ef78bf296569476271c4659c9eaac7ac",
+    "amount": 50.00000000,
+    "confirmations": 16,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 1,
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "scriptPubKey": "210204cc52c2791d8ffc2020fbfdea9a91de62ef78bf296569476271c4659c9eaac7ac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 12,
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "scriptPubKey": "210204cc52c2791d8ffc2020fbfdea9a91de62ef78bf296569476271c4659c9eaac7ac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=3 listunspent
+[
+  {
+    "txid": "b7818b514b18f33df5224b572aecf9db0d1f35cf6dbe5822798c2930b68a0a78",
+    "vout": 0,
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "scriptPubKey": "2103bbbdf8ba5216a9b2a929078a1dd2a7bc51ba62e5cbeb3260c1dddd5aa4ffffd4ac",
+    "amount": 50.00000000,
+    "confirmations": 15,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 2,
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "scriptPubKey": "2103bbbdf8ba5216a9b2a929078a1dd2a7bc51ba62e5cbeb3260c1dddd5aa4ffffd4ac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 11,
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "scriptPubKey": "2103bbbdf8ba5216a9b2a929078a1dd2a7bc51ba62e5cbeb3260c1dddd5aa4ffffd4ac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=2 listunspent
+[
+  {
+    "txid": "cdbc1bea47686770388e5f7ac1a615a51328aa62416f7ba662bc53f35f782a9c",
+    "vout": 0,
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "scriptPubKey": "210204cc52c2791d8ffc2020fbfdea9a91de62ef78bf296569476271c4659c9eaac7ac",
+    "amount": 50.00000000,
+    "confirmations": 16,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 1,
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "scriptPubKey": "210204cc52c2791d8ffc2020fbfdea9a91de62ef78bf296569476271c4659c9eaac7ac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 12,
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "scriptPubKey": "210204cc52c2791d8ffc2020fbfdea9a91de62ef78bf296569476271c4659c9eaac7ac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=2 createrawtransaction '''[{"txid" : "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa", "vout" : 12}]''' '{"n46y1paHvH3sbb79LKaQGHygV3Fiwv6Ln6" : 44.95}'
+0100000001aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0c00000000ffffffff01c041ec0b010000001976a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac00000000
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make signrawtransaction2 HASH=0100000001aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0c00000000ffffffff01c041ec0b010000001976a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac00000000
+bitcoin-cli -datadir=2  signrawtransaction 0100000001aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0c00000000ffffffff01c041ec0b010000001976a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac00000000
+{
+  "hex": "0100000001aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0c00000049483045022100d92fe38d042a7f8b24cf8b80688fc307ef28459afea1079ff061482f457cdce4022072b3e6f100aed7752740d5fb9a1e4a1a99a235f78452632257f7862af7fd7e1001ffffffff01c041ec0b010000001976a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac00000000",
+  "complete": true
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make sendrawtransaction2 HASH=0100000001aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0c00000049483045022100d92fe38d042a7f8b24cf8b80688fc307ef28459afea1079ff061482f457cdce4022072b3e6f100aed7752740d5fb9a1e4a1a99a235f78452632257f7862af7fd7e1001ffffffff01c041ec0b010000001976a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac00000000
+bitcoin-cli -datadir=2  sendrawtransaction 0100000001aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0c00000049483045022100d92fe38d042a7f8b24cf8b80688fc307ef28459afea1079ff061482f457cdce4022072b3e6f100aed7752740d5fb9a1e4a1a99a235f78452632257f7862af7fd7e1001ffffffff01c041ec0b010000001976a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac00000000
+c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction HASH=c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7
+bitcoin-cli -datadir=1  gettransaction c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7
+{
+  "amount": 44.95000000,
+  "confirmations": 0,
+  "trusted": false,
+  "txid": "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7",
+  "walletconflicts": [
+  ],
+  "time": 1474755801,
+  "timereceived": 1474755801,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "n46y1paHvH3sbb79LKaQGHygV3Fiwv6Ln6",
+      "category": "receive",
+      "amount": 44.95000000,
+      "label": "",
+      "vout": 0
+    }
+  ],
+  "hex": "0100000001aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0c00000049483045022100d92fe38d042a7f8b24cf8b80688fc307ef28459afea1079ff061482f457cdce4022072b3e6f100aed7752740d5fb9a1e4a1a99a235f78452632257f7862af7fd7e1001ffffffff01c041ec0b010000001976a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac00000000"
+}
+bitcoin-cli -datadir=2  gettransaction c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7
+{
+  "amount": -44.95000000,
+  "fee": -0.05000000,
+  "confirmations": 0,
+  "trusted": true,
+  "txid": "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7",
+  "walletconflicts": [
+  ],
+  "time": 1474755801,
+  "timereceived": 1474755801,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "n46y1paHvH3sbb79LKaQGHygV3Fiwv6Ln6",
+      "category": "send",
+      "amount": -44.95000000,
+      "vout": 0,
+      "fee": -0.05000000,
+      "abandoned": false
+    }
+  ],
+  "hex": "0100000001aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0c00000049483045022100d92fe38d042a7f8b24cf8b80688fc307ef28459afea1079ff061482f457cdce4022072b3e6f100aed7752740d5fb9a1e4a1a99a235f78452632257f7862af7fd7e1001ffffffff01c041ec0b010000001976a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac00000000"
+}
+bitcoin-cli -datadir=3  gettransaction c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7
+error code: -5
+error message:
+Invalid or non-wallet transaction id
+make: *** [gettransaction] Error 5
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make 
+address                generate1              getblockcount          sendrawtransaction     signrawtransaction3
+clean                  generate2              getblockhash           sendrawtransaction1    start
+decoderawtransaction   generate3              getinfo                sendrawtransaction2    start-gui
+decoderawtransaction1  getaccountaddress1     getnetworkinfo         sendrawtransaction3    stop
+decoderawtransaction2  getaccountaddress2     getpeerinfo            signrawtransaction     
+decoderawtransaction3  getaccountaddress3     gettransaction         signrawtransaction1    
+generate               getblock               send                   signrawtransaction2    
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make 
+address                generate1              getblockcount          sendrawtransaction     signrawtransaction3
+clean                  generate2              getblockhash           sendrawtransaction1    start
+decoderawtransaction   generate3              getinfo                sendrawtransaction2    start-gui
+decoderawtransaction1  getaccountaddress1     getnetworkinfo         sendrawtransaction3    stop
+decoderawtransaction2  getaccountaddress2     getpeerinfo            signrawtransaction     
+decoderawtransaction3  getaccountaddress3     gettransaction         signrawtransaction1    
+generate               getblock               send                   signrawtransaction2    
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=2 listunspent
+[
+  {
+    "txid": "cdbc1bea47686770388e5f7ac1a615a51328aa62416f7ba662bc53f35f782a9c",
+    "vout": 0,
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "scriptPubKey": "210204cc52c2791d8ffc2020fbfdea9a91de62ef78bf296569476271c4659c9eaac7ac",
+    "amount": 50.00000000,
+    "confirmations": 16,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 1,
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "scriptPubKey": "210204cc52c2791d8ffc2020fbfdea9a91de62ef78bf296569476271c4659c9eaac7ac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 listunspent
+[
+  {
+    "txid": "46b34581bda4b25d683a0432d2fb8af7ae615967e53398f8e553daa1999b2b1a",
+    "vout": 0,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 50.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "902e88510095cb9add16e9dabc5e3696b3c5942d4ececce00995aad198eae23a",
+    "vout": 0,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 50.00000000,
+    "confirmations": 13,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "467e38a6f6e6ded41a479bf870453468d3d11168735e9ce2176d3910d218b595",
+    "vout": 0,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 50.00000000,
+    "confirmations": 17,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "6b67421cce5a2ae12c2afdb28fea60a3e14c1e6566dd223ab7f6cf4836e9da9a",
+    "vout": 0,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 50.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "d2ef1d7a4e62fad3d70b0e54b063c507da43863874df735c6cb20750519a7da8",
+    "vout": 0,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 50.00000000,
+    "confirmations": 14,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 0,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 3,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 4,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 5,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 6,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 7,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 8,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 9,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 10,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 13,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 listunspent 0 999
+[
+  {
+    "txid": "46b34581bda4b25d683a0432d2fb8af7ae615967e53398f8e553daa1999b2b1a",
+    "vout": 0,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 50.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "902e88510095cb9add16e9dabc5e3696b3c5942d4ececce00995aad198eae23a",
+    "vout": 0,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 50.00000000,
+    "confirmations": 13,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "467e38a6f6e6ded41a479bf870453468d3d11168735e9ce2176d3910d218b595",
+    "vout": 0,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 50.00000000,
+    "confirmations": 17,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "6b67421cce5a2ae12c2afdb28fea60a3e14c1e6566dd223ab7f6cf4836e9da9a",
+    "vout": 0,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 50.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "d2ef1d7a4e62fad3d70b0e54b063c507da43863874df735c6cb20750519a7da8",
+    "vout": 0,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 50.00000000,
+    "confirmations": 14,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 0,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 3,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 4,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 5,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 6,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 5.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 7,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 8,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 9,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 10,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 13,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 45.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7",
+    "vout": 0,
+    "address": "n46y1paHvH3sbb79LKaQGHygV3Fiwv6Ln6",
+    "account": "",
+    "scriptPubKey": "76a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac",
+    "amount": 44.95000000,
+    "confirmations": 0,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate3 
+bitcoin-cli -datadir=3  generate 1
+[
+  "732b6d0840767160faee6e3d17fd2fb119bc92e3ced7998c31a50e665110a58f"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 listunspent 
+[
+  {
+    "txid": "46b34581bda4b25d683a0432d2fb8af7ae615967e53398f8e553daa1999b2b1a",
+    "vout": 0,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 50.00000000,
+    "confirmations": 13,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "902e88510095cb9add16e9dabc5e3696b3c5942d4ececce00995aad198eae23a",
+    "vout": 0,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 50.00000000,
+    "confirmations": 14,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "467e38a6f6e6ded41a479bf870453468d3d11168735e9ce2176d3910d218b595",
+    "vout": 0,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 50.00000000,
+    "confirmations": 18,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "6b67421cce5a2ae12c2afdb28fea60a3e14c1e6566dd223ab7f6cf4836e9da9a",
+    "vout": 0,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 50.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "d23e592ef5228d8e76cd7e0451f44ac507896741b962cde279a8801d3ac6209e",
+    "vout": 0,
+    "address": "mmG5Loo8yjW6eodWkJ3hDb47LSmpUuZKZE",
+    "scriptPubKey": "21021fd14ec8487089d75c3649b29a3d87b1da4481e39adf63d7ebbacd04b7fe6a8fac",
+    "amount": 50.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "d2ef1d7a4e62fad3d70b0e54b063c507da43863874df735c6cb20750519a7da8",
+    "vout": 0,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 50.00000000,
+    "confirmations": 15,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 0,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 5.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 3,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 5.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 4,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 5.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 5,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 5.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 6,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 5.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 7,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 45.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 8,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 45.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 9,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 45.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 10,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 45.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 13,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 45.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7",
+    "vout": 0,
+    "address": "n46y1paHvH3sbb79LKaQGHygV3Fiwv6Ln6",
+    "account": "",
+    "scriptPubKey": "76a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac",
+    "amount": 44.95000000,
+    "confirmations": 1,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=2 listunspent
+[
+  {
+    "txid": "cdbc1bea47686770388e5f7ac1a615a51328aa62416f7ba662bc53f35f782a9c",
+    "vout": 0,
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "scriptPubKey": "210204cc52c2791d8ffc2020fbfdea9a91de62ef78bf296569476271c4659c9eaac7ac",
+    "amount": 50.00000000,
+    "confirmations": 17,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 1,
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "scriptPubKey": "210204cc52c2791d8ffc2020fbfdea9a91de62ef78bf296569476271c4659c9eaac7ac",
+    "amount": 5.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make getinfo
+bitcoin-cli -datadir=1  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 594.95000000,
+  "blocks": 18,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=2  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 55.00000000,
+  "blocks": 18,
+  "timeoffset": 0,
+  "connections": 2,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=3  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 100.00000000,
+  "blocks": 18,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 listunspent 
+[
+  {
+    "txid": "46b34581bda4b25d683a0432d2fb8af7ae615967e53398f8e553daa1999b2b1a",
+    "vout": 0,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 50.00000000,
+    "confirmations": 13,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "902e88510095cb9add16e9dabc5e3696b3c5942d4ececce00995aad198eae23a",
+    "vout": 0,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 50.00000000,
+    "confirmations": 14,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "467e38a6f6e6ded41a479bf870453468d3d11168735e9ce2176d3910d218b595",
+    "vout": 0,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 50.00000000,
+    "confirmations": 18,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "6b67421cce5a2ae12c2afdb28fea60a3e14c1e6566dd223ab7f6cf4836e9da9a",
+    "vout": 0,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 50.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "d23e592ef5228d8e76cd7e0451f44ac507896741b962cde279a8801d3ac6209e",
+    "vout": 0,
+    "address": "mmG5Loo8yjW6eodWkJ3hDb47LSmpUuZKZE",
+    "scriptPubKey": "21021fd14ec8487089d75c3649b29a3d87b1da4481e39adf63d7ebbacd04b7fe6a8fac",
+    "amount": 50.00000000,
+    "confirmations": 11,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "d2ef1d7a4e62fad3d70b0e54b063c507da43863874df735c6cb20750519a7da8",
+    "vout": 0,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 50.00000000,
+    "confirmations": 15,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 0,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 5.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 3,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 5.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 4,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 5.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 5,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 5.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 6,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 5.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 7,
+    "address": "n41PSQnEVgNHdZrkRtc8nuaJXRrYqUVBWL",
+    "scriptPubKey": "2103b82b2f257472d92984f90e1729e6f46ad1c39b5ebfb57f7790e0ece875ac2481ac",
+    "amount": 45.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 8,
+    "address": "mk5vf6LCZUQyEX3sJFZfwdvq3YqGLckWhs",
+    "scriptPubKey": "2102347adc23c33328992858a5fe0bb2dcb823e2a89492c98584fe1960fc140b5b40ac",
+    "amount": 45.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 9,
+    "address": "mycoZgqP9V7qpNMCS9cUmacMZivXFEW9BA",
+    "scriptPubKey": "2102180d790786276cd34a1200d86f91e59fe5f34284d8917f5c8b4527797aa4dabfac",
+    "amount": 45.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 10,
+    "address": "mzwiC5SUTaxSH3wcxwXgjFxMKFGgC82hiH",
+    "scriptPubKey": "210378e562f8c9037026dbe146bb115ffa1bd0c3c96f045153ac1c0fabed8eda0b85ac",
+    "amount": 45.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 13,
+    "address": "mhuGWZmoF1VWcqc4A1neQaHGzJzom5wmfa",
+    "scriptPubKey": "21022e3b2ac90e84f183871200934cd29cdd2beac27cc5b03b24c60bf03ee51747cfac",
+    "amount": 45.00000000,
+    "confirmations": 12,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7",
+    "vout": 0,
+    "address": "n46y1paHvH3sbb79LKaQGHygV3Fiwv6Ln6",
+    "account": "",
+    "scriptPubKey": "76a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac",
+    "amount": 44.95000000,
+    "confirmations": 1,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction HASH=c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7
+bitcoin-cli -datadir=1  gettransaction c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7
+{
+  "amount": 44.95000000,
+  "confirmations": 1,
+  "blockhash": "732b6d0840767160faee6e3d17fd2fb119bc92e3ced7998c31a50e665110a58f",
+  "blockindex": 1,
+  "blocktime": 1474755951,
+  "txid": "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7",
+  "walletconflicts": [
+  ],
+  "time": 1474755801,
+  "timereceived": 1474755801,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "n46y1paHvH3sbb79LKaQGHygV3Fiwv6Ln6",
+      "category": "receive",
+      "amount": 44.95000000,
+      "label": "",
+      "vout": 0
+    }
+  ],
+  "hex": "0100000001aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0c00000049483045022100d92fe38d042a7f8b24cf8b80688fc307ef28459afea1079ff061482f457cdce4022072b3e6f100aed7752740d5fb9a1e4a1a99a235f78452632257f7862af7fd7e1001ffffffff01c041ec0b010000001976a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac00000000"
+}
+bitcoin-cli -datadir=2  gettransaction c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7
+{
+  "amount": -44.95000000,
+  "fee": -0.05000000,
+  "confirmations": 1,
+  "blockhash": "732b6d0840767160faee6e3d17fd2fb119bc92e3ced7998c31a50e665110a58f",
+  "blockindex": 1,
+  "blocktime": 1474755951,
+  "txid": "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7",
+  "walletconflicts": [
+  ],
+  "time": 1474755801,
+  "timereceived": 1474755801,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "n46y1paHvH3sbb79LKaQGHygV3Fiwv6Ln6",
+      "category": "send",
+      "amount": -44.95000000,
+      "vout": 0,
+      "fee": -0.05000000,
+      "abandoned": false
+    }
+  ],
+  "hex": "0100000001aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0c00000049483045022100d92fe38d042a7f8b24cf8b80688fc307ef28459afea1079ff061482f457cdce4022072b3e6f100aed7752740d5fb9a1e4a1a99a235f78452632257f7862af7fd7e1001ffffffff01c041ec0b010000001976a914f7c182d58bc6a39b00df11bb812f509e66f1096b88ac00000000"
+}
+bitcoin-cli -datadir=3  gettransaction c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7
+error code: -5
+error message:
+Invalid or non-wallet transaction id
+make: *** [gettransaction] Error 5
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make getaccountaddress3
+bitcoin-cli -datadir=3  getaccountaddress ""
+mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 createrawtransaction '''["txid" : "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7", "vout" : 0]''' '{"mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y" : 44.91}'
+error: Error parsing JSON:["txid" : "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7", "vout" : 0]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 createrawtransaction '''[{"txid" : "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7", "vout" : 0}, {"txid" : "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa", "vout" : 0}]''' '{"mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y" : 89.91}'
+0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac40000000000ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0000000000ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 getrawtransaction 0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac40000000000ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0000000000ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+error code: -5
+error message:
+No information available about transaction
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make signrawtransaction
+signrawtransaction   signrawtransaction1  signrawtransaction2  signrawtransaction3  
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make signrawtransaction1 HASH=0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac40000000000ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0000000000ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+bitcoin-cli -datadir=1  signrawtransaction 0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac40000000000ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0000000000ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+{
+  "hex": "0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a473044022075a329936bbee7105ff593a8fd6bf674e37067c092486e309932de83a7dd4ddf022029926d097ba6c90c4abaee7b424531509a9d3e6047fb7dad62929a292178a661012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0000000048473044022025a92e2c084cc3ba3bd232105b29100cb174e04806481bbaca4a2de38c3dfc23022006092aceeb3bfe60ad36f5603fb8b5728000ca9e98faf8a18c304756bed1a9e701ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000",
+  "complete": true
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 getrawtransaction 0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a473044022075a329936bbee7105ff593a8fd6bf674e37067c092486e309932de83a7dd4ddf022029926d097ba6c90c4abaee7b424531509a9d3e6047fb7dad62929a292178a661012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0000000048473044022025a92e2c084cc3ba3bd232105b29100cb174e04806481bbaca4a2de38c3dfc23022006092aceeb3bfe60ad36f5603fb8b5728000ca9e98faf8a18c304756bed1a9e701ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+error code: -5
+error message:
+No information available about transaction
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make sendrawtransaction HASH=0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a473044022075a329936bbee7105ff593a8fd6bf674e37067c092486e309932de83a7dd4ddf022029926d097ba6c90c4abaee7b424531509a9d3e6047fb7dad62929a292178a661012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0000000048473044022025a92e2c084cc3ba3bd232105b29100cb174e04806481bbaca4a2de38c3dfc23022006092aceeb3bfe60ad36f5603fb8b5728000ca9e98faf8a18c304756bed1a9e701ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+bitcoin-cli -datadir=1  sendrawtransaction 0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a473044022075a329936bbee7105ff593a8fd6bf674e37067c092486e309932de83a7dd4ddf022029926d097ba6c90c4abaee7b424531509a9d3e6047fb7dad62929a292178a661012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0000000048473044022025a92e2c084cc3ba3bd232105b29100cb174e04806481bbaca4a2de38c3dfc23022006092aceeb3bfe60ad36f5603fb8b5728000ca9e98faf8a18c304756bed1a9e701ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+error code: -26
+error message:
+16: bad-txns-in-belowout
+make: *** [sendrawtransaction] Error 26
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 createrawtransaction '''[{"txid" : "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7", "vout" : 0}, {"txid" : "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa", "vout" : 13}]''' '{"mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y" : 89.91}'
+0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac40000000000ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000000ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make signrawtransaction1 HASH=0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac40000000000ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000000ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+bitcoin-cli -datadir=1  signrawtransaction 0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac40000000000ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000000ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+{
+  "hex": "0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a47304402202842755c943b2495a2c3dfea23f859f15e6a14f0936784e50e9df65c39cbfea602202cb75001b847ec6ae4f0b1e814b04674a0293611450896c14b72b0df5c36a278012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000049483045022100b01d38f510f994c485a117eedf17a2be4ee4b227d0c72c49046b863df274e6730220267a29006c8657ed01ea0fcea38dcc1ebd2591523ca170f2bfb2000423a08cc801ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000",
+  "complete": true
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 getrawtransaction 0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a47304402202842755c943b2495a2c3dfea23f859f15e6a14f0936784e50e9df65c39cbfea602202cb75001b847ec6ae4f0b1e814b04674a0293611450896c14b72b0df5c36a278012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000049483045022100b01d38f510f994c485a117eedf17a2be4ee4b227d0c72c49046b863df274e6730220267a29006c8657ed01ea0fcea38dcc1ebd2591523ca170f2bfb2000423a08cc801ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+error code: -5
+error message:
+No information available about transaction
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 getrawtransaction 0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac40000000000ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000000ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+error code: -5
+error message:
+No information available about transaction
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make sendrawtransaction1 HASH=0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a47304402202842755c943b2495a2c3dfea23f859f15e6a14f0936784e50e9df65c39cbfea602202cb75001b847ec6ae4f0b1e814b04674a0293611450896c14b72b0df5c36a278012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000049483045022100b01d38f510f994c485a117eedf17a2be4ee4b227d0c72c49046b863df274e6730220267a29006c8657ed01ea0fcea38dcc1ebd2591523ca170f2bfb2000423a08cc801ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+bitcoin-cli -datadir=1  sendrawtransaction 0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a47304402202842755c943b2495a2c3dfea23f859f15e6a14f0936784e50e9df65c39cbfea602202cb75001b847ec6ae4f0b1e814b04674a0293611450896c14b72b0df5c36a278012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000049483045022100b01d38f510f994c485a117eedf17a2be4ee4b227d0c72c49046b863df274e6730220267a29006c8657ed01ea0fcea38dcc1ebd2591523ca170f2bfb2000423a08cc801ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 getrawtransaction 6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a47304402202842755c943b2495a2c3dfea23f859f15e6a14f0936784e50e9df65c39cbfea602202cb75001b847ec6ae4f0b1e814b04674a0293611450896c14b72b0df5c36a278012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000049483045022100b01d38f510f994c485a117eedf17a2be4ee4b227d0c72c49046b863df274e6730220267a29006c8657ed01ea0fcea38dcc1ebd2591523ca170f2bfb2000423a08cc801ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction HASH=6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+bitcoin-cli -datadir=1  gettransaction 6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+{
+  "amount": -89.91000000,
+  "fee": -0.04000000,
+  "confirmations": 0,
+  "trusted": true,
+  "txid": "6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e",
+  "walletconflicts": [
+  ],
+  "time": 1474756631,
+  "timereceived": 1474756631,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y",
+      "category": "send",
+      "amount": -89.91000000,
+      "vout": 0,
+      "fee": -0.04000000,
+      "abandoned": false
+    }
+  ],
+  "hex": "0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a47304402202842755c943b2495a2c3dfea23f859f15e6a14f0936784e50e9df65c39cbfea602202cb75001b847ec6ae4f0b1e814b04674a0293611450896c14b72b0df5c36a278012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000049483045022100b01d38f510f994c485a117eedf17a2be4ee4b227d0c72c49046b863df274e6730220267a29006c8657ed01ea0fcea38dcc1ebd2591523ca170f2bfb2000423a08cc801ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000"
+}
+bitcoin-cli -datadir=2  gettransaction 6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+error code: -5
+error message:
+Invalid or non-wallet transaction id
+make: *** [gettransaction] Error 5
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction3 HASH=gettransaction2:
+bitcoin-cli -datadir=3  gettransaction gettransaction2:
+error code: -5
+error message:
+Invalid or non-wallet transaction id
+make: *** [gettransaction3] Error 5
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction3 HASH=6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+bitcoin-cli -datadir=3  gettransaction 6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+{
+  "amount": 89.91000000,
+  "confirmations": 0,
+  "trusted": false,
+  "txid": "6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e",
+  "walletconflicts": [
+  ],
+  "time": 1474756642,
+  "timereceived": 1474756642,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y",
+      "category": "receive",
+      "amount": 89.91000000,
+      "label": "",
+      "vout": 0
+    }
+  ],
+  "hex": "0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a47304402202842755c943b2495a2c3dfea23f859f15e6a14f0936784e50e9df65c39cbfea602202cb75001b847ec6ae4f0b1e814b04674a0293611450896c14b72b0df5c36a278012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000049483045022100b01d38f510f994c485a117eedf17a2be4ee4b227d0c72c49046b863df274e6730220267a29006c8657ed01ea0fcea38dcc1ebd2591523ca170f2bfb2000423a08cc801ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate2
+bitcoin-cli -datadir=2  generate 1
+[
+  "4dfa8bbcbfa9502a48c31b805bdbe277ba6a8a2348704fff71ef0ef660f34df7"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction HASH=6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+bitcoin-cli -datadir=1  gettransaction 6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+{
+  "amount": -89.91000000,
+  "fee": -0.04000000,
+  "confirmations": 1,
+  "blockhash": "4dfa8bbcbfa9502a48c31b805bdbe277ba6a8a2348704fff71ef0ef660f34df7",
+  "blockindex": 1,
+  "blocktime": 1474756782,
+  "txid": "6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e",
+  "walletconflicts": [
+  ],
+  "time": 1474756631,
+  "timereceived": 1474756631,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y",
+      "category": "send",
+      "amount": -89.91000000,
+      "vout": 0,
+      "fee": -0.04000000,
+      "abandoned": false
+    }
+  ],
+  "hex": "0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a47304402202842755c943b2495a2c3dfea23f859f15e6a14f0936784e50e9df65c39cbfea602202cb75001b847ec6ae4f0b1e814b04674a0293611450896c14b72b0df5c36a278012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000049483045022100b01d38f510f994c485a117eedf17a2be4ee4b227d0c72c49046b863df274e6730220267a29006c8657ed01ea0fcea38dcc1ebd2591523ca170f2bfb2000423a08cc801ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000"
+}
+bitcoin-cli -datadir=2  gettransaction 6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+error code: -5
+error message:
+Invalid or non-wallet transaction id
+make: *** [gettransaction] Error 5
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction1 HASH=6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+bitcoin-cli -datadir=1  gettransaction 6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+{
+  "amount": -89.91000000,
+  "fee": -0.04000000,
+  "confirmations": 1,
+  "blockhash": "4dfa8bbcbfa9502a48c31b805bdbe277ba6a8a2348704fff71ef0ef660f34df7",
+  "blockindex": 1,
+  "blocktime": 1474756782,
+  "txid": "6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e",
+  "walletconflicts": [
+  ],
+  "time": 1474756631,
+  "timereceived": 1474756631,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y",
+      "category": "send",
+      "amount": -89.91000000,
+      "vout": 0,
+      "fee": -0.04000000,
+      "abandoned": false
+    }
+  ],
+  "hex": "0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a47304402202842755c943b2495a2c3dfea23f859f15e6a14f0936784e50e9df65c39cbfea602202cb75001b847ec6ae4f0b1e814b04674a0293611450896c14b72b0df5c36a278012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000049483045022100b01d38f510f994c485a117eedf17a2be4ee4b227d0c72c49046b863df274e6730220267a29006c8657ed01ea0fcea38dcc1ebd2591523ca170f2bfb2000423a08cc801ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction2 HASH=6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+bitcoin-cli -datadir=2  gettransaction 6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+error code: -5
+error message:
+Invalid or non-wallet transaction id
+make: *** [gettransaction2] Error 5
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction3 HASH=6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+bitcoin-cli -datadir=3  gettransaction 6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+{
+  "amount": 89.91000000,
+  "confirmations": 1,
+  "blockhash": "4dfa8bbcbfa9502a48c31b805bdbe277ba6a8a2348704fff71ef0ef660f34df7",
+  "blockindex": 1,
+  "blocktime": 1474756782,
+  "txid": "6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e",
+  "walletconflicts": [
+  ],
+  "time": 1474756642,
+  "timereceived": 1474756642,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y",
+      "category": "receive",
+      "amount": 89.91000000,
+      "label": "",
+      "vout": 0
+    }
+  ],
+  "hex": "0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a47304402202842755c943b2495a2c3dfea23f859f15e6a14f0936784e50e9df65c39cbfea602202cb75001b847ec6ae4f0b1e814b04674a0293611450896c14b72b0df5c36a278012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000049483045022100b01d38f510f994c485a117eedf17a2be4ee4b227d0c72c49046b863df274e6730220267a29006c8657ed01ea0fcea38dcc1ebd2591523ca170f2bfb2000423a08cc801ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction1 HASH=6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+bitcoin-cli -datadir=1  gettransaction 6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e
+{
+  "amount": -89.91000000,
+  "fee": -0.04000000,
+  "confirmations": 1,
+  "blockhash": "4dfa8bbcbfa9502a48c31b805bdbe277ba6a8a2348704fff71ef0ef660f34df7",
+  "blockindex": 1,
+  "blocktime": 1474756782,
+  "txid": "6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e",
+  "walletconflicts": [
+  ],
+  "time": 1474756631,
+  "timereceived": 1474756631,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y",
+      "category": "send",
+      "amount": -89.91000000,
+      "vout": 0,
+      "fee": -0.04000000,
+      "abandoned": false
+    }
+  ],
+  "hex": "0100000002e737529eb570e9230ffba2b96230ea1c2a8f9d941b87bb656ecf9bbcb55d6ac4000000006a47304402202842755c943b2495a2c3dfea23f859f15e6a14f0936784e50e9df65c39cbfea602202cb75001b847ec6ae4f0b1e814b04674a0293611450896c14b72b0df5c36a278012103ee899a2d9fe6750691b76f822e175ef32136acb094f97a3d8dd939c3d0d281b1ffffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0d00000049483045022100b01d38f510f994c485a117eedf17a2be4ee4b227d0c72c49046b863df274e6730220267a29006c8657ed01ea0fcea38dcc1ebd2591523ca170f2bfb2000423a08cc801ffffffff01c0c5e717020000001976a914a10a3aec934612ffa46a1176630e60860fb6437288ac00000000"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make getinfo
+bitcoin-cli -datadir=1  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 555.00000000,
+  "blocks": 19,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=2  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 55.00000000,
+  "blocks": 19,
+  "timeoffset": 0,
+  "connections": 2,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=3  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 189.91000000,
+  "blocks": 19,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=3 listunspent
+[
+  {
+    "txid": "b7818b514b18f33df5224b572aecf9db0d1f35cf6dbe5822798c2930b68a0a78",
+    "vout": 0,
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "scriptPubKey": "2103bbbdf8ba5216a9b2a929078a1dd2a7bc51ba62e5cbeb3260c1dddd5aa4ffffd4ac",
+    "amount": 50.00000000,
+    "confirmations": 17,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e",
+    "vout": 0,
+    "address": "mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y",
+    "account": "",
+    "scriptPubKey": "76a914a10a3aec934612ffa46a1176630e60860fb6437288ac",
+    "amount": 89.91000000,
+    "confirmations": 1,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 2,
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "scriptPubKey": "2103bbbdf8ba5216a9b2a929078a1dd2a7bc51ba62e5cbeb3260c1dddd5aa4ffffd4ac",
+    "amount": 5.00000000,
+    "confirmations": 13,
+    "spendable": true,
+    "solvable": true
+  }, 
+  {
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "vout": 11,
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "scriptPubKey": "2103bbbdf8ba5216a9b2a929078a1dd2a7bc51ba62e5cbeb3260c1dddd5aa4ffffd4ac",
+    "amount": 45.00000000,
+    "confirmations": 13,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 listtransaction
+error code: -32601
+error message:
+Method not found
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=1 listtransactions
+[
+  {
+    "account": "",
+    "address": "mumMrbT9tMRQsF1ZwsyGwC3MExnZXxV5Ph",
+    "category": "immature",
+    "amount": 5.00000000,
+    "vout": 3,
+    "confirmations": 6,
+    "generated": true,
+    "blockhash": "16dcb7db0c60dca9bd0f4359156fc907bdb5a77f9679a631dea8804e5bba1131",
+    "blockindex": 0,
+    "blocktime": 1474755157,
+    "txid": "ca88ccaa5bd53b270dcae932ed3f6d3c0eb3fc1a2c6c29e0619f6570c9a6a8b6",
+    "walletconflicts": [
+    ],
+    "time": 1474755157,
+    "timereceived": 1474755157,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mxPRfQkmRbVpPbpP2fVARqyB3u4FcbjMMu",
+    "category": "immature",
+    "amount": 5.00000000,
+    "vout": 2,
+    "confirmations": 6,
+    "generated": true,
+    "blockhash": "16dcb7db0c60dca9bd0f4359156fc907bdb5a77f9679a631dea8804e5bba1131",
+    "blockindex": 0,
+    "blocktime": 1474755157,
+    "txid": "ca88ccaa5bd53b270dcae932ed3f6d3c0eb3fc1a2c6c29e0619f6570c9a6a8b6",
+    "walletconflicts": [
+    ],
+    "time": 1474755157,
+    "timereceived": 1474755157,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mmgLQ2ZjtocLdN9Fi89uD4sCNV4M4ZGDm2",
+    "category": "immature",
+    "amount": 5.00000000,
+    "vout": 1,
+    "confirmations": 6,
+    "generated": true,
+    "blockhash": "16dcb7db0c60dca9bd0f4359156fc907bdb5a77f9679a631dea8804e5bba1131",
+    "blockindex": 0,
+    "blocktime": 1474755157,
+    "txid": "ca88ccaa5bd53b270dcae932ed3f6d3c0eb3fc1a2c6c29e0619f6570c9a6a8b6",
+    "walletconflicts": [
+    ],
+    "time": 1474755157,
+    "timereceived": 1474755157,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mmG5Loo8yjW6eodWkJ3hDb47LSmpUuZKZE",
+    "category": "immature",
+    "amount": 5.00000000,
+    "vout": 0,
+    "confirmations": 6,
+    "generated": true,
+    "blockhash": "16dcb7db0c60dca9bd0f4359156fc907bdb5a77f9679a631dea8804e5bba1131",
+    "blockindex": 0,
+    "blocktime": 1474755157,
+    "txid": "ca88ccaa5bd53b270dcae932ed3f6d3c0eb3fc1a2c6c29e0619f6570c9a6a8b6",
+    "walletconflicts": [
+    ],
+    "time": 1474755157,
+    "timereceived": 1474755157,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "msqDMPEmyVDMRnoH2dfcUVtzGEXAR58qmM",
+    "category": "immature",
+    "amount": 50.00000000,
+    "vout": 0,
+    "confirmations": 6,
+    "generated": true,
+    "blockhash": "16dcb7db0c60dca9bd0f4359156fc907bdb5a77f9679a631dea8804e5bba1131",
+    "blockindex": 0,
+    "blocktime": 1474755157,
+    "txid": "22371c0f537421d0f015019de4d0230b5c096cd3988bc77aab2c12b28f02029a",
+    "walletconflicts": [
+    ],
+    "time": 1474755157,
+    "timereceived": 1474755157,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mqgiEDSHdfaBxqDvouTj2D7Mu1qMrGiYSy",
+    "category": "immature",
+    "amount": 50.00000000,
+    "vout": 0,
+    "confirmations": 5,
+    "generated": true,
+    "blockhash": "62e0d629943552f62987ea814b92be5b935eae212cea503bbcf3ef8a56ed6471",
+    "blockindex": 0,
+    "blocktime": 1474755157,
+    "txid": "8bb8ee6fbe1dc96d28b342c42c8f27ce7e9169d4efcd6b25ab086333436a9f79",
+    "walletconflicts": [
+    ],
+    "time": 1474755157,
+    "timereceived": 1474755157,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mkvTu7E4jZ2z53akry2yLxSajyTdTVS1Yb",
+    "category": "immature",
+    "amount": 50.00000000,
+    "vout": 0,
+    "confirmations": 4,
+    "generated": true,
+    "blockhash": "18e743ac2b570902f24eba49a44eda9c3454953d3322fab1c09ec7aaef236ab1",
+    "blockindex": 0,
+    "blocktime": 1474755158,
+    "txid": "6a800f38f009acb7c1680b21f290ecc730552c110026d69dd046d8ee1d139171",
+    "walletconflicts": [
+    ],
+    "time": 1474755158,
+    "timereceived": 1474755158,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mpaqyTjGckHuJsXCJdgwPBfUzf6W4ibkGD",
+    "category": "immature",
+    "amount": 50.00000000,
+    "vout": 0,
+    "confirmations": 3,
+    "generated": true,
+    "blockhash": "1e07fb04ff4b69e6925bfcec81836bd1a2e12ef01d3d6ded16ba7d7382833b35",
+    "blockindex": 0,
+    "blocktime": 1474755158,
+    "txid": "6c639e769a81c7b3a70b96905413fdce7b514a1fb4a8a85b9f4a747bf7807342",
+    "walletconflicts": [
+    ],
+    "time": 1474755158,
+    "timereceived": 1474755158,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "n46y1paHvH3sbb79LKaQGHygV3Fiwv6Ln6",
+    "category": "receive",
+    "amount": 44.95000000,
+    "label": "",
+    "vout": 0,
+    "confirmations": 2,
+    "blockhash": "732b6d0840767160faee6e3d17fd2fb119bc92e3ced7998c31a50e665110a58f",
+    "blockindex": 1,
+    "blocktime": 1474755951,
+    "txid": "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7",
+    "walletconflicts": [
+    ],
+    "time": 1474755801,
+    "timereceived": 1474755801,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y",
+    "category": "send",
+    "amount": -89.91000000,
+    "vout": 0,
+    "fee": -0.04000000,
+    "confirmations": 1,
+    "blockhash": "4dfa8bbcbfa9502a48c31b805bdbe277ba6a8a2348704fff71ef0ef660f34df7",
+    "blockindex": 1,
+    "blocktime": 1474756782,
+    "txid": "6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e",
+    "walletconflicts": [
+    ],
+    "time": 1474756631,
+    "timereceived": 1474756631,
+    "bip125-replaceable": "no",
+    "abandoned": false
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=2 listtransactions
+[
+  {
+    "account": "",
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "category": "generate",
+    "amount": 50.00000000,
+    "vout": 0,
+    "confirmations": 18,
+    "generated": true,
+    "blockhash": "0d2ad8168ee5d8e39c5a1ad6272b5e75c23a845fd0a103cd4b694a49f7c8dc58",
+    "blockindex": 0,
+    "blocktime": 1474755146,
+    "txid": "cdbc1bea47686770388e5f7ac1a615a51328aa62416f7ba662bc53f35f782a9c",
+    "walletconflicts": [
+    ],
+    "time": 1474755146,
+    "timereceived": 1474755146,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "category": "generate",
+    "amount": 45.00000000,
+    "vout": 12,
+    "confirmations": 13,
+    "generated": true,
+    "blockhash": "68e9744e80aad97c8f9b99c05613a252b91283038071746eab909e5af2b280ed",
+    "blockindex": 0,
+    "blocktime": 1474755154,
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "walletconflicts": [
+    ],
+    "time": 1474755154,
+    "timereceived": 1474755154,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mwgYvk61RmuZXvtLbR9meMmTJXj5mdfKwf",
+    "category": "generate",
+    "amount": 5.00000000,
+    "vout": 1,
+    "confirmations": 13,
+    "generated": true,
+    "blockhash": "68e9744e80aad97c8f9b99c05613a252b91283038071746eab909e5af2b280ed",
+    "blockindex": 0,
+    "blocktime": 1474755154,
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "walletconflicts": [
+    ],
+    "time": 1474755154,
+    "timereceived": 1474755154,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "n46y1paHvH3sbb79LKaQGHygV3Fiwv6Ln6",
+    "category": "send",
+    "amount": -44.95000000,
+    "vout": 0,
+    "fee": -0.05000000,
+    "confirmations": 2,
+    "blockhash": "732b6d0840767160faee6e3d17fd2fb119bc92e3ced7998c31a50e665110a58f",
+    "blockindex": 1,
+    "blocktime": 1474755951,
+    "txid": "c46a5db5bc9bcf6e65bb871b949d8f2a1cea3062b9a2fb0f23e970b59e5237e7",
+    "walletconflicts": [
+    ],
+    "time": 1474755801,
+    "timereceived": 1474755801,
+    "bip125-replaceable": "no",
+    "abandoned": false
+  }, 
+  {
+    "account": "",
+    "address": "mzLcyhycVZGVYdqkPnDoSR6WYbFMf27ZgY",
+    "category": "immature",
+    "amount": 50.04000000,
+    "vout": 0,
+    "confirmations": 1,
+    "generated": true,
+    "blockhash": "4dfa8bbcbfa9502a48c31b805bdbe277ba6a8a2348704fff71ef0ef660f34df7",
+    "blockindex": 0,
+    "blocktime": 1474756782,
+    "txid": "537cb9243bab0683a6426a6cf36e6a16ee4b3afa0619950e9fed227a29a62b48",
+    "walletconflicts": [
+    ],
+    "time": 1474756782,
+    "timereceived": 1474756782,
+    "bip125-replaceable": "no"
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=3 listtransactions
+[
+  {
+    "account": "",
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "category": "generate",
+    "amount": 50.00000000,
+    "vout": 0,
+    "confirmations": 17,
+    "generated": true,
+    "blockhash": "4e0fe1ce43043c22d66c979c57ef949051d76177e6fd52eed5b9a2b8c840aeaa",
+    "blockindex": 0,
+    "blocktime": 1474755147,
+    "txid": "b7818b514b18f33df5224b572aecf9db0d1f35cf6dbe5822798c2930b68a0a78",
+    "walletconflicts": [
+    ],
+    "time": 1474755147,
+    "timereceived": 1474755147,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "category": "generate",
+    "amount": 45.00000000,
+    "vout": 11,
+    "confirmations": 13,
+    "generated": true,
+    "blockhash": "68e9744e80aad97c8f9b99c05613a252b91283038071746eab909e5af2b280ed",
+    "blockindex": 0,
+    "blocktime": 1474755154,
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "walletconflicts": [
+    ],
+    "time": 1474755154,
+    "timereceived": 1474755154,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "category": "generate",
+    "amount": 5.00000000,
+    "vout": 2,
+    "confirmations": 13,
+    "generated": true,
+    "blockhash": "68e9744e80aad97c8f9b99c05613a252b91283038071746eab909e5af2b280ed",
+    "blockindex": 0,
+    "blocktime": 1474755154,
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "walletconflicts": [
+    ],
+    "time": 1474755154,
+    "timereceived": 1474755154,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "n3AcX2yQeMuiyUihxrWFjiCfce5rW27oT6",
+    "category": "immature",
+    "amount": 50.05000000,
+    "vout": 0,
+    "confirmations": 2,
+    "generated": true,
+    "blockhash": "732b6d0840767160faee6e3d17fd2fb119bc92e3ced7998c31a50e665110a58f",
+    "blockindex": 0,
+    "blocktime": 1474755951,
+    "txid": "e19379451dc5a45a48e12f989e606319cd1d03f141b555b68ba420bbcc74c305",
+    "walletconflicts": [
+    ],
+    "time": 1474755951,
+    "timereceived": 1474755951,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y",
+    "category": "receive",
+    "amount": 89.91000000,
+    "label": "",
+    "vout": 0,
+    "confirmations": 1,
+    "blockhash": "4dfa8bbcbfa9502a48c31b805bdbe277ba6a8a2348704fff71ef0ef660f34df7",
+    "blockindex": 1,
+    "blocktime": 1474756782,
+    "txid": "6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e",
+    "walletconflicts": [
+    ],
+    "time": 1474756642,
+    "timereceived": 1474756642,
+    "bip125-replaceable": "no"
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make getinfo
+bitcoin-cli -datadir=1  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 555.00000000,
+  "blocks": 19,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=2  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 55.00000000,
+  "blocks": 19,
+  "timeoffset": 0,
+  "connections": 2,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=3  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 189.91000000,
+  "blocks": 19,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make send
+send                 send2                sendrawtransaction   sendrawtransaction2  
+send1                send3                sendrawtransaction1  sendrawtransaction3  
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make send
+send                 send2                sendrawtransaction   sendrawtransaction2  
+send1                send3                sendrawtransaction1  sendrawtransaction3  
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make send
+send                 send2                sendrawtransaction   sendrawtransaction2  
+send1                send3                sendrawtransaction1  sendrawtransaction3  
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make send
+send                 send2                sendrawtransaction   sendrawtransaction2  
+send1                send3                sendrawtransaction1  sendrawtransaction3  
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make
+make           makeconv       make-ssl-cert  
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make s
+send                 send3                sendrawtransaction2  signrawtransaction1  start
+send1                sendrawtransaction   sendrawtransaction3  signrawtransaction2  start-gui
+send2                sendrawtransaction1  signrawtransaction   signrawtransaction3  stop
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make send
+send                 send2                sendrawtransaction   sendrawtransaction2  
+send1                send3                sendrawtransaction1  sendrawtransaction3  
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make send
+send                 send2                sendrawtransaction   sendrawtransaction2  
+send1                send3                sendrawtransaction1  sendrawtransaction3  
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make send
+send                 send2                sendrawtransaction   sendrawtransaction2  
+send1                send3                sendrawtransaction1  sendrawtransaction3  
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make s
+sendrawtransaction   sendrawtransaction3  sendtoaddress2       signrawtransaction1  start
+sendrawtransaction1  sendtoaddress        sendtoaddress3       signrawtransaction2  start-gui
+sendrawtransaction2  sendtoaddress1       signrawtransaction   signrawtransaction3  stop
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make sendtoaddress3 
+address                generate2              getinfo                sendrawtransaction1    signrawtransaction1
+clean                  generate3              getnetworkinfo         sendrawtransaction2    signrawtransaction2
+decoderawtransaction   getaccountaddress1     getpeerinfo            sendrawtransaction3    signrawtransaction3
+decoderawtransaction1  getaccountaddress2     gettransaction         sendtoaddress          start
+decoderawtransaction2  getaccountaddress3     gettransaction1        sendtoaddress1         start-gui
+decoderawtransaction3  getblock               gettransaction2        sendtoaddress2         stop
+generate               getblockcount          gettransaction3        sendtoaddress3         
+generate1              getblockhash           sendrawtransaction     signrawtransaction     
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make sendtoaddress3 AMOUNT=189.91 ADDRESS=mgDtoD8by83hBa4UW2xjmnCNLahts9fMzx
+bitcoin-cli -datadir=3  sendtoaddress mgDtoD8by83hBa4UW2xjmnCNLahts9fMzx 189.91
+error code: -4
+error message:
+Error: This transaction requires a transaction fee of at least 0.0001064 because of its amount, complexity, or use of recently received funds!
+make: *** [sendtoaddress3] Error 4
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make sendtoaddress3 AMOUNT=189.00 ADDRESS=mgDtoD8by83hBa4UW2xjmnCNLahts9fMzx
+bitcoin-cli -datadir=3  sendtoaddress mgDtoD8by83hBa4UW2xjmnCNLahts9fMzx 189.00
+ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction HASH=ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc
+bitcoin-cli -datadir=1  gettransaction ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc
+error code: -5
+error message:
+Invalid or non-wallet transaction id
+make: *** [gettransaction] Error 5
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction2 HASH=ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc
+bitcoin-cli -datadir=2  gettransaction ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc
+{
+  "amount": 189.00000000,
+  "confirmations": 0,
+  "trusted": false,
+  "txid": "ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc",
+  "walletconflicts": [
+  ],
+  "time": 1474757272,
+  "timereceived": 1474757272,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "mgDtoD8by83hBa4UW2xjmnCNLahts9fMzx",
+      "category": "receive",
+      "amount": 189.00000000,
+      "label": "",
+      "vout": 1
+    }
+  ],
+  "hex": "0100000004aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0200000049483045022100d40892d3358623c0522a4dd9694708960841c4c972257f7119bc6cd0d332eb7e02200a13e697ebe028825fefba3e4a1185f2e42ae241a6ff76d5eab1cc4c69e79a6a01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0b00000049483045022100f49e45b7a8a7c926e1f711e74f25d29302c1090ca35448fdf33bad69f5c80e680220252e0ec7e6414fe1a904c61cc39196cec56e4149dcba6feb6bf34c736f96391601feffffff8eca195e8e5a40deb5cda01d9e8226f48c9c50a1dbf342b02d78e27365ac436f000000006a4730440220709354da531a4cad39c914b80eba19b15299d57f086b69b2788d205c0b897c66022025cef70ac48792f34272d9752381fcb6a85d3728dbc625e8ea31610b0dc90bfe012102a6fb7776e690ed62d2ee23d2f9f0b5fdc3e212e84b2c82bb658e5aec50633898feffffff780a8ab630298c792258be6dcf351f0ddbf9ec2a574b22f53df3184b518b81b7000000004847304402202cb7ec023fc82f2388923e87c476fde5a5c2c89ff87533eb341ee08709ef998802200ebca4506dd272ee97a724f08a8583c9c85f3d2f58bd1e396c8e2a14a698fcba01feffffff0274606c05000000001976a9142b7b14f7a2e1370b30ec2e861fde1e3fd73be0f388ac001d8766040000001976a91407be2290ffe1d1b85903c95585617f4ef0205b5988ac13000000"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction3 HASH=ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc
+bitcoin-cli -datadir=3  gettransaction ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc
+{
+  "amount": -189.00000000,
+  "fee": -0.00011340,
+  "confirmations": 0,
+  "trusted": true,
+  "txid": "ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc",
+  "walletconflicts": [
+  ],
+  "time": 1474757266,
+  "timereceived": 1474757266,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "mgDtoD8by83hBa4UW2xjmnCNLahts9fMzx",
+      "category": "send",
+      "amount": -189.00000000,
+      "vout": 1,
+      "fee": -0.00011340,
+      "abandoned": false
+    }
+  ],
+  "hex": "0100000004aa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0200000049483045022100d40892d3358623c0522a4dd9694708960841c4c972257f7119bc6cd0d332eb7e02200a13e697ebe028825fefba3e4a1185f2e42ae241a6ff76d5eab1cc4c69e79a6a01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0b00000049483045022100f49e45b7a8a7c926e1f711e74f25d29302c1090ca35448fdf33bad69f5c80e680220252e0ec7e6414fe1a904c61cc39196cec56e4149dcba6feb6bf34c736f96391601feffffff8eca195e8e5a40deb5cda01d9e8226f48c9c50a1dbf342b02d78e27365ac436f000000006a4730440220709354da531a4cad39c914b80eba19b15299d57f086b69b2788d205c0b897c66022025cef70ac48792f34272d9752381fcb6a85d3728dbc625e8ea31610b0dc90bfe012102a6fb7776e690ed62d2ee23d2f9f0b5fdc3e212e84b2c82bb658e5aec50633898feffffff780a8ab630298c792258be6dcf351f0ddbf9ec2a574b22f53df3184b518b81b7000000004847304402202cb7ec023fc82f2388923e87c476fde5a5c2c89ff87533eb341ee08709ef998802200ebca4506dd272ee97a724f08a8583c9c85f3d2f58bd1e396c8e2a14a698fcba01feffffff0274606c05000000001976a9142b7b14f7a2e1370b30ec2e861fde1e3fd73be0f388ac001d8766040000001976a91407be2290ffe1d1b85903c95585617f4ef0205b5988ac13000000"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=3 listtransactions
+[
+  {
+    "account": "",
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "category": "generate",
+    "amount": 50.00000000,
+    "vout": 0,
+    "confirmations": 17,
+    "generated": true,
+    "blockhash": "4e0fe1ce43043c22d66c979c57ef949051d76177e6fd52eed5b9a2b8c840aeaa",
+    "blockindex": 0,
+    "blocktime": 1474755147,
+    "txid": "b7818b514b18f33df5224b572aecf9db0d1f35cf6dbe5822798c2930b68a0a78",
+    "walletconflicts": [
+    ],
+    "time": 1474755147,
+    "timereceived": 1474755147,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "category": "generate",
+    "amount": 45.00000000,
+    "vout": 11,
+    "confirmations": 13,
+    "generated": true,
+    "blockhash": "68e9744e80aad97c8f9b99c05613a252b91283038071746eab909e5af2b280ed",
+    "blockindex": 0,
+    "blocktime": 1474755154,
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "walletconflicts": [
+    ],
+    "time": 1474755154,
+    "timereceived": 1474755154,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mrpNuVgNNYz5nK672ZLZ2NyC8eBmRLqZtg",
+    "category": "generate",
+    "amount": 5.00000000,
+    "vout": 2,
+    "confirmations": 13,
+    "generated": true,
+    "blockhash": "68e9744e80aad97c8f9b99c05613a252b91283038071746eab909e5af2b280ed",
+    "blockindex": 0,
+    "blocktime": 1474755154,
+    "txid": "ae860713e374790ff0c3f974b3893ab58382775646e4a6f39dd6983d672309aa",
+    "walletconflicts": [
+    ],
+    "time": 1474755154,
+    "timereceived": 1474755154,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "n3AcX2yQeMuiyUihxrWFjiCfce5rW27oT6",
+    "category": "immature",
+    "amount": 50.05000000,
+    "vout": 0,
+    "confirmations": 2,
+    "generated": true,
+    "blockhash": "732b6d0840767160faee6e3d17fd2fb119bc92e3ced7998c31a50e665110a58f",
+    "blockindex": 0,
+    "blocktime": 1474755951,
+    "txid": "e19379451dc5a45a48e12f989e606319cd1d03f141b555b68ba420bbcc74c305",
+    "walletconflicts": [
+    ],
+    "time": 1474755951,
+    "timereceived": 1474755951,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mvCTLk5a97hnKXiHsQAAmdszTKZuCwnz9y",
+    "category": "receive",
+    "amount": 89.91000000,
+    "label": "",
+    "vout": 0,
+    "confirmations": 1,
+    "blockhash": "4dfa8bbcbfa9502a48c31b805bdbe277ba6a8a2348704fff71ef0ef660f34df7",
+    "blockindex": 1,
+    "blocktime": 1474756782,
+    "txid": "6f43ac6573e2782db042f3dba1509c8cf426829e1da0cdb5de405a8e5e19ca8e",
+    "walletconflicts": [
+    ],
+    "time": 1474756642,
+    "timereceived": 1474756642,
+    "bip125-replaceable": "no"
+  }, 
+  {
+    "account": "",
+    "address": "mgDtoD8by83hBa4UW2xjmnCNLahts9fMzx",
+    "category": "send",
+    "amount": -189.00000000,
+    "vout": 1,
+    "fee": -0.00011340,
+    "confirmations": 0,
+    "trusted": true,
+    "txid": "ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc",
+    "walletconflicts": [
+    ],
+    "time": 1474757266,
+    "timereceived": 1474757266,
+    "bip125-replaceable": "no",
+    "abandoned": false
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make getinfo
+bitcoin-cli -datadir=1  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 555.00000000,
+  "blocks": 19,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=2  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 55.00000000,
+  "blocks": 19,
+  "timeoffset": 0,
+  "connections": 2,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=3  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 0.90988660,
+  "blocks": 19,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=3 listunspent
+[
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=3 listunspent 0 999
+[
+  {
+    "txid": "ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc",
+    "vout": 0,
+    "address": "mjUroBawA85xwxBBpuoYqcDL4HxzjiAKJR",
+    "scriptPubKey": "76a9142b7b14f7a2e1370b30ec2e861fde1e3fd73be0f388ac",
+    "amount": 0.90988660,
+    "confirmations": 0,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate
+bitcoin-cli -datadir=1  generate 1
+[
+  "52f54d2405d41a377afb1da39958b770835489d41e3146ac4ad479edac01cf0c"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ bitcoin-cli -datadir=3 listunspent
+[
+  {
+    "txid": "ec2d77403dbb7855733da314d9c502bc3f0c8fde04a902ffbd33058adf50cacc",
+    "vout": 0,
+    "address": "mjUroBawA85xwxBBpuoYqcDL4HxzjiAKJR",
+    "scriptPubKey": "76a9142b7b14f7a2e1370b30ec2e861fde1e3fd73be0f388ac",
+    "amount": 0.90988660,
+    "confirmations": 1,
+    "spendable": true,
+    "solvable": true
+  }
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make getinfo
+bitcoin-cli -datadir=1  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 605.00000000,
+  "blocks": 20,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=2  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 244.00000000,
+  "blocks": 20,
+  "timeoffset": 0,
+  "connections": 2,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=3  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 0.90988660,
+  "blocks": 20,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make getaccountaddress2
+bitcoin-cli -datadir=2  getaccountaddress ""
+miin4szS7VpQ7yKizied97WhnVyezMBzrA
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make send1 AMOUNT=604 ADDRESS=miin4szS7VpQ7yKizied97WhnVyezMBzrA
+make: *** No rule to make target `send1'.  Stop.
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make sendtoaddress1 AMOUNT=604 ADDRESS=miin4szS7VpQ7yKizied97WhnVyezMBzrA
+bitcoin-cli -datadir=1  sendtoaddress miin4szS7VpQ7yKizied97WhnVyezMBzrA 604
+4e7de37e3edf48c1df5bde13364ea158b823de41def8447bec36b75b952c92c4
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make generate3
+bitcoin-cli -datadir=3  generate 1
+[
+  "4c4dfdabcb9b14161c5f5b70215c81d5f4c4a5764fb28524f9f570da964fac97"
+]
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction 4e7de37e3edf48c1df5bde13364ea158b823de41def8447bec36b75b952c92c4
+bitcoin-cli -datadir=1  gettransaction 
+error code: -1
+error message:
+gettransaction "txid" ( includeWatchonly )
+
+Get detailed information about in-wallet transaction <txid>
+
+Arguments:
+1. "txid"    (string, required) The transaction id
+2. "includeWatchonly"    (bool, optional, default=false) Whether to include watchonly addresses in balance calculation and details[]
+
+Result:
+{
+  "amount" : x.xxx,        (numeric) The transaction amount in BTC
+  "confirmations" : n,     (numeric) The number of confirmations
+  "blockhash" : "hash",  (string) The block hash
+  "blockindex" : xx,       (numeric) The index of the transaction in the block that includes it
+  "blocktime" : ttt,       (numeric) The time in seconds since epoch (1 Jan 1970 GMT)
+  "txid" : "transactionid",   (string) The transaction id.
+  "time" : ttt,            (numeric) The transaction time in seconds since epoch (1 Jan 1970 GMT)
+  "timereceived" : ttt,    (numeric) The time received in seconds since epoch (1 Jan 1970 GMT)
+  "bip125-replaceable": "yes|no|unknown"  (string) Whether this transaction could be replaced due to BIP125 (replace-by-fee);
+                                                   may be unknown for unconfirmed transactions not in the mempool
+  "details" : [
+    {
+      "account" : "accountname",  (string) DEPRECATED. The account name involved in the transaction, can be "" for the default account.
+      "address" : "bitcoinaddress",   (string) The bitcoin address involved in the transaction
+      "category" : "send|receive",    (string) The category, either 'send' or 'receive'
+      "amount" : x.xxx,                 (numeric) The amount in BTC
+      "label" : "label",              (string) A comment for the address/transaction, if any
+      "vout" : n,                       (numeric) the vout value
+    }
+    ,...
+  ],
+  "hex" : "data"         (string) Raw data for transaction
+}
+
+Examples:
+> bitcoin-cli gettransaction "1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d"
+> bitcoin-cli gettransaction "1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d" true
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "gettransaction", "params": ["1075db55d416d3ca199f55b6084e2115b9345e16c5cf302fc80e9d5fbf5d48d"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+
+make: *** [gettransaction] Error 1
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make gettransaction HASH=4e7de37e3edf48c1df5bde13364ea158b823de41def8447bec36b75b952c92c4
+bitcoin-cli -datadir=1  gettransaction 4e7de37e3edf48c1df5bde13364ea158b823de41def8447bec36b75b952c92c4
+{
+  "amount": -604.00000000,
+  "fee": -0.00040100,
+  "confirmations": 0,
+  "trusted": true,
+  "txid": "4e7de37e3edf48c1df5bde13364ea158b823de41def8447bec36b75b952c92c4",
+  "walletconflicts": [
+  ],
+  "time": 1474757511,
+  "timereceived": 1474757511,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "miin4szS7VpQ7yKizied97WhnVyezMBzrA",
+      "category": "send",
+      "amount": -604.00000000,
+      "vout": 0,
+      "fee": -0.00040100,
+      "abandoned": false
+    }
+  ],
+  "hex": "01000000111a2b9b99a1da53e5f89833e5675961aef78afbd232043a685db2a4bd8145b34600000000484730440220136d5bace3f37082659a2a314c3ac9394a358ccef3ac542bf647bf72c4c092330220170b5e93032463bd55284eeaed61bdfe56b791bcf32248aca2f33a5586ca5a1901feffffff195be09610bc67aa87548bb34b784f8b3287453db14c9ffd45037b368ce4d6b7000000004847304402207185703466ebe694533a12e4aef9a9461df6deaf182e1fca8d1e1ad8088bc3fb02201191014b3f1aaeef59e57badc21f0458340f1d304665cec5b01aca409a1df8c401feffffff95b518d210396d17e29c5e736811d1d368344570f89b471ad4dee6f6a6387e4600000000494830450221008886844a0230304fbacf285da61e13744e9978f08620235918b7edeeafba262f02201596f1df795255004402c81e1f5398680a090de4ff3744eb61c386bc6c1ba63201feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae00000000494830450221008cf4730456c37ff5f48d192038695f2a5e709e09104c6e01aef9822d1c64ceb702200ed654e7d9a14b07b3abcfd240cdd3a6bf12e3248f6ee10ac79210264ee5075401feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae03000000484730440220534e5409919927d64ea39e20f431d3e9cbc8e0074f8d1189c90aced9f6516e5e022024d8f5b2c5ad629c8a8f97c6673ff0d54cdfb03176d5daf06fe38905c8c7c80201feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0400000049483045022100a0555606158720814ca4ab7236b42a983f51278351a16bfd79833fdb96c7f01802203e30ed3a7f90ad990e9cc7270f7f23fcc071711b45ac2073513b34a167e697fe01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0500000048473044022002c81face2b4a661fde969d3c6ac0427544618c291b632fa8742ef27fb4125a80220066d129ecc6990e36e3b1ef2705903c7ac927ccbcafc8fdde3655dde188ebb7e01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae060000004847304402204ee6ac55f4cfbb13ca43dacf0cd52c87f35444ad8d2e7e77dc5756abbe30e07d02205076310f1acbedab260986bd5abccaa81a650dbda923cf794ff68962d897ed1d01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae07000000484730440220543217d4f8ff548582db605dc4b8d90aca83ab066f03e56fb7c90f0494546a41022006e7c21473306ef92d51b76c79cf6a26e7ab31230d03ca2bb58b8838472c786e01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae080000004847304402206debec2366f46b9dd169f72a5be31e9b3b6ca0502a0c57c1bc287cc0a5fa5612022046a2a44f73a9f563744fa7b6089ffb4be5a4b6538d8231185556e2c09a2bf31a01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0900000048473044022049dd53050f37af2fed944cfaeeb12ad5cb6289a9613bd96beff816f14d4b66c10220211ef309030512aaa0e95e5a7e756adc94063a447472f2a25e93f84ca3d8893601feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0a000000484730440220420ec9adace2e1311763b8ab66c510f9a646822ac073b69ddb07a25421bb1e0d02200913bcb5499666881dfe83dad55902f8c29ad052438aff05e01d34cebe7371ef01feffffff9adae93648cff6b73a22dd66651e4ce1a360ea8fb2fd2a2ce12a5ace1c42676b0000000049483045022100abe11e5e9d307cdcb814caab99c7e82d11c4fccb0e6a8aabde244a9174e728c402203fd70df3ba64b2a965ef30ef18efefd3f416e9b42f289039fa4c24167774d06f01feffffffa87d9a515007b26c5c73df74388643da07c563b0540e0bd7d3fa624e7a1defd2000000004847304402204cf32b3161af66de72a2402bbc751a433ea7c365e3da26acfdb93552c74acd8102201abf610d638d54483fbfbee34323ee0d5bfbb568d806ece3197b13bf1ea09d3501feffffff9e20c63a1d80a879e2cd62b941678907c54af451047ecd768e8d22f52e593ed2000000004847304402204ce8881c83e41f419bf5254b56e121052a0d61988b92b8008504d9e1bcbf76f4022058013d2d5db2f2d958bc64922529eab8692d49c5de1e48d0a030b813323a202801feffffff3ae2ea98d1aa9509e0ccce4e2d94c5b396365ebcdae916dd9acb950051882e90000000004847304402207d34c8dfdc4c29db3234b6a1580f1f0be2994c965671903e91fd008d7f2bbc4a022058eddf2a496c52178a5dc4a206ced7e933ee01e636baceaab52dd4cdc357401f01feffffffde13a5050ce0cd7abfe2f0f6bbc73178126ed2e7d275c72121fc9ddf07232d7700000000484730440220643cb00e3a49aac2ea1d6f6c78553bdb8f04add2c0367879c41ed1e22444c2bb022029856106fa0eda6aa246ab38df10e025d8633eadf2b8d97e64000dafaf45379701feffffff0200dc1e100e0000001976a9142324d4eac1777399e9f2d4c4613169f78c28e7da88ac5c44f505000000001976a914f8e0ab61171577c50ae66113dd80ff4655cabb5a88ac14000000"
+}
+bitcoin-cli -datadir=2  gettransaction 4e7de37e3edf48c1df5bde13364ea158b823de41def8447bec36b75b952c92c4
+{
+  "amount": 604.00000000,
+  "confirmations": 0,
+  "trusted": false,
+  "txid": "4e7de37e3edf48c1df5bde13364ea158b823de41def8447bec36b75b952c92c4",
+  "walletconflicts": [
+  ],
+  "time": 1474757519,
+  "timereceived": 1474757519,
+  "bip125-replaceable": "no",
+  "details": [
+    {
+      "account": "",
+      "address": "miin4szS7VpQ7yKizied97WhnVyezMBzrA",
+      "category": "receive",
+      "amount": 604.00000000,
+      "label": "",
+      "vout": 0
+    }
+  ],
+  "hex": "01000000111a2b9b99a1da53e5f89833e5675961aef78afbd232043a685db2a4bd8145b34600000000484730440220136d5bace3f37082659a2a314c3ac9394a358ccef3ac542bf647bf72c4c092330220170b5e93032463bd55284eeaed61bdfe56b791bcf32248aca2f33a5586ca5a1901feffffff195be09610bc67aa87548bb34b784f8b3287453db14c9ffd45037b368ce4d6b7000000004847304402207185703466ebe694533a12e4aef9a9461df6deaf182e1fca8d1e1ad8088bc3fb02201191014b3f1aaeef59e57badc21f0458340f1d304665cec5b01aca409a1df8c401feffffff95b518d210396d17e29c5e736811d1d368344570f89b471ad4dee6f6a6387e4600000000494830450221008886844a0230304fbacf285da61e13744e9978f08620235918b7edeeafba262f02201596f1df795255004402c81e1f5398680a090de4ff3744eb61c386bc6c1ba63201feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae00000000494830450221008cf4730456c37ff5f48d192038695f2a5e709e09104c6e01aef9822d1c64ceb702200ed654e7d9a14b07b3abcfd240cdd3a6bf12e3248f6ee10ac79210264ee5075401feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae03000000484730440220534e5409919927d64ea39e20f431d3e9cbc8e0074f8d1189c90aced9f6516e5e022024d8f5b2c5ad629c8a8f97c6673ff0d54cdfb03176d5daf06fe38905c8c7c80201feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0400000049483045022100a0555606158720814ca4ab7236b42a983f51278351a16bfd79833fdb96c7f01802203e30ed3a7f90ad990e9cc7270f7f23fcc071711b45ac2073513b34a167e697fe01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0500000048473044022002c81face2b4a661fde969d3c6ac0427544618c291b632fa8742ef27fb4125a80220066d129ecc6990e36e3b1ef2705903c7ac927ccbcafc8fdde3655dde188ebb7e01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae060000004847304402204ee6ac55f4cfbb13ca43dacf0cd52c87f35444ad8d2e7e77dc5756abbe30e07d02205076310f1acbedab260986bd5abccaa81a650dbda923cf794ff68962d897ed1d01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae07000000484730440220543217d4f8ff548582db605dc4b8d90aca83ab066f03e56fb7c90f0494546a41022006e7c21473306ef92d51b76c79cf6a26e7ab31230d03ca2bb58b8838472c786e01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae080000004847304402206debec2366f46b9dd169f72a5be31e9b3b6ca0502a0c57c1bc287cc0a5fa5612022046a2a44f73a9f563744fa7b6089ffb4be5a4b6538d8231185556e2c09a2bf31a01feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0900000048473044022049dd53050f37af2fed944cfaeeb12ad5cb6289a9613bd96beff816f14d4b66c10220211ef309030512aaa0e95e5a7e756adc94063a447472f2a25e93f84ca3d8893601feffffffaa0923673d98d69df3a6e44656778283b53a89b374f9c3f00f7974e3130786ae0a000000484730440220420ec9adace2e1311763b8ab66c510f9a646822ac073b69ddb07a25421bb1e0d02200913bcb5499666881dfe83dad55902f8c29ad052438aff05e01d34cebe7371ef01feffffff9adae93648cff6b73a22dd66651e4ce1a360ea8fb2fd2a2ce12a5ace1c42676b0000000049483045022100abe11e5e9d307cdcb814caab99c7e82d11c4fccb0e6a8aabde244a9174e728c402203fd70df3ba64b2a965ef30ef18efefd3f416e9b42f289039fa4c24167774d06f01feffffffa87d9a515007b26c5c73df74388643da07c563b0540e0bd7d3fa624e7a1defd2000000004847304402204cf32b3161af66de72a2402bbc751a433ea7c365e3da26acfdb93552c74acd8102201abf610d638d54483fbfbee34323ee0d5bfbb568d806ece3197b13bf1ea09d3501feffffff9e20c63a1d80a879e2cd62b941678907c54af451047ecd768e8d22f52e593ed2000000004847304402204ce8881c83e41f419bf5254b56e121052a0d61988b92b8008504d9e1bcbf76f4022058013d2d5db2f2d958bc64922529eab8692d49c5de1e48d0a030b813323a202801feffffff3ae2ea98d1aa9509e0ccce4e2d94c5b396365ebcdae916dd9acb950051882e90000000004847304402207d34c8dfdc4c29db3234b6a1580f1f0be2994c965671903e91fd008d7f2bbc4a022058eddf2a496c52178a5dc4a206ced7e933ee01e636baceaab52dd4cdc357401f01feffffffde13a5050ce0cd7abfe2f0f6bbc73178126ed2e7d275c72121fc9ddf07232d7700000000484730440220643cb00e3a49aac2ea1d6f6c78553bdb8f04add2c0367879c41ed1e22444c2bb022029856106fa0eda6aa246ab38df10e025d8633eadf2b8d97e64000dafaf45379701feffffff0200dc1e100e0000001976a9142324d4eac1777399e9f2d4c4613169f78c28e7da88ac5c44f505000000001976a914f8e0ab61171577c50ae66113dd80ff4655cabb5a88ac14000000"
+}
+bitcoin-cli -datadir=3  gettransaction 4e7de37e3edf48c1df5bde13364ea158b823de41def8447bec36b75b952c92c4
+error code: -5
+error message:
+Invalid or non-wallet transaction id
+make: *** [gettransaction] Error 5
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make getinfo
+bitcoin-cli -datadir=1  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 50.99959900,
+  "blocks": 21,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=2  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 244.00000000,
+  "blocks": 21,
+  "timeoffset": 0,
+  "connections": 2,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+bitcoin-cli -datadir=3  getinfo
+{
+  "version": 139900,
+  "protocolversion": 70014,
+  "walletversion": 130000,
+  "balance": 0.90988660,
+  "blocks": 21,
+  "timeoffset": 0,
+  "connections": 1,
+  "proxy": "",
+  "difficulty": 4.656542373906925e-10,
+  "testnet": false,
+  "keypoololdest": 1474755126,
+  "keypoolsize": 100,
+  "paytxfee": 0.00000000,
+  "relayfee": 0.00001000,
+  "errors": "This is a pre-release test build - use at your own risk - do not use for mining or merchant applications"
+}
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make ge
+generate            getaccountaddress1  getblockcount       getpeerinfo         gettransaction3
+generate1           getaccountaddress2  getblockhash        gettransaction      
+generate2           getaccountaddress3  getinfo             gettransaction1     
+generate3           getblock            getnetworkinfo      gettransaction2     
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make ge
+generate            getaccountaddress1  getblockcount       getpeerinfo         gettransaction3
+generate1           getaccountaddress2  getblockhash        gettransaction      
+generate2           getaccountaddress3  getinfo             gettransaction1     
+generate3           getblock            getnetworkinfo      gettransaction2     
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make getblockhash 21
+bitcoin-cli -datadir=1  getblockhash 
+error code: -1
+error message:
+getblockhash index
+
+Returns hash of block in best-block-chain at index provided.
+
+Arguments:
+1. index         (numeric, required) The block index
+
+Result:
+"hash"         (string) The block hash
+
+Examples:
+> bitcoin-cli getblockhash 1000
+> curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "getblockhash", "params": [1000] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+
+make: *** [getblockhash] Error 1
+ych@ubuntu:~/ych/Merge_version/bitcoin-regtest-box$ make getblock HASH=4c4dfdabcb9b14161c5f5b70215c81d5f4c4a5764fb28524f9f570da964fac97
+bitcoin-cli -datadir=1  getblock 4c4dfdabcb9b14161c5f5b70215c81d5f4c4a5764fb28524f9f570da964fac97
+{
+  "hash": "4c4dfdabcb9b14161c5f5b70215c81d5f4c4a5764fb28524f9f570da964fac97",
+  "confirmations": 1,
+  "strippedsize": 281,
+  "size": 281,
+  "weight": 1124,
+  "height": 21,
+  "version": 536870912,
+  "versionHex": "20000000",
+  "merkleroot": "22eaba5b149919a52f82a0db597552ac267382372d415bb87805c37a29edc0bc",
+  "prevEpisodeHash": "16dcb7db0c60dca9bd0f4359156fc907bdb5a77f9679a631dea8804e5bba1131",
+  "fruitsHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "creatorScriptPubKey": {
+    "asm": "0242e1ed06d0677a814cfb5f69ee751ec926e2941caccbe08ba2746f3660a99e40 OP_CHECKSIG",
+    "hex": "210242e1ed06d0677a814cfb5f69ee751ec926e2941caccbe08ba2746f3660a99e40ac",
+    "reqSigs": 1,
+    "type": "pubkey",
+    "addresses": [
+      "mpFrrRoSZ9QGwDhKXzW6hGa8Q3knMJ9jKA"
+    ]
+  },
+  "tx": [
+    "22eaba5b149919a52f82a0db597552ac267382372d415bb87805c37a29edc0bc"
+  ],
+  "time": 1474757517,
+  "mediantime": 1474755158,
+  "nonce": 0,
+  "bits": "207fffff",
+  "difficulty": 4.656542373906925e-10,
+  "chainwork": "000000000000000000000000000000000000000000000000000000000000002c",
+  "previousblockhash": "52f54d2405d41a377afb1da39958b770835489d41e3146ac4ad479edac01cf0c"
+}
+bitcoin-cli -datadir=2  getblock 4c4dfdabcb9b14161c5f5b70215c81d5f4c4a5764fb28524f9f570da964fac97
+{
+  "hash": "4c4dfdabcb9b14161c5f5b70215c81d5f4c4a5764fb28524f9f570da964fac97",
+  "confirmations": 1,
+  "strippedsize": 281,
+  "size": 281,
+  "weight": 1124,
+  "height": 21,
+  "version": 536870912,
+  "versionHex": "20000000",
+  "merkleroot": "22eaba5b149919a52f82a0db597552ac267382372d415bb87805c37a29edc0bc",
+  "prevEpisodeHash": "16dcb7db0c60dca9bd0f4359156fc907bdb5a77f9679a631dea8804e5bba1131",
+  "fruitsHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "creatorScriptPubKey": {
+    "asm": "0242e1ed06d0677a814cfb5f69ee751ec926e2941caccbe08ba2746f3660a99e40 OP_CHECKSIG",
+    "hex": "210242e1ed06d0677a814cfb5f69ee751ec926e2941caccbe08ba2746f3660a99e40ac",
+    "reqSigs": 1,
+    "type": "pubkey",
+    "addresses": [
+      "mpFrrRoSZ9QGwDhKXzW6hGa8Q3knMJ9jKA"
+    ]
+  },
+  "tx": [
+    "22eaba5b149919a52f82a0db597552ac267382372d415bb87805c37a29edc0bc"
+  ],
+  "time": 1474757517,
+  "mediantime": 1474755158,
+  "nonce": 0,
+  "bits": "207fffff",
+  "difficulty": 4.656542373906925e-10,
+  "chainwork": "000000000000000000000000000000000000000000000000000000000000002c",
+  "previousblockhash": "52f54d2405d41a377afb1da39958b770835489d41e3146ac4ad479edac01cf0c"
+}
+bitcoin-cli -datadir=3  getblock 4c4dfdabcb9b14161c5f5b70215c81d5f4c4a5764fb28524f9f570da964fac97
+{
+  "hash": "4c4dfdabcb9b14161c5f5b70215c81d5f4c4a5764fb28524f9f570da964fac97",
+  "confirmations": 1,
+  "strippedsize": 281,
+  "size": 281,
+  "weight": 1124,
+  "height": 21,
+  "version": 536870912,
+  "versionHex": "20000000",
+  "merkleroot": "22eaba5b149919a52f82a0db597552ac267382372d415bb87805c37a29edc0bc",
+  "prevEpisodeHash": "16dcb7db0c60dca9bd0f4359156fc907bdb5a77f9679a631dea8804e5bba1131",
+  "fruitsHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "creatorScriptPubKey": {
+    "asm": "0242e1ed06d0677a814cfb5f69ee751ec926e2941caccbe08ba2746f3660a99e40 OP_CHECKSIG",
+    "hex": "210242e1ed06d0677a814cfb5f69ee751ec926e2941caccbe08ba2746f3660a99e40ac",
+    "reqSigs": 1,
+    "type": "pubkey",
+    "addresses": [
+      "mpFrrRoSZ9QGwDhKXzW6hGa8Q3knMJ9jKA"
+    ]
+  },
+  "tx": [
+    "22eaba5b149919a52f82a0db597552ac267382372d415bb87805c37a29edc0bc"
+  ],
+  "time": 1474757517,
+  "mediantime": 1474755158,
+  "nonce": 0,
+  "bits": "207fffff",
+  "difficulty": 4.656542373906925e-10,
+  "chainwork": "000000000000000000000000000000000000000000000000000000000000002c",
+  "previousblockhash": "52f54d2405d41a377afb1da39958b770835489d41e3146ac4ad479edac01cf0c"
+}
+

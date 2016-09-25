@@ -640,6 +640,8 @@ public:
     {
         LOCK(cs);
         frtiter it = mapFrt.find(frt.GetHash());
+//        LogPrintf("DEBUG: remove fruit\n");
+        assert(it != mapFrt.end());
         setEntries stage;
         stage.insert(it);
         RemoveStaged(stage);
