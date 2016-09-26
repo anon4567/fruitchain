@@ -121,6 +121,11 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
         } else
             txs.push_back(tx.GetHash().GetHex());
     }
+
+    for (const CBlockHeader& frt : block.vfrt) {
+        result.push_back(Pair("frtHash", frt.GetHash().GetHex()));
+    }
+
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
@@ -209,31 +214,31 @@ void entryToJSON(UniValue& info, const CFrtMemPoolEntry& e)
     AssertLockHeld(frtmempool.cs);
 
     info.push_back(Pair("size", (int)e.GetFrtSize()));
-//    info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
-//    info.push_back(Pair("modifiedfee", ValueFromAmount(e.GetModifiedFee())));
+    //    info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
+    //    info.push_back(Pair("modifiedfee", ValueFromAmount(e.GetModifiedFee())));
     info.push_back(Pair("time", e.GetTime()));
     info.push_back(Pair("height", (int)e.GetHeight()));
-//    info.push_back(Pair("startingpriority", e.GetPriority(e.GetHeight())));
-//    info.push_back(Pair("currentpriority", e.GetPriority(chainActive.Height())));
-//    info.push_back(Pair("descendantcount", e.GetCountWithDescendants()));
-//    info.push_back(Pair("descendantsize", e.GetSizeWithDescendants()));
-//    info.push_back(Pair("descendantfees", e.GetModFeesWithDescendants()));
-//    info.push_back(Pair("ancestorcount", e.GetCountWithAncestors()));
-//    info.push_back(Pair("ancestorsize", e.GetSizeWithAncestors()));
-//    info.push_back(Pair("ancestorfees", e.GetModFeesWithAncestors()));
-//    const CFruit& frt = e.GetFrt();
-//    set<string> setDepends;
-/*    BOOST_FOREACH (const CTxIn& txin, tx.vin) {
+    //    info.push_back(Pair("startingpriority", e.GetPriority(e.GetHeight())));
+    //    info.push_back(Pair("currentpriority", e.GetPriority(chainActive.Height())));
+    //    info.push_back(Pair("descendantcount", e.GetCountWithDescendants()));
+    //    info.push_back(Pair("descendantsize", e.GetSizeWithDescendants()));
+    //    info.push_back(Pair("descendantfees", e.GetModFeesWithDescendants()));
+    //    info.push_back(Pair("ancestorcount", e.GetCountWithAncestors()));
+    //    info.push_back(Pair("ancestorsize", e.GetSizeWithAncestors()));
+    //    info.push_back(Pair("ancestorfees", e.GetModFeesWithAncestors()));
+    //    const CFruit& frt = e.GetFrt();
+    //    set<string> setDepends;
+    /*    BOOST_FOREACH (const CTxIn& txin, tx.vin) {
         if (mempool.exists(txin.prevout.hash))
             setDepends.insert(txin.prevout.hash.ToString());
     }*/
 
-//    UniValue depends(UniValue::VARR);
-/*    BOOST_FOREACH (const string& dep, setDepends) {
+    //    UniValue depends(UniValue::VARR);
+    /*    BOOST_FOREACH (const string& dep, setDepends) {
         depends.push_back(dep);
     }*/
 
-//    info.push_back(Pair("depends", depends));
+    //    info.push_back(Pair("depends", depends));
 }
 
 void entryToJSON_used(UniValue& info, const CFrtMemPoolEntry& e)

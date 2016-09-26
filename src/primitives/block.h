@@ -11,6 +11,7 @@
 #include "script/script.h"
 #include "serialize.h"
 #include "uint256.h"
+#include "util.h"
 #include "utilstrencodings.h"
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
@@ -139,7 +140,10 @@ public:
     uint256 GetFruitsHash() const
     {
         uint256 hash = uint256();
-        for (std::vector<CBlockHeader>::const_iterator it = vfrt.begin(); it != vfrt.end(); ++it) {
+        std::vector<uint256> vfrtHash;
+        for (uint i = 0; i < vfrt.size(); ++i)
+            vfrtHash.push_back(vfrt[i].GetHash());
+        for (std::vector<uint256>::const_iterator it = vfrtHash.begin(); it != vfrtHash.end(); ++it) {
             hash = Hash(BEGIN(hash), END(hash), BEGIN(*it), END(*it));
         }
         return hash;
