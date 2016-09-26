@@ -185,7 +185,7 @@ private:
     void AddToBlock(CFrtMemPool::frtiter iter);
 
     /** Add fruits */
-    void addFrts();
+    void addFrts(uint32_t diff);
 
     //helper function for addFrts
     /* Test if frt will still "fit" in the block */

@@ -5,6 +5,7 @@
 
 #include "frtmempool.h"
 
+#include "arith_uint256.h"
 #include "clientversion.h"
 #include "consensus/consensus.h"
 #include "consensus/validation.h"
@@ -1025,7 +1026,15 @@ int CFrtMemPool::ExpireDifficulty(uint32_t difficulty)
     LOCK(cs);
     indexed_fruit_set::index<mining_score_fruit>::type::iterator it = mapFrt.get<mining_score_fruit>().begin();
     setEntries toremove;
-    while (it != mapFrt.get<mining_score_fruit>().end() && it->GetHash() > difficulty) {
+
+    bool fNegative;
+    bool fOverflow;
+    arith_uint256 bnTarget;
+
+
+    bnTarget.SetCompact(difficulty, &fNegative, &fOverflow);
+
+    while (it != mapFrt.get<mining_score_fruit>().end() && UintToArith256(it->GetFrt().GetHash()) > bnTarget) {
         toremove.insert(mapFrt.project<0>(it));
         it++;
     }
@@ -1115,7 +1124,7 @@ void CTxMemPool::trackPackageRemoved(const CFeeRate& rate) {
         blockSinceLastRollingFeeBump = false;
     }
 }*/
-//no priority thus remove the first fruit. 
+//no priority thus remove the first fruit.
 void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpendsRemaining*/)
 {
     LOCK(cs);
@@ -1124,7 +1133,7 @@ void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpen
     //    CFeeRate maxFeeRateRemoved(0);
     while (!mapFrt.empty() && DynamicMemoryUsage() > sizelimit) {
         //        indexed_fruit_set::index<descendant_score>::type::iterator it = mapTx.get<descendant_score>().begin();
-        indexed_fruit_set::index<mining_score_fruit>::type::iterator it = mapFrt.get<mining_score_fruit>().begin(); 
+        indexed_fruit_set::index<mining_score_fruit>::type::iterator it = mapFrt.get<mining_score_fruit>().begin();
 
         // We set the new mempool min fee to the feerate of the removed set, plus the
         // "minimum reasonable fee rate" (ie some value under which we consider txn

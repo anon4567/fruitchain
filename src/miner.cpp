@@ -190,7 +190,7 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
 
     pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
     // Add fruits
-    addFrts(GetFruitDifficulty(pblock->nBits), Params().Getconsensus());
+    addFrts(GetFruitDifficulty(pblock->nBits, Params().GetConsensus()));
 
     // Fill in header
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
@@ -647,7 +647,7 @@ void BlockAssembler::addFrts(uint32_t diff)
     fNeedSizeAccounting = true;
 
     // This vector will be sorted into a priority queue:
-    frtmempool.Expire(diff);
+    frtmempool.ExpireDifficulty(diff);
 
     for (CFrtMemPool::indexed_fruit_set::iterator mi = frtmempool.mapFrt.begin();
          mi != frtmempool.mapFrt.end(); ++mi) {
