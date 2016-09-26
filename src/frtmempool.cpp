@@ -79,7 +79,7 @@ void CFrtMemPoolEntry::UpdateLockPoints(const FruitLockPoints& lp)
 
 size_t CFrtMemPoolEntry::GetFrtSize() const
 {
-    return ::GetSerializeSize(GetFrt(), SER_NETWORK, PROTOCOL_VERSION);
+    return FRUIT_SIZE;//::GetSerializeSize(GetFrt(), SER_NETWORK, PROTOCOL_VERSION);
     //GetVirtualTransactionSize(nTxWeight, sigOpCost); //TODO
 }
 
