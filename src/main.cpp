@@ -3690,6 +3690,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
 
     // Check fruits
     if (block.GetFruitsHash() != block.hashFruits) {
+        LogPrintf("DEBUG: block:%s\n", block.ToString());
         return state.DoS(100, false, REJECT_INVALID, "bad-frt-hash", false, "not-matched fruit hash and blk-header hash");
     }
     std::set<uint256> setFruits;
@@ -3961,8 +3962,9 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
             pindex = miSelf->second;
             if (ppindex)
                 *ppindex = pindex;
-            if (pindex->nStatus & BLOCK_FAILED_MASK)
+            if (pindex->nStatus & BLOCK_FAILED_MASK) {
                 return state.Invalid(error("%s: block %s is marked invalid", __func__, hash.ToString()), 0, "duplicate");
+            }
             return true;
         }
 

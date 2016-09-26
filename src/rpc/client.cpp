@@ -95,6 +95,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "getrawmempool", 0 },
     //verFruit
     { "getrawfrtmempool", 0 },
+    { "getrawfrtmempool_used", 0 },
     { "estimatefee", 0 },
     { "estimatepriority", 0 },
     { "estimatesmartfee", 0 },
