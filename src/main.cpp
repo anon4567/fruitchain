@@ -2403,7 +2403,8 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
         frtmempool.add(frt, GetTime(), chainActive.Height());
-        frtmempool_used.remove(frt);
+        if (frtmempool_used.exists(frt.GetHash()))
+            frtmempool_used.remove(frt);
     }
     //----------------------------
     //------------------------------------------------------
@@ -2779,7 +2780,8 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
         frtmempool_used.add(frt, GetTime(), chainActive.Height());
-        frtmempool.remove(frt);
+        if (frtmempool.exists(frt.GetHash()))
+            frtmempool.remove(frt);
     }
     //----------------------------
 
@@ -3690,6 +3692,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
 
     // Check fruits
     if (block.GetFruitsHash() != block.hashFruits) {
+        LogPrintf("fruitshash: %s\n%s\n", block.GetFruitsHash().ToString(), block.ToString());
         return state.DoS(100, false, REJECT_INVALID, "bad-frt-hash", false, "not-matched fruit hash and blk-header hash");
     }
     std::set<uint256> setFruits;
