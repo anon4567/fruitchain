@@ -77,6 +77,8 @@ static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 72;
 static const unsigned int FRUIT_PERIOD_LENGTH = 7;
 /** Fraction of fees that would be sent to reward pool */
 static const double FEE_POOL_FRACTION = 0.9;
+/** SerializeSize of fruit; */
+static const size_t FRUIT_SIZE = (int) 180;
 /** Fraction of rewards that is sent to fruit collector */
 static const double REWARD_COLLECT_FRACTION = 0.1;
 /** The maximum size of a blk?????.dat file (since 0.8) */
