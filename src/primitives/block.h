@@ -80,6 +80,20 @@ public:
     {
         return (int64_t)nTime;
     }
+    
+    std::string ToString() const
+    {
+        std::stringstream s;
+        s << strprintf("CBlockHeader(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashPrevEpisode=%s, hashMerkleRoot=%s, hashFruits=%s, nTime=%u, nBits=%08x, nNonce=%u)\n",
+                GetHash().ToString(),
+                nVersion,
+                hashPrevBlock.ToString(),
+                hashPrevEpisode.ToString(),
+                hashMerkleRoot.ToString(),
+                hashFruits.ToString(),
+                nTime, nBits, nNonce);
+        return s.str();
+    }
 };
 
 
