@@ -2310,7 +2310,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     if (!UndoReadFromDisk(blockUndo, pos, pindex->pprev->GetBlockHash()))
         return error("DisconnectBlock(): failure reading undo data");
 
-    if (blockUndo.vtxundo.size() + 1 != block.vtx.size())
+    if (blockUndo.vtxundo.size() != block.vtx.size())
         return error("DisconnectBlock(): block and undo data inconsistent");
 
     // undo transactions in reverse order
@@ -2339,7 +2339,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
 
         // restore inputs
         //if (i > 0) { // not coinbases
-        const CTxUndo& txundo = blockUndo.vtxundo[i - 1];
+        const CTxUndo& txundo = blockUndo.vtxundo[i];
         if (txundo.vprevout.size() != tx.vin.size())
             return error("DisconnectBlock(): transaction and undo data inconsistent");
         for (unsigned int j = tx.vin.size(); j-- > 0;) {
@@ -4427,6 +4427,7 @@ CVerifyDB::~CVerifyDB()
 
 bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView* coinsview, int nCheckLevel, int nCheckDepth)
 {
+    LogPrintf("start to verify db: lv: %d, dep: %d\n", nCheckLevel, nCheckDepth);
     LOCK(cs_main);
     if (chainActive.Tip() == NULL || chainActive.Tip()->pprev == NULL)
         return true;
