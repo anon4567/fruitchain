@@ -43,11 +43,15 @@
 */
 
 /* This implements a constant-space merkle root/path calculator, limited to 2^32 leaves. */
-static void MerkleComputation(const std::vector<uint256>& leaves, uint256* proot, bool* pmutated, uint32_t branchpos, std::vector<uint256>* pbranch) {
-    if (pbranch) pbranch->clear();
+static void MerkleComputation(const std::vector<uint256>& leaves, uint256* proot, bool* pmutated, uint32_t branchpos, std::vector<uint256>* pbranch)
+{
+    if (pbranch)
+        pbranch->clear();
     if (leaves.size() == 0) {
-        if (pmutated) *pmutated = false;
-        if (proot) *proot = uint256();
+        if (pmutated)
+            *pmutated = false;
+        if (proot)
+            *proot = uint256();
         return;
     }
     bool mutated = false;
@@ -126,23 +130,28 @@ static void MerkleComputation(const std::vector<uint256>& leaves, uint256* proot
         }
     }
     // Return result.
-    if (pmutated) *pmutated = mutated;
-    if (proot) *proot = h;
+    if (pmutated)
+        *pmutated = mutated;
+    if (proot)
+        *proot = h;
 }
 
-uint256 ComputeMerkleRoot(const std::vector<uint256>& leaves, bool* mutated) {
+uint256 ComputeMerkleRoot(const std::vector<uint256>& leaves, bool* mutated)
+{
     uint256 hash;
     MerkleComputation(leaves, &hash, mutated, -1, NULL);
     return hash;
 }
 
-std::vector<uint256> ComputeMerkleBranch(const std::vector<uint256>& leaves, uint32_t position) {
+std::vector<uint256> ComputeMerkleBranch(const std::vector<uint256>& leaves, uint32_t position)
+{
     std::vector<uint256> ret;
     MerkleComputation(leaves, NULL, NULL, position, &ret);
     return ret;
 }
 
-uint256 ComputeMerkleRootFromBranch(const uint256& leaf, const std::vector<uint256>& vMerkleBranch, uint32_t nIndex) {
+uint256 ComputeMerkleRootFromBranch(const uint256& leaf, const std::vector<uint256>& vMerkleBranch, uint32_t nIndex)
+{
     uint256 hash = leaf;
     for (std::vector<uint256>::const_iterator it = vMerkleBranch.begin(); it != vMerkleBranch.end(); ++it) {
         if (nIndex & 1) {
@@ -169,8 +178,8 @@ uint256 BlockWitnessMerkleRoot(const CBlock& block, bool* mutated)
 {
     std::vector<uint256> leaves;
     leaves.resize(block.vtx.size());
-    leaves[0].SetNull(); // The witness hash of the coinbase is 0.
-    for (size_t s = 1; s < block.vtx.size(); s++) {
+    //leaves[0].SetNull(); // The witness hash of the coinbase is 0.
+    for (size_t s = 0; s < block.vtx.size(); s++) {
         leaves[s] = block.vtx[s].GetWitnessHash();
     }
     return ComputeMerkleRoot(leaves, mutated);

@@ -194,11 +194,13 @@ public:
     //! Number of transactions in this block.
     //! Note: in a potential headers-first mode, this number cannot be relied upon
     unsigned int nTx;
+    unsigned int ed;
 
     //! (memory only) Number of transactions in the chain up to and including this block.
     //! This value will be non-zero only if and only if transactions for this block and all its parents are available.
     //! Change to 64-bit type when necessary; won't happen before 2030
     unsigned int nChainTx;
+    unsigned int chainEd;
 
     //! Verification status of this block. See enum BlockStatus
     unsigned int nStatus;
@@ -230,7 +232,9 @@ public:
         nUndoPos = 0;
         nChainWork = arith_uint256();
         nTx = 0;
+        ed = 0;
         nChainTx = 0;
+        chainEd = 0;
         nStatus = 0;
         nSequenceId = 0;
         nFees = 0;
@@ -396,6 +400,7 @@ public:
         READWRITE(VARINT(nHeight));
         READWRITE(VARINT(nStatus));
         READWRITE(VARINT(nTx));
+        READWRITE(VARINT(ed));
         if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
             READWRITE(VARINT(nFile));
         if (nStatus & BLOCK_HAVE_DATA)

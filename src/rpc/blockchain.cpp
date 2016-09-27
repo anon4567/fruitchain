@@ -246,31 +246,31 @@ void entryToJSON_used(UniValue& info, const CFrtMemPoolEntry& e)
     AssertLockHeld(frtmempool_used.cs);
 
     info.push_back(Pair("size", (int)e.GetFrtSize()));
-//    info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
-//    info.push_back(Pair("modifiedfee", ValueFromAmount(e.GetModifiedFee())));
+    //    info.push_back(Pair("fee", ValueFromAmount(e.GetFee())));
+    //    info.push_back(Pair("modifiedfee", ValueFromAmount(e.GetModifiedFee())));
     info.push_back(Pair("time", e.GetTime()));
     info.push_back(Pair("height", (int)e.GetHeight()));
-//    info.push_back(Pair("startingpriority", e.GetPriority(e.GetHeight())));
-//    info.push_back(Pair("currentpriority", e.GetPriority(chainActive.Height())));
-//    info.push_back(Pair("descendantcount", e.GetCountWithDescendants()));
-//    info.push_back(Pair("descendantsize", e.GetSizeWithDescendants()));
-//    info.push_back(Pair("descendantfees", e.GetModFeesWithDescendants()));
-//    info.push_back(Pair("ancestorcount", e.GetCountWithAncestors()));
-//    info.push_back(Pair("ancestorsize", e.GetSizeWithAncestors()));
-//    info.push_back(Pair("ancestorfees", e.GetModFeesWithAncestors()));
-//    const CFruit& frt = e.GetFrt();
-//    set<string> setDepends;
-/*    BOOST_FOREACH (const CTxIn& txin, tx.vin) {
+    //    info.push_back(Pair("startingpriority", e.GetPriority(e.GetHeight())));
+    //    info.push_back(Pair("currentpriority", e.GetPriority(chainActive.Height())));
+    //    info.push_back(Pair("descendantcount", e.GetCountWithDescendants()));
+    //    info.push_back(Pair("descendantsize", e.GetSizeWithDescendants()));
+    //    info.push_back(Pair("descendantfees", e.GetModFeesWithDescendants()));
+    //    info.push_back(Pair("ancestorcount", e.GetCountWithAncestors()));
+    //    info.push_back(Pair("ancestorsize", e.GetSizeWithAncestors()));
+    //    info.push_back(Pair("ancestorfees", e.GetModFeesWithAncestors()));
+    //    const CFruit& frt = e.GetFrt();
+    //    set<string> setDepends;
+    /*    BOOST_FOREACH (const CTxIn& txin, tx.vin) {
         if (mempool.exists(txin.prevout.hash))
             setDepends.insert(txin.prevout.hash.ToString());
     }*/
 
-//    UniValue depends(UniValue::VARR);
-/*    BOOST_FOREACH (const string& dep, setDepends) {
+    //    UniValue depends(UniValue::VARR);
+    /*    BOOST_FOREACH (const string& dep, setDepends) {
         depends.push_back(dep);
     }*/
 
-//    info.push_back(Pair("depends", depends));
+    //    info.push_back(Pair("depends", depends));
 }
 
 void entryToJSON(UniValue& info, const CTxMemPoolEntry& e)
@@ -1191,7 +1191,7 @@ UniValue getchaintips(const UniValue& params, bool fHelp)
         } else if (block->nStatus & BLOCK_FAILED_MASK) {
             // This block or one of its ancestors is invalid.
             status = "invalid";
-        } else if (block->nChainTx == 0) {
+        } else if (block->chainEd == 0) {
             // This block cannot be connected because full block data for it or one of its parents is missing.
             status = "headers-only";
         } else if (block->IsValid(BLOCK_VALID_SCRIPTS)) {

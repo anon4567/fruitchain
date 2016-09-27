@@ -119,14 +119,17 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
         LogPrintf("mining! 3\n");
         CBlock* pblock = &pblocktemplate->block;
-        {
+        /*{
             LOCK(cs_main);
             IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
-        }
+        }*/
+        ++nExtraNonce;
+        pblock->nNonce = nExtraNonce;
+        uint32_t nNonce = 0;
         uint32_t fruitDifficulty = GetFruitDifficulty(pblock->nBits, Params().GetConsensus());
         CValidationState frtState;
         LogPrintf("One mining try %x | %x \n", pblock->nBits, fruitDifficulty);
-        while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
+        while (nMaxTries > 0 && nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
             if (CheckProofOfWork(pblock->GetHash(), fruitDifficulty, Params().GetConsensus())) {
                 LogPrintf("Fruit found! :\n%s\n", pblock->ToString().c_str());
                 {
@@ -137,12 +140,14 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
                 RelayFruit(pblock->GetBlockHeader()); // TODO
             }
             ++pblock->nNonce;
+            ++nNonce;
             --nMaxTries;
         }
+        nExtraNonce += nNonce;
         if (nMaxTries == 0) {
             break;
         }
-        if (pblock->nNonce == nInnerLoopCount) {
+        if (nNonce == nInnerLoopCount) {
             continue;
         }
         LogPrintf("Block found %d %d\n", CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus()), CheckProofOfWork(pblock->GetHash(), fruitDifficulty, Params().GetConsensus()));
