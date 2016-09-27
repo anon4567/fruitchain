@@ -620,7 +620,7 @@ void FindNextBlocksToDownload(NodeId nodeid, unsigned int count, std::vector<CBl
                 return;
             }
             if (pindex->nStatus & BLOCK_HAVE_DATA || chainActive.Contains(pindex)) {
-                if (pindex->nChainTx)
+                if (pindex->chainEd)
                     state->pindexLastCommonBlock = pindex;
             } else if (mapBlocksInFlight.count(pindex->GetBlockHash()) == 0) {
                 // The block is not already downloaded, and not yet in flight.
@@ -2310,7 +2310,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     if (!UndoReadFromDisk(blockUndo, pos, pindex->pprev->GetBlockHash()))
         return error("DisconnectBlock(): failure reading undo data");
 
-    if (blockUndo.vtxundo.size() + 1 != block.vtx.size())
+    if (blockUndo.vtxundo.size() != block.vtx.size())
         return error("DisconnectBlock(): block and undo data inconsistent");
 
     // undo transactions in reverse order
@@ -2338,17 +2338,17 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         }
 
         // restore inputs
-        if (i > 0) { // not coinbases
-            const CTxUndo& txundo = blockUndo.vtxundo[i - 1];
-            if (txundo.vprevout.size() != tx.vin.size())
-                return error("DisconnectBlock(): transaction and undo data inconsistent");
-            for (unsigned int j = tx.vin.size(); j-- > 0;) {
-                const COutPoint& out = tx.vin[j].prevout;
-                const CTxInUndo& undo = txundo.vprevout[j];
-                if (!ApplyTxInUndo(undo, view, out))
-                    fClean = false;
-            }
+        //if (i > 0) { // not coinbases
+        const CTxUndo& txundo = blockUndo.vtxundo[i];
+        if (txundo.vprevout.size() != tx.vin.size())
+            return error("DisconnectBlock(): transaction and undo data inconsistent");
+        for (unsigned int j = tx.vin.size(); j-- > 0;) {
+            const COutPoint& out = tx.vin[j].prevout;
+            const CTxInUndo& undo = txundo.vprevout[j];
+            if (!ApplyTxInUndo(undo, view, out))
+                fClean = false;
         }
+        //}
     }
 
     //Undo episode reward tx
@@ -2626,7 +2626,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     CDiskTxPos pos(pindex->GetBlockPos(), GetSizeOfCompactSize(block.vtx.size()));
     std::vector<std::pair<uint256, CDiskTxPos> > vPos;
     vPos.reserve(block.vtx.size());
-    blockundo.vtxundo.reserve(block.vtx.size() - 1);
+    blockundo.vtxundo.reserve(block.vtx.size());
     std::vector<PrecomputedTransactionData> txdata;
     txdata.reserve(block.vtx.size()); // Required so that pointers to individual PrecomputedTransactionData don't get invalidated
     for (unsigned int i = 0; i < block.vtx.size(); i++) {
@@ -2634,36 +2634,36 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
         nInputs += tx.vin.size();
 
-        if (!tx.IsCoinBase()) {
-            if (!view.HaveInputs(tx))
-                return state.DoS(100, error("ConnectBlock(): inputs missing/spent"),
-                    REJECT_INVALID, "bad-txns-inputs-missingorspent");
+        //if (!tx.IsCoinBase()) {
+        if (!view.HaveInputs(tx))
+            return state.DoS(100, error("ConnectBlock(): inputs missing/spent"),
+                REJECT_INVALID, "bad-txns-inputs-missingorspent");
 
-            // Check that transaction is BIP68 final
-            // BIP68 lock checks (as opposed to nLockTime checks) must
-            // be in ConnectBlock because they require the UTXO set
-            prevheights.resize(tx.vin.size());
-            for (size_t j = 0; j < tx.vin.size(); j++) {
-                prevheights[j] = view.AccessCoins(tx.vin[j].prevout.hash)->nHeight;
-            }
+        // Check that transaction is BIP68 final
+        // BIP68 lock checks (as opposed to nLockTime checks) must
+        // be in ConnectBlock because they require the UTXO set
+        prevheights.resize(tx.vin.size());
+        for (size_t j = 0; j < tx.vin.size(); j++) {
+            prevheights[j] = view.AccessCoins(tx.vin[j].prevout.hash)->nHeight;
+        }
 
-            // Which orphan pool entries must we evict?
-            for (size_t j = 0; j < tx.vin.size(); j++) {
-                auto itByPrev = mapOrphanTransactionsByPrev.find(tx.vin[j].prevout);
-                if (itByPrev == mapOrphanTransactionsByPrev.end())
-                    continue;
-                for (auto mi = itByPrev->second.begin(); mi != itByPrev->second.end(); ++mi) {
-                    const CTransaction& orphanTx = (*mi)->second.tx;
-                    const uint256& orphanHash = orphanTx.GetHash();
-                    vOrphanErase.push_back(orphanHash);
-                }
-            }
-
-            if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
-                return state.DoS(100, error("%s: contains a non-BIP68-final transaction", __func__),
-                    REJECT_INVALID, "bad-txns-nonfinal");
+        // Which orphan pool entries must we evict?
+        for (size_t j = 0; j < tx.vin.size(); j++) {
+            auto itByPrev = mapOrphanTransactionsByPrev.find(tx.vin[j].prevout);
+            if (itByPrev == mapOrphanTransactionsByPrev.end())
+                continue;
+            for (auto mi = itByPrev->second.begin(); mi != itByPrev->second.end(); ++mi) {
+                const CTransaction& orphanTx = (*mi)->second.tx;
+                const uint256& orphanHash = orphanTx.GetHash();
+                vOrphanErase.push_back(orphanHash);
             }
         }
+
+        if (!SequenceLocks(tx, nLockTimeFlags, &prevheights, *pindex)) {
+            return state.DoS(100, error("%s: contains a non-BIP68-final transaction", __func__),
+                REJECT_INVALID, "bad-txns-nonfinal");
+        }
+        //}
 
         // GetTransactionSigOpCost counts 3 types of sigops:
         // * legacy (always)
@@ -2675,23 +2675,23 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
                 REJECT_INVALID, "bad-blk-sigops");
 
         txdata.emplace_back(tx);
-        if (!tx.IsCoinBase()) {
-            nFees += view.GetValueIn(tx) - tx.GetValueOut();
+        //if (!tx.IsCoinBase()) {
+        nFees += view.GetValueIn(tx) - tx.GetValueOut();
 
-            std::vector<CScriptCheck> vChecks;
-            bool fCacheResults = fJustCheck; /* Don't cache results if we're actually connecting blocks (still consult the cache, though) */
-            if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults, txdata[i], nScriptCheckThreads ? &vChecks : NULL))
-                return error("ConnectBlock(): CheckInputs on %s failed with %s",
-                    tx.GetHash().ToString(), FormatStateMessage(state));
-            control.Add(vChecks);
-        }
+        std::vector<CScriptCheck> vChecks;
+        bool fCacheResults = fJustCheck; /* Don't cache results if we're actually connecting blocks (still consult the cache, though) */
+        if (!CheckInputs(tx, state, view, fScriptChecks, flags, fCacheResults, txdata[i], nScriptCheckThreads ? &vChecks : NULL))
+            return error("ConnectBlock(): CheckInputs on %s failed with %s",
+                tx.GetHash().ToString(), FormatStateMessage(state));
+        control.Add(vChecks);
+        //}
 
-        CTxUndo undoDummy;
-        if (i > 0) {
-            blockundo.vtxundo.push_back(CTxUndo());
-        }
+        //CTxUndo undoDummy;
+        //if (i > 0) {
+        blockundo.vtxundo.push_back(CTxUndo());
+        //}
         //LogPrintf("Update utxo: %s\n", tx.ToString().c_str());
-        UpdateCoins(tx, view, i == 0 ? undoDummy : blockundo.vtxundo.back(), pindex->nHeight);
+        UpdateCoins(tx, view, blockundo.vtxundo.back(), pindex->nHeight);
 
         vPos.push_back(std::make_pair(tx.GetHash(), pos));
         pos.nTxOffset += ::GetSerializeSize(tx, SER_DISK, CLIENT_VERSION);
@@ -2703,12 +2703,12 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     nTimeConnect += nTime3 - nTime2;
     LogPrint("bench", "      - Connect %u transactions: %.2fms (%.3fms/tx, %.3fms/txin) [%.2fs]\n", (unsigned)block.vtx.size(), 0.001 * (nTime3 - nTime2), 0.001 * (nTime3 - nTime2) / block.vtx.size(), nInputs <= 1 ? 0 : 0.001 * (nTime3 - nTime2) / (nInputs - 1), nTimeConnect * 0.000001);
 
-    CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
-    if (block.vtx[0].GetValueOut() > blockReward)
+    //CAmount blockReward = nFees + GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus());
+    /*if (block.vtx[0].GetValueOut() > blockReward)
         return state.DoS(100,
             error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
                              block.vtx[0].GetValueOut(), blockReward),
-            REJECT_INVALID, "bad-cb-amount");
+            REJECT_INVALID, "bad-cb-amount");*/
 
     if (!control.Wait())
         return state.DoS(100, false);
@@ -2763,9 +2763,11 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "    - Index writing: %.2fms [%.2fs]\n", 0.001 * (nTime5 - nTime4), nTimeIndex * 0.000001);
 
     // Watch for changes to the previous coinbase transaction.
-    static uint256 hashPrevBestCoinBase;
-    GetMainSignals().UpdatedTransaction(hashPrevBestCoinBase);
-    hashPrevBestCoinBase = block.vtx[0].GetHash();
+    if (IsEndOfEpisode(pindex->nHeight)) {
+        static uint256 hashPrevBestCoinBase;
+        GetMainSignals().UpdatedTransaction(hashPrevBestCoinBase);
+        hashPrevBestCoinBase = fruit_tx[0].GetHash();
+    }
 
     // Erase orphan transactions include or precluded by this block
     if (vOrphanErase.size()) {
@@ -3126,7 +3128,7 @@ static CBlockIndex* FindMostWorkChain()
         CBlockIndex* pindexTest = pindexNew;
         bool fInvalidAncestor = false;
         while (pindexTest && !chainActive.Contains(pindexTest)) {
-            assert(pindexTest->nChainTx || pindexTest->nHeight == 0);
+            assert(pindexTest->chainEd || pindexTest->nHeight == 0);
 
             // Pruned nodes may have entries in setBlockIndexCandidates for
             // which block files have been deleted.  Remove those as candidates
@@ -3407,7 +3409,7 @@ bool InvalidateBlock(CValidationState& state, const CChainParams& chainparams, C
     // add it again.
     BlockMap::iterator it = mapBlockIndex.begin();
     while (it != mapBlockIndex.end()) {
-        if (it->second->IsValid(BLOCK_VALID_TRANSACTIONS) && it->second->nChainTx && !setBlockIndexCandidates.value_comp()(it->second, chainActive.Tip())) {
+        if (it->second->IsValid(BLOCK_VALID_TRANSACTIONS) && it->second->chainEd && !setBlockIndexCandidates.value_comp()(it->second, chainActive.Tip())) {
             setBlockIndexCandidates.insert(it->second);
         }
         it++;
@@ -3430,7 +3432,7 @@ bool ResetBlockFailureFlags(CBlockIndex* pindex)
         if (!it->second->IsValid() && it->second->GetAncestor(nHeight) == pindex) {
             it->second->nStatus &= ~BLOCK_FAILED_MASK;
             setDirtyBlockIndex.insert(it->second);
-            if (it->second->IsValid(BLOCK_VALID_TRANSACTIONS) && it->second->nChainTx && setBlockIndexCandidates.value_comp()(chainActive.Tip(), it->second)) {
+            if (it->second->IsValid(BLOCK_VALID_TRANSACTIONS) && it->second->chainEd && setBlockIndexCandidates.value_comp()(chainActive.Tip(), it->second)) {
                 setBlockIndexCandidates.insert(it->second);
             }
             if (it->second == pindexBestInvalid) {
@@ -3490,7 +3492,9 @@ CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
 bool ReceivedBlockTransactions(const CBlock& block, CValidationState& state, CBlockIndex* pindexNew, const CDiskBlockPos& pos)
 {
     pindexNew->nTx = block.vtx.size();
+    pindexNew->ed = 1;
     pindexNew->nChainTx = 0;
+    pindexNew->chainEd = 0;
     pindexNew->nFile = pos.nFile;
     pindexNew->nDataPos = pos.nPos;
     pindexNew->nUndoPos = 0;
@@ -3502,7 +3506,7 @@ bool ReceivedBlockTransactions(const CBlock& block, CValidationState& state, CBl
     pindexNew->RaiseValidity(BLOCK_VALID_TRANSACTIONS);
     setDirtyBlockIndex.insert(pindexNew);
 
-    if (pindexNew->pprev == NULL || pindexNew->pprev->nChainTx) {
+    if (pindexNew->pprev == NULL || pindexNew->pprev->chainEd) {
         // If pindexNew is the genesis block or all parents are BLOCK_VALID_TRANSACTIONS.
         deque<CBlockIndex*> queue;
         queue.push_back(pindexNew);
@@ -3512,6 +3516,7 @@ bool ReceivedBlockTransactions(const CBlock& block, CValidationState& state, CBl
             CBlockIndex* pindex = queue.front();
             queue.pop_front();
             pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
+            pindex->chainEd = pindex->ed;
             {
                 LOCK(cs_nBlockSequenceId);
                 pindex->nSequenceId = nBlockSequenceId++;
@@ -3664,15 +3669,15 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     // checks that use witness data may be performed here.
 
     // Size limits
-    if (block.vtx.empty() || block.vtx.size() > MAX_BLOCK_BASE_SIZE || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) > MAX_BLOCK_BASE_SIZE)
+    if (/*block.vtx.empty() || */ block.vtx.size() > MAX_BLOCK_BASE_SIZE || ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) > MAX_BLOCK_BASE_SIZE)
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false, "size limits failed");
 
     // First transaction must be coinbase, the rest must not be
-    if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
-        return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "first tx is not coinbase");
-    for (unsigned int i = 1; i < block.vtx.size(); i++)
+    /*if (block.vtx.empty() || !block.vtx[0].IsCoinBase())
+        return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "first tx is not coinbase");*/
+    for (unsigned int i = 0; i < block.vtx.size(); i++)
         if (block.vtx[i].IsCoinBase())
-            return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
+            return state.DoS(100, false, REJECT_INVALID, "bad-cb", false, "exists coinbase");
 
     // Check transactions
     for (const auto& tx : block.vtx)
@@ -3886,13 +3891,13 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
     }
 
     // Enforce rule that the coinbase starts with serialized block height
-    if (nHeight >= consensusParams.BIP34Height) {
+    /*if (nHeight >= consensusParams.BIP34Height) {
         CScript expect = CScript() << nHeight;
         if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
             !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-height", false, "block height mismatch in coinbase");
         }
-    }
+    }*/
 
     // Validation for witness commitments.
     // * We compute the witness hash (which is the hash including witnesses) of all the block's transactions, except the
@@ -3902,7 +3907,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
     // * There must be at least one output whose scriptPubKey is a single 36-byte push, the first 4 bytes of which are
     //   {0xaa, 0x21, 0xa9, 0xed}, and the following 32 bytes are SHA256^2(witness root, witness nonce). In case there are
     //   multiple, the last one is used.
-    bool fHaveWitness = false;
+    /*bool fHaveWitness = false;
     if (VersionBitsState(pindexPrev, consensusParams, Consensus::DEPLOYMENT_SEGWIT, versionbitscache) == THRESHOLD_ACTIVE) {
         int commitpos = GetWitnessCommitmentIndex(block);
         if (commitpos != -1) {
@@ -3929,7 +3934,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
                 return state.DoS(100, false, REJECT_INVALID, "unexpected-witness", true, strprintf("%s : unexpected witness data found", __func__));
             }
         }
-    }
+    }*/
 
     // After the coinbase witness nonce and commitment are verified,
     // we can check if the block weight passes (before we've checked the
@@ -4028,7 +4033,7 @@ static bool AcceptBlock(const CBlock& block, CValidationState& state, const CCha
     if (fAlreadyHave)
         return true;
     if (!fRequested) { // If we didn't ask for it:
-        if (pindex->nTx != 0)
+        if (pindex->ed)
             return true; // This is a previously-processed block that was pruned
         if (!fHasMoreWork)
             return true; // Don't process less-work chains
@@ -4322,19 +4327,22 @@ bool static LoadBlockIndexDB()
         pindex->nChainWork = (pindex->pprev ? pindex->pprev->nChainWork : 0) + GetBlockProof(*pindex);
         // We can link the chain of blocks for which we've received transactions at some point.
         // Pruned nodes may have deleted the block.
-        if (pindex->nTx > 0) {
+        if (pindex->ed) {
             if (pindex->pprev) {
-                if (pindex->pprev->nChainTx) {
+                if (pindex->pprev->chainEd) {
                     pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx;
+                    pindex->chainEd = 1;
                 } else {
                     pindex->nChainTx = 0;
+                    pindex->chainEd = 0;
                     mapBlocksUnlinked.insert(std::make_pair(pindex->pprev, pindex));
                 }
             } else {
                 pindex->nChainTx = pindex->nTx;
+                pindex->chainEd = pindex->ed;
             }
         }
-        if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && (pindex->nChainTx || pindex->pprev == NULL))
+        if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && (pindex->chainEd || pindex->pprev == NULL))
             setBlockIndexCandidates.insert(pindex);
         if (pindex->nStatus & BLOCK_FAILED_MASK && (!pindexBestInvalid || pindex->nChainWork > pindexBestInvalid->nChainWork))
             pindexBestInvalid = pindex;
@@ -4419,6 +4427,7 @@ CVerifyDB::~CVerifyDB()
 
 bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView* coinsview, int nCheckLevel, int nCheckDepth)
 {
+    LogPrintf("start to verify db: lv: %d, dep: %d\n", nCheckLevel, nCheckDepth);
     LOCK(cs_main);
     if (chainActive.Tip() == NULL || chainActive.Tip()->pprev == NULL)
         return true;
@@ -4562,7 +4571,9 @@ bool RewindBlockIndex(const CChainParams& params)
             pindexIter->nUndoPos = 0;
             // Remove various other things
             pindexIter->nTx = 0;
+            pindexIter->ed = 0;
             pindexIter->nChainTx = 0;
+            pindexIter->chainEd = 0;
             pindexIter->nSequenceId = 0;
             // Make sure it gets written.
             setDirtyBlockIndex.insert(pindexIter);
@@ -4576,7 +4587,7 @@ bool RewindBlockIndex(const CChainParams& params)
                     ++ret.first;
                 }
             }
-        } else if (pindexIter->IsValid(BLOCK_VALID_TRANSACTIONS) && pindexIter->nChainTx) {
+        } else if (pindexIter->IsValid(BLOCK_VALID_TRANSACTIONS) && pindexIter->chainEd) {
             setBlockIndexCandidates.insert(pindexIter);
         }
     }
@@ -4826,7 +4837,7 @@ void static CheckBlockIndex(const Consensus::Params& consensusParams)
     int nHeight = 0;
     CBlockIndex* pindexFirstInvalid = NULL;              // Oldest ancestor of pindex which is invalid.
     CBlockIndex* pindexFirstMissing = NULL;              // Oldest ancestor of pindex which does not have BLOCK_HAVE_DATA.
-    CBlockIndex* pindexFirstNeverProcessed = NULL;       // Oldest ancestor of pindex for which nTx == 0.
+    CBlockIndex* pindexFirstNeverProcessed = NULL;       // Oldest ancestor of pindex for which ed == 0.//nTx == 0.
     CBlockIndex* pindexFirstNotTreeValid = NULL;         // Oldest ancestor of pindex which does not have BLOCK_VALID_TREE (regardless of being valid or not).
     CBlockIndex* pindexFirstNotTransactionsValid = NULL; // Oldest ancestor of pindex which does not have BLOCK_VALID_TRANSACTIONS (regardless of being valid or not).
     CBlockIndex* pindexFirstNotChainValid = NULL;        // Oldest ancestor of pindex which does not have BLOCK_VALID_CHAIN (regardless of being valid or not).
@@ -4837,7 +4848,7 @@ void static CheckBlockIndex(const Consensus::Params& consensusParams)
             pindexFirstInvalid = pindex;
         if (pindexFirstMissing == NULL && !(pindex->nStatus & BLOCK_HAVE_DATA))
             pindexFirstMissing = pindex;
-        if (pindexFirstNeverProcessed == NULL && pindex->nTx == 0)
+        if (pindexFirstNeverProcessed == NULL && !pindex->ed)
             pindexFirstNeverProcessed = pindex;
         if (pindex->pprev != NULL && pindexFirstNotTreeValid == NULL && (pindex->nStatus & BLOCK_VALID_MASK) < BLOCK_VALID_TREE)
             pindexFirstNotTreeValid = pindex;
@@ -4854,25 +4865,25 @@ void static CheckBlockIndex(const Consensus::Params& consensusParams)
             assert(pindex->GetBlockHash() == consensusParams.hashGenesisBlock); // Genesis block's hash must match.
             assert(pindex == chainActive.Genesis());                            // The current active chain's genesis block must be this block.
         }
-        if (pindex->nChainTx == 0)
+        if (pindex->chainEd == 0)
             assert(pindex->nSequenceId == 0); // nSequenceId can't be set for blocks that aren't linked
-        // VALID_TRANSACTIONS is equivalent to nTx > 0 for all nodes (whether or not pruning has occurred).
-        // HAVE_DATA is only equivalent to nTx > 0 (or VALID_TRANSACTIONS) if no pruning has occurred.
+        // VALID_TRANSACTIONS is equivalent to ed = 1 for all nodes (whether or not pruning has occurred).
+        // HAVE_DATA is only equivalent to ed = 1 (or VALID_TRANSACTIONS) if no pruning has occurred.
         if (!fHavePruned) {
             // If we've never pruned, then HAVE_DATA should be equivalent to nTx > 0
-            assert(!(pindex->nStatus & BLOCK_HAVE_DATA) == (pindex->nTx == 0));
+            assert(!(pindex->nStatus & BLOCK_HAVE_DATA) == (!pindex->ed));
             assert(pindexFirstMissing == pindexFirstNeverProcessed);
         } else {
             // If we have pruned, then we can only say that HAVE_DATA implies nTx > 0
             if (pindex->nStatus & BLOCK_HAVE_DATA)
-                assert(pindex->nTx > 0);
+                assert(pindex->ed);
         }
         if (pindex->nStatus & BLOCK_HAVE_UNDO)
             assert(pindex->nStatus & BLOCK_HAVE_DATA);
-        assert(((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS) == (pindex->nTx > 0)); // This is pruning-independent.
+        assert(((pindex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS) == (pindex->ed)); // This is pruning-independent.
         // All parents having had data (at some point) is equivalent to all parents being VALID_TRANSACTIONS, which is equivalent to nChainTx being set.
-        assert((pindexFirstNeverProcessed != NULL) == (pindex->nChainTx == 0)); // nChainTx != 0 is used to signal that all parent blocks have been processed (but may have been pruned).
-        assert((pindexFirstNotTransactionsValid != NULL) == (pindex->nChainTx == 0));
+        assert((pindexFirstNeverProcessed != NULL) == (pindex->chainEd == 0)); // nChainTx != 0 is used to signal that all parent blocks have been processed (but may have been pruned).
+        assert((pindexFirstNotTransactionsValid != NULL) == (pindex->chainEd == 0));
         assert(pindex->nHeight == nHeight);                                               // nHeight must be consistent.
         assert(pindex->pprev == NULL || pindex->nChainWork >= pindex->pprev->nChainWork); // For every block except the genesis block, the chainwork must be larger than the parent's.
         assert(nHeight < 2 || (pindex->pskip && (pindex->pskip->nHeight < nHeight)));     // The pskip pointer must point back for all but the first 2 blocks.
@@ -6030,7 +6041,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             return true;
 
         if (pindex->nChainWork <= chainActive.Tip()->nChainWork || // We know something better
-            pindex->nTx != 0) {                                    // We had this block at some point, but pruned it
+            pindex->ed) {                                          // We had this block at some point, but pruned it
             if (fAlreadyInFlight) {
                 // We requested this block for some reason, but our mempool will probably be useless
                 // so we just grab the block via normal getdata
