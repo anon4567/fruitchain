@@ -75,12 +75,14 @@ static const unsigned int DEFAULT_DESCENDANT_SIZE_LIMIT = 101;
 static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 72;
 /** length of fruit period */
 static const unsigned int FRUIT_PERIOD_LENGTH = 6;
-/** Fraction of fees that would be sent to reward pool */
-static const double FEE_POOL_FRACTION = 0.9;
+/** Fraction of fees that would be sent to block creator */
+static const double FEE_FRACTION_C1 = 0.1;
+/** Fraction of reward how much would the first block get less than the last block creator from a fruit*/
+static const double REWARD_DIFF_FRACTION_C3 = 0.01;
 /** SerializeSize of fruit; */
-static const size_t FRUIT_SIZE = (int) 180;
+static const size_t FRUIT_SIZE = (int)180;
 /** Fraction of rewards that is sent to fruit collector */
-static const double REWARD_COLLECT_FRACTION = 0.1;
+static const double REWARD_CREATE_FRACTION_C2 = 0.1;
 /** The maximum size of a blk?????.dat file (since 0.8) */
 static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
 /** The pre-allocation chunk size for blk?????.dat files (since 0.8) */

@@ -2199,21 +2199,27 @@ static bool ApplyTxInUndo(const CTxInUndo& undo, CCoinsViewCache& view, const CO
     return fClean;
 }
 
+double RewardFractionDiff(int i)
+{
+    return REWARD_DIFF_FRACTION_C3 * (1 - (i - 1) * 1.0 / (FRUIT_PERIOD_LENGTH - 1));
+}
+
 bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams)
 {
     // It should be assumed that phashBlock in pindex is NULL currently
     /**
       * calculate reward distribution of this episode.
-      * total reward S = FEE_POOL_FRACTION * nfees + GetBlockSubsidy(nHeight, chainparams.GetConsensus()) for each block
+      * total reward S = nfees + GetBlockSubsidy(nHeight, chainparams.GetConsensus()) for each block
       * let f[i] = number of fruits collected by block i, F = sum f[i]
-      * then for each fruit, its collector get co = REWARD_COLLECT_FRACTION * (1 / F) * S, its creator get cr = (1 / F) * S - co
-      * additionally, creator of block i get fee[i] - FEE_POOL_FRACTION * fee[i] for reward
+      * then for each fruit collected by block j, its collector get co = (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i))* (1 / F) * S, its creator get cr = (1 / F) * S - co
+      * additionally, creator of block i get FEE_FRACTION_C1 * fee[i] for reward
+      * RewardFractionDiff(i) = REWARD_DIFF_FRACTION_C3 * (1 - (i - 1) / (k - 1))
       */
     LogPrintf("Calculate reward distribution start, pindex->phashBlock: %d\n", pindex->phashBlock);
     std::vector<uint32_t> f;
     uint32_t F = 0;
     std::vector<CAmount> fee, reward_block_creator;
-    std::vector<CScript> fruit_creator;
+    std::vector<std::vector<CScript> > fruit_creator;
     std::vector<CScript> block_creator;
     CAmount S = 0;
     const CBlockIndex* nblockindex = pindex;
@@ -2221,6 +2227,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     fee.resize(FRUIT_PERIOD_LENGTH);
     reward_block_creator.resize(FRUIT_PERIOD_LENGTH);
     block_creator.resize(FRUIT_PERIOD_LENGTH);
+    fruit_creator.resize(FRUIT_PERIOD_LENGTH);
     //loop in reverse order
     for (int i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
         LogPrintf("look at block %d: start\n", i);
@@ -2243,9 +2250,11 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
 
         f[i] = nblock->vfrt.size();
 
-        // Temporarily regard block a fruit
+
+        std::vector<CScript> vfc;
+        // regard block a fruit
         f[i] += 1;
-        fruit_creator.push_back(nblock->scriptPubKey);
+        vfc.push_back(nblock->scriptPubKey);
         //------------------------------------
 
         F += f[i];
@@ -2260,29 +2269,41 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         }*/
 
         LogPrintf("look at block %d: fee: %lld, #frt: %u\n", i, fee[i], f[i]);
-        reward_block_creator[i] = (1 - FEE_POOL_FRACTION) * fee[i];
+        reward_block_creator[i] = FEE_FRACTION_C1 * fee[i];
         S += GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus()) + fee[i] - reward_block_creator[i];
+
         for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
-            fruit_creator.push_back(nblock->vfrt[i].scriptPubKey);
+            vfc.push_back(nblock->vfrt[i].scriptPubKey);
         }
+        fruit_creator[i] = vfc;
 
         block_creator[i] = nblock->scriptPubKey;
     }
-    CAmount reward_per_fruit_cr = S * 0.9 / F, reward_per_fruit_co = S / F - reward_per_fruit_cr; //TODO: variant reward for fruit in different blocks
-    LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld\n", reward_per_fruit_cr, reward_per_fruit_co);
     // Create generation tx
     CMutableTransaction nTx;
     nTx.vin.resize(1);
     nTx.vin[0].prevout.SetNull();
     nTx.vin[0].scriptSig = CScript() << pindex->nHeight << OP_0;
+
+    CAmount rest = S;
     for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
+        CAmount reward_per_fruit_cr = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F, reward_per_fruit_co = S / F - reward_per_fruit_cr;
+        //LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld\n", reward_per_fruit_cr, reward_per_fruit_co);
+
         reward_block_creator[i] += reward_per_fruit_co * f[i];
         nTx.vout.push_back(CTxOut(reward_block_creator[i], block_creator[i]));
+        rest -= reward_block_creator[i];
+
+        for (unsigned int j = 0; j < fruit_creator[i].size(); ++j) {
+            nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i][j]));
+            //LogPrintf("Calculate reward distribution mid: rest: %lld\n", rest);
+            rest -= reward_per_fruit_cr;
+            //LogPrintf("Calculate reward distribution mid2 : rest: %lld\n", rest);
+        }
     }
-    for (unsigned int i = 0; i < fruit_creator.size(); ++i) {
-        nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i]));
+    if (rest != 0) {
+        nTx.vout.push_back(CTxOut(rest, block_creator[0]));
     }
-    //TODO: rest rewards
     fruit_tx.push_back(nTx);
     LogPrintf("Calculate reward distribution end\n");
     return true;
