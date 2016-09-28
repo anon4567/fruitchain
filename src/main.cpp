@@ -2520,8 +2520,12 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     // Special case for the genesis block, skipping connection of its transactions
     // (its coinbase is unspendable)
     if (block.GetHash() == chainparams.GetConsensus().hashGenesisBlock) {
-        if (!fJustCheck)
+        if (!fJustCheck) {
             view.SetBestBlock(pindex->GetBlockHash());
+            globalHashPrevEpisode = pindex->GetBlockHash();
+            frtmempool.clear();
+            frtmempool_used.clear();
+        }
         return true;
     }
 
