@@ -74,7 +74,7 @@ static const unsigned int DEFAULT_DESCENDANT_SIZE_LIMIT = 101;
 /** Default for -mempoolexpiry, expiration time for mempool transactions in hours */
 static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 72;
 /** length of fruit period */
-static const unsigned int FRUIT_PERIOD_LENGTH = 7;
+static const unsigned int FRUIT_PERIOD_LENGTH = 6;
 /** Fraction of fees that would be sent to reward pool */
 static const double FEE_POOL_FRACTION = 0.9;
 /** SerializeSize of fruit; */

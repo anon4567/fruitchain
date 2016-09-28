@@ -3860,6 +3860,8 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, const CBlockHeader& block, 
         nIndex = nIndex->pprev;
     }
     if (nIndex->GetBlockHash() != fruit.hashPrevEpisode) {
+        LogPrintf("DEBUG: nIndex hash:%s\n", nIndex->GetBlockHash().ToString());
+        LogPrintf("DEBUG: fruit hashPrevEpisode:%s\n", fruit.hashPrevEpisode.ToString());
         return state.DoS(100, false, REJECT_INVALID, "bad-prev", false, "incorrect prev episode");
     }
 
