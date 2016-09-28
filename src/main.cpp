@@ -2385,6 +2385,15 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         SyncWithWallets(tx, pindex->pprev);
     }
 
+    //-------------------------------------------------------
+    // Update frtmempool and frtmempool_used
+    for (const auto& frt : block.vfrt) {
+        frtmempool.add(frt, GetTime(), chainActive.Height());
+        if (frtmempool_used.exists(frt.GetHash()))
+            frtmempool_used.remove(frt);
+    }
+    //----------------------------
+    //------------------------------------------------------
     // Update globalHashPrevEpisode
     const CBlockIndex* nblockindex = pindex->pprev;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
@@ -2399,15 +2408,6 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
             globalHashPrevEpisode = nblockindex->GetBlockHash();
         }
     }
-    //-------------------------------------------------------
-    // Update frtmempool and frtmempool_used
-    for (const auto& frt : block.vfrt) {
-        frtmempool.add(frt, GetTime(), chainActive.Height());
-        if (frtmempool_used.exists(frt.GetHash()))
-            frtmempool_used.remove(frt);
-    }
-    //----------------------------
-    //------------------------------------------------------
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
@@ -2788,7 +2788,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     //----------------------------
 
     // Update globalHashPrevEpisode
-    const CBlockIndex* nblockindex = pindex->pprev;
+    const CBlockIndex* nblockindex = pindex;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         globalHashPrevEpisode = nblockindex->GetBlockHash();
         frtmempool.clear();
