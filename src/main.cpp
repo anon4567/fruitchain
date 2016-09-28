@@ -3849,20 +3849,17 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, const CBlockHeader& block, 
         2. not be contained in any block earlier in this episode
     */
 
-    //const CBlockIndex* nIndex = pindexPrev;
     if (frtmempool_used.exists(fruit.GetHash())) {
         return state.Invalid(false, REJECT_INVALID, "frt-already-used", "fruit has been used in current episode");
     }
 
-    /*bool prevIsValid = false;
-    for (bool isLastEpisode = false; !isLastEpisode;) {
-        isLastEpisode = IsEndOfEpisode(nIndex->nHeight);
-        if (pindexPrev->GetBlockHash() == fruit.hashPrevBlock)
-            prevIsValid = true;
+    const CBlockIndex* nIndex = pindexPrev;
+    for (; !IsEndOfEpisode(nIndex->nHeight);) {
+        /*if (pindexPrev->GetBlockHash() == fruit.hashPrevBlock)
+            prevIsValid = true;*/
         nIndex = nIndex->pprev;
     }
-    */
-    if (globalHashPrevEpisode != fruit.hashPrevEpisode) {
+    if (nIndex->GetBlockHash() != fruit.hashPrevEpisode) {
         return state.DoS(100, false, REJECT_INVALID, "bad-prev", false, "incorrect prev episode");
     }
 
@@ -6914,7 +6911,7 @@ bool SendMessages(CNode* pto)
                         LogPrint("net", "%s: sending header %s to peer=%d\n", __func__,
                             vHeaders.front().GetHash().ToString(), pto->id);
                     }
-                     
+
                     pto->PushMessage(NetMsgType::HEADERS, vHeaders);
                     state.pindexBestHeaderSent = pBestIndex;
                 } else
