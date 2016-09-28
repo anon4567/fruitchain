@@ -88,6 +88,7 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
     return result;
 }
 
+//verFruit
 UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool txDetails = false)
 {
     UniValue result(UniValue::VOBJ);
@@ -121,11 +122,22 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
         } else
             txs.push_back(tx.GetHash().GetHex());
     }
-
-    for (const CBlockHeader& frt : block.vfrt) {
-        result.push_back(Pair("frtHash", frt.GetHash().GetHex()));
+    //verFruit
+    UniValue frts(UniValue::VARR);
+    BOOST_FOREACH (const CBlockHeader& frt, block.vfrt) {
+/*        if (frtDetails) {
+            UniValue objFrt(UniValue::VOBJ);
+            FrtToJSON(frt, uint256(), objFrt);
+            frts.push_back(objFrt);
+        } else*/
+            frts.push_back(frt.GetHash().GetHex());
     }
 
+/*    for (const CBlockHeader& frt : block.vfrt) {
+        result.push_back(Pair("frtHash", frt.GetHash().GetHex()));
+    }*/
+
+    result.push_back(Pair("frt", frts));
     result.push_back(Pair("tx", txs));
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));

@@ -2269,7 +2269,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         }*/
 
         LogPrintf("look at block %d: fee: %lld, #frt: %u\n", i, fee[i], f[i]);
-        reward_block_creator[i] = FEE_FRACTION_C1 * fee[i];
+        reward_block_creator[i] = FEE_FRACTION_C1 * (fee[i] + GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus()));
         S += GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus()) + fee[i] - reward_block_creator[i];
 
         for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
