@@ -95,6 +95,7 @@ UniValue getnetworkhashps(const UniValue& params, bool fHelp)
     return GetNetworkHashPS(params.size() > 0 ? params[0].get_int() : 120, params.size() > 1 ? params[1].get_int() : -1);
 }
 
+//verFruit
 UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nGenerate, uint64_t nMaxTries, bool keepScript)
 {
     static const int nInnerLoopCount = 0x10000;
@@ -111,7 +112,9 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
     }
     LogPrintf("mining! 1\n");
     unsigned int nExtraNonce = 0;
+    UniValue result(UniValue::VOBJ);
     UniValue blockHashes(UniValue::VARR);
+    UniValue fruitHashes(UniValue::VARR);
     while (nHeight < nHeightEnd) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript->reserveScript));
         LogPrintf("mining! 2\n");
@@ -135,6 +138,7 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
                 {
                     LOCK(cs_main);
                     AcceptToFruitMemoryPool(frtmempool, frtState, pblock->GetBlockHeader(), Params().GetConsensus());
+                    fruitHashes.push_back(pblock->GetBlockHeader().GetHash().GetHex());
                 }
                 //frtmempool.add(pblock->GetBlockHeader(), GetTime(), nHeight);
                 RelayFruit(pblock->GetBlockHeader());
@@ -162,7 +166,11 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
             coinbaseScript->KeepScript();
         }
     }
-    return blockHashes;
+
+    result.push_back(Pair("frt", fruitHashes));
+    result.push_back(Pair("blk", blockHashes));
+//    return blockHashes;
+    return result;
 }
 
 UniValue generate(const UniValue& params, bool fHelp)
