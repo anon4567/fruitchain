@@ -2228,6 +2228,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     reward_block_creator.resize(FRUIT_PERIOD_LENGTH);
     block_creator.resize(FRUIT_PERIOD_LENGTH);
     fruit_creator.resize(FRUIT_PERIOD_LENGTH);
+    CAmount rest = 0;
     //loop in reverse order
     for (int i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
         LogPrintf("look at block %d: start\n", i);
@@ -2269,8 +2270,10 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         }*/
 
         LogPrintf("look at block %d: fee: %lld, #frt: %u\n", i, fee[i], f[i]);
-        reward_block_creator[i] = FEE_FRACTION_C1 * fee[i];
-        S += GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus()) + fee[i] - reward_block_creator[i];
+        CAmount tmp = fee[i] + GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus());
+        reward_block_creator[i] = FEE_FRACTION_C1 * tmp;
+        S += tmp - reward_block_creator[i];
+        rest += tmp;
 
         for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
             vfc.push_back(nblock->vfrt[i].scriptPubKey);
@@ -2285,24 +2288,40 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     nTx.vin[0].prevout.SetNull();
     nTx.vin[0].scriptSig = CScript() << pindex->nHeight << OP_0;
 
-    CAmount rest = S;
+
+    std::map<CScript, CAmount> rewardDist;
     for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
         CAmount reward_per_fruit_cr = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F, reward_per_fruit_co = S / F - reward_per_fruit_cr;
         //LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld\n", reward_per_fruit_cr, reward_per_fruit_co);
 
         reward_block_creator[i] += reward_per_fruit_co * f[i];
-        nTx.vout.push_back(CTxOut(reward_block_creator[i], block_creator[i]));
+        //nTx.vout.push_back(CTxOut(reward_block_creator[i], block_creator[i]));
+        if (rewardDist.find(block_creator[i]) != rewardDist.end())
+            rewardDist[block_creator[i]] += reward_block_creator[i];
+        else
+            rewardDist[block_creator[i]] = reward_block_creator[i];
         rest -= reward_block_creator[i];
 
         for (unsigned int j = 0; j < fruit_creator[i].size(); ++j) {
-            nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i][j]));
+            //nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i][j]));
+            if (rewardDist.find(fruit_creator[i][j]) != rewardDist.end())
+                rewardDist[fruit_creator[i][j]] += reward_per_fruit_cr;
+            else
+                rewardDist[fruit_creator[i][j]] = reward_per_fruit_cr;
             //LogPrintf("Calculate reward distribution mid: rest: %lld\n", rest);
             rest -= reward_per_fruit_cr;
             //LogPrintf("Calculate reward distribution mid2 : rest: %lld\n", rest);
         }
     }
     if (rest != 0) {
-        nTx.vout.push_back(CTxOut(rest, block_creator[0]));
+        //nTx.vout.push_back(CTxOut(rest, block_creator[0]));
+        if (rewardDist.find(block_creator[0]) != rewardDist.end())
+            rewardDist[block_creator[0]] += rest;
+        else
+            rewardDist[block_creator[0]] = rest;
+    }
+    for (auto const& rewardAssign : rewardDist) {
+        nTx.vout.push_back(CTxOut(rewardAssign.second, rewardAssign.first));
     }
     fruit_tx.push_back(nTx);
     LogPrintf("Calculate reward distribution end\n");
@@ -2416,7 +2435,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     //----------------------------
     //------------------------------------------------------
     // Update globalHashPrevEpisode
-    const CBlockIndex* nblockindex = pindex->pprev;
+    /*const CBlockIndex* nblockindex = pindex->pprev;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         frtmempool.clear();
         frtmempool_used.clear();
@@ -2428,7 +2447,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
                 nblockindex = nblockindex->pprev;
             globalHashPrevEpisode = nblockindex->GetBlockHash();
         }
-    }
+    }*/
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
@@ -2543,7 +2562,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     if (block.GetHash() == chainparams.GetConsensus().hashGenesisBlock) {
         if (!fJustCheck) {
             view.SetBestBlock(pindex->GetBlockHash());
-            globalHashPrevEpisode = pindex->GetBlockHash();
+            //globalHashPrevEpisode = pindex->GetBlockHash();
             frtmempool.clear();
             frtmempool_used.clear();
         }
@@ -2815,7 +2834,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     // Update globalHashPrevEpisode
     const CBlockIndex* nblockindex = pindex;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
-        globalHashPrevEpisode = nblockindex->GetBlockHash();
+        //globalHashPrevEpisode = nblockindex->GetBlockHash();
         frtmempool.clear();
         frtmempool_used.clear();
     }
@@ -3329,8 +3348,17 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
             }
 
             // Whether we have anything to do at all.
-            if (pindexMostWork == NULL || pindexMostWork == chainActive.Tip())
+            if (pindexMostWork == NULL || pindexMostWork == chainActive.Tip()) {
+                const CBlockIndex* nblockindex = pindexMostWork;
+                while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight)) {
+                    nblockindex = nblockindex->pprev;
+                }
+                if (nblockindex == NULL)
+                    globalHashPrevEpisode.SetNull();
+                else
+                    globalHashPrevEpisode = nblockindex->GetBlockHash();
                 return true;
+            }
 
             bool fInvalidFound = false;
             if (!ActivateBestChainStep(state, chainparams, pindexMostWork, pblock && pblock->GetHash() == pindexMostWork->GetBlockHash() ? pblock : NULL, fInvalidFound, txConflicted, txChanged))
@@ -3397,6 +3425,13 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
         }
     } while (pindexNewTip != pindexMostWork);
     CheckBlockIndex(chainparams.GetConsensus());
+    // Update globalHashPrevEpisode
+    const CBlockIndex* nblockindex = pindexNewTip;
+    while (!IsEndOfEpisode(nblockindex->nHeight)) {
+        nblockindex = nblockindex->pprev;
+    }
+    globalHashPrevEpisode = nblockindex->GetBlockHash();
+    LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
 
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
@@ -3885,6 +3920,7 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, const CBlockHeader& block, 
         nIndex = nIndex->pprev;
     }
     if (nIndex->GetBlockHash() != fruit.hashPrevEpisode) {
+        LogPrintf("diff %s\n%s\n", nIndex->GetBlockHash().ToString(), fruit.hashPrevEpisode.ToString());
         return state.DoS(100, false, REJECT_INVALID, "bad-prev", false, "incorrect prev episode");
     }
 
@@ -3971,7 +4007,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
     //Contextualcheck fruits
     for (const auto& frt : block.vfrt)
         if (!ContextualCheckFruit(frt, block, state, consensusParams, pindexPrev, GetAdjustedTime())) {
-            return error("ContextualCheckBlock: ContextualCheckBlockHeader: %s, %s", frt.GetHash().ToString(), FormatStateMessage(state));
+            return error("ContextualCheckBlock: ContextualCheckFruit: %s, %s", frt.GetHash().ToString(), FormatStateMessage(state));
         }
     //----------------------------------
 

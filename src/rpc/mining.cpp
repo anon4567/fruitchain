@@ -137,7 +137,7 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
                     AcceptToFruitMemoryPool(frtmempool, frtState, pblock->GetBlockHeader(), Params().GetConsensus());
                 }
                 //frtmempool.add(pblock->GetBlockHeader(), GetTime(), nHeight);
-                RelayFruit(pblock->GetBlockHeader()); // TODO
+                RelayFruit(pblock->GetBlockHeader());
             }
             ++pblock->nNonce;
             ++nNonce;
