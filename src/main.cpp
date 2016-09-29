@@ -2231,7 +2231,6 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     CAmount rest = 0;
     //loop in reverse order
 
-    CAmount rest = 0;
     for (int i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
         LogPrintf("look at block %d: start\n", i);
 
@@ -2290,11 +2289,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     nTx.vin[0].prevout.SetNull();
     nTx.vin[0].scriptSig = CScript() << pindex->nHeight << OP_0;
 
-<<<<<<< HEAD
-
     std::map<CScript, CAmount> rewardDist;
-=======
->>>>>>> c42c4e98d2a46d43b64e96ae14e6a3050ac57372
     for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
         CAmount reward_per_fruit_cr = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F, reward_per_fruit_co = S / F - reward_per_fruit_cr;
         //LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld\n", reward_per_fruit_cr, reward_per_fruit_co);
@@ -3925,12 +3920,6 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, const CBlockHeader& block, 
         nIndex = nIndex->pprev;
     }
     if (nIndex->GetBlockHash() != fruit.hashPrevEpisode) {
-<<<<<<< HEAD
-        LogPrintf("diff %s\n%s\n", nIndex->GetBlockHash().ToString(), fruit.hashPrevEpisode.ToString());
-=======
-        LogPrintf("DEBUG: nIndex hash:%s\n", nIndex->GetBlockHash().ToString());
-        LogPrintf("DEBUG: fruit hashPrevEpisode:%s\n", fruit.hashPrevEpisode.ToString());
->>>>>>> c42c4e98d2a46d43b64e96ae14e6a3050ac57372
         return state.DoS(100, false, REJECT_INVALID, "bad-prev", false, "incorrect prev episode");
     }
 
