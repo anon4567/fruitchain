@@ -1620,6 +1620,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const C
         }
     }
 
+    LogPrintf("New fruit %s\n global: %s\n", frt.ToString(), globalHashPrevEpisode.ToString());
 
     return true;
 }
@@ -2435,19 +2436,19 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     //----------------------------
     //------------------------------------------------------
     // Update globalHashPrevEpisode
-    /*const CBlockIndex* nblockindex = pindex->pprev;
+    const CBlockIndex* nblockindex = pindex->pprev;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         frtmempool.clear();
         frtmempool_used.clear();
-        if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
+        /*if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
             globalHashPrevEpisode.SetNull();
         } else {
             nblockindex = nblockindex->pprev;
             while (!IsEndOfEpisode(nblockindex->nHeight))
                 nblockindex = nblockindex->pprev;
             globalHashPrevEpisode = nblockindex->GetBlockHash();
-        }
-    }*/
+        }*/
+    }
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
@@ -2564,6 +2565,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             view.SetBestBlock(pindex->GetBlockHash());
             //globalHashPrevEpisode = pindex->GetBlockHash();
             frtmempool.clear();
+            //LogPrintf("clear frtmempool\n");
             frtmempool_used.clear();
         }
         return true;
@@ -2836,6 +2838,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         //globalHashPrevEpisode = nblockindex->GetBlockHash();
         frtmempool.clear();
+        //LogPrintf("clear frtmempool\n");
         frtmempool_used.clear();
     }
     //-------------------------------------------------------
@@ -3357,6 +3360,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                     globalHashPrevEpisode.SetNull();
                 else
                     globalHashPrevEpisode = nblockindex->GetBlockHash();
+                LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
                 return true;
             }
 
@@ -3920,6 +3924,7 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, const CBlockHeader& block, 
         nIndex = nIndex->pprev;
     }
     if (nIndex->GetBlockHash() != fruit.hashPrevEpisode) {
+        LogPrintf("diff %s\n%s\n", nIndex->GetBlockHash().ToString(), fruit.hashPrevEpisode.ToString());
         return state.DoS(100, false, REJECT_INVALID, "bad-prev", false, "incorrect prev episode");
     }
 
