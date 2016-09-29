@@ -3360,6 +3360,8 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                     globalHashPrevEpisode.SetNull();
                 else
                     globalHashPrevEpisode = nblockindex->GetBlockHash();
+                frtmempool.clear();
+                frtmempool_used.clear();
                 LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
                 return true;
             }
