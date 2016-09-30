@@ -3233,7 +3233,6 @@ static void PruneBlockIndexCandidates()
  */
 static bool ActivateBestChainStep(CValidationState& state, const CChainParams& chainparams, CBlockIndex* pindexMostWork, const CBlock* pblock, bool& fInvalidFound, std::list<CTransaction>& txConflicted, std::vector<std::tuple<CTransaction, CBlockIndex*, int> >& txChanged)
 {
-    LogPrintf("\nDEBUG: ActivateBestChainStep\n");
     AssertLockHeld(cs_main);
     const CBlockIndex* pindexOldTip = chainActive.Tip();
     const CBlockIndex* pindexFork = chainActive.FindFork(pindexMostWork);
@@ -3351,14 +3350,10 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
             CBlockIndex* pindexOldTip = chainActive.Tip();
             if (pindexMostWork == NULL) {
                 pindexMostWork = FindMostWorkChain();
-                LogPrintf("\nDEBUG: pindexMostWork:%s\n", pindexMostWork->ToString());
             }
 
             // Whether we have anything to do at all.
-            if (chainActive.Tip() != NULL)
-                LogPrintf("\nDEBUG: chainActive.Tip:%s\n", chainActive.Tip()->ToString());
             if (pindexMostWork == NULL || pindexMostWork == chainActive.Tip()) {
-                LogPrintf("\nDEBUG: nothing to do\n");
                 const CBlockIndex* nblockindex = pindexMostWork;
                 while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight)) {
                     nblockindex = nblockindex->pprev;
@@ -3372,7 +3367,6 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                 LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
                 return true;
             }
-            LogPrintf("\nDEBUG: something to do\n");
 
             bool fInvalidFound = false;
             if (!ActivateBestChainStep(state, chainparams, pindexMostWork, pblock && pblock->GetHash() == pindexMostWork->GetBlockHash() ? pblock : NULL, fInvalidFound, txConflicted, txChanged))
@@ -4048,7 +4042,6 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
         }
 
         if (!CheckBlockHeader(block, state, chainparams.GetConsensus())) {
-            LogPrintf("\nDEBUG: blockheader:%s\n", block.ToString());
             return error("%s: Consensus::CheckBlockHeader: %s, %s", __func__, hash.ToString(), FormatStateMessage(state));
         }
 
@@ -5798,7 +5791,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
 
     else if (strCommand == NetMsgType::GETHEADERS) {
-        LogPrintf("\nDEBUG: receive GETHEADERS\n");
         CBlockLocator locator;
         uint256 hashStop;
         vRecv >> locator >> hashStop;
@@ -5822,8 +5814,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             pindex = FindForkInGlobalIndex(chainActive, locator);
             if (pindex)
                 pindex = chainActive.Next(pindex);
-            if (pindex)
-                LogPrintf("\nDEBUG: fork pindex:%s\n", pindex->ToString());
         }
 
         // we must use CBlocks, as CBlockHeaders won't include the 0x00 nTx count at the end
@@ -5831,8 +5821,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         int nLimit = MAX_HEADERS_RESULTS;
         LogPrint("net", "getheaders %d to %s from peer=%d\n", (pindex ? pindex->nHeight : -1), hashStop.IsNull() ? "end" : hashStop.ToString(), pfrom->id);
         for (; pindex; pindex = chainActive.Next(pindex)) {
-            LogPrintf("\nDEBUG: chainActive pindex:%s\n", pindex->ToString());
-            LogPrintf("\nDEBUG: chainActive header:%s\n", pindex->GetBlockHeader().ToString());
             vHeaders.push_back(pindex->GetBlockHeader());
             if (--nLimit <= 0 || pindex->GetBlockHash() == hashStop)
                 break;
@@ -6099,7 +6087,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         CBlockIndex* pindex = NULL;
         CValidationState state;
-        LogPrintf("\nDEBUG: receive CMPCTBLOCK:%s\n", cmpctblock.header.ToString());
         if (!AcceptBlockHeader(cmpctblock.header, state, chainparams, &pindex)) {
             int nDoS;
             if (state.IsInvalid(nDoS)) {
@@ -6266,7 +6253,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         headers.resize(nCount);
         for (unsigned int n = 0; n < nCount; n++) {
             vRecv >> headers[n];
-            LogPrintf("\nDEBUG: ready to readcompactsize: header hash:%s\n", headers[n].ToString());
             ReadCompactSize(vRecv); // ignore tx count; assume it is 0.
             ReadCompactSize(vRecv); // ignore frt count; assume it is 0.
         }
@@ -6310,7 +6296,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
             CBlockIndex* pindexLast = NULL;
             BOOST_FOREACH (const CBlockHeader& header, headers) {
-                LogPrintf("\nDEBUG: ready to acceptoblockheader: receive headers:%s\n", header.ToString());
                 CValidationState state;
                 if (pindexLast != NULL && header.hashPrevBlock != pindexLast->GetBlockHash()) {
                     Misbehaving(pfrom->GetId(), 20);
