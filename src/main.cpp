@@ -2200,10 +2200,10 @@ static bool ApplyTxInUndo(const CTxInUndo& undo, CCoinsViewCache& view, const CO
     return fClean;
 }
 
-double RewardFractionDiff(int i)
+/*double RewardFractionDiff(int i)
 {
     return REWARD_DIFF_FRACTION_C3 * (1 - (i - 1) * 1.0 / (FRUIT_PERIOD_LENGTH - 1));
-}
+}*/
 
 bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlock& block, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams)
 {
@@ -2273,7 +2273,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
 
         LogPrintf("look at block %d: fee: %lld, #frt: %u\n", i, fee[i], f[i]);
         CAmount tmp = fee[i] + GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus());
-        reward_block_creator[i] = FEE_FRACTION_C1 * tmp;
+        reward_block_creator[i] = tmp * FEE_FRACTION_C1_NUMERATOR / FEE_FRACTION_C1_DENOMINATOR;
         S += tmp - reward_block_creator[i];
         rest += tmp;
 
@@ -2292,7 +2292,9 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
 
     std::map<CScript, CAmount> rewardDist;
     for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
-        CAmount reward_per_fruit_cr = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F, reward_per_fruit_co = S / F - reward_per_fruit_cr;
+        CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * ((FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH - 1) * REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR),
+                                    reward_per_fruit_co = S / F - reward_per_fruit_cr;
+
         //LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld\n", reward_per_fruit_cr, reward_per_fruit_co);
 
         reward_block_creator[i] += reward_per_fruit_co * f[i];
@@ -3348,6 +3350,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
             CBlockIndex* pindexOldTip = chainActive.Tip();
             if (pindexMostWork == NULL) {
                 pindexMostWork = FindMostWorkChain();
+                LogPrintf("mostwork %s\n", pindexMostWork->ToString());
             }
 
             // Whether we have anything to do at all.
