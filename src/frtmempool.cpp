@@ -13,8 +13,6 @@
 #include "policy/fees.h"
 #include "policy/policy.h"
 #include "serialize.h"
-#include "streams.h"
-#include "timedata.h"
 #include "util.h"
 #include "utilmoneystr.h"
 #include "utiltime.h"
@@ -24,9 +22,9 @@ using namespace std;
 //TODO: FRT_WEIGHT, FRT_USAGE_SIZE, FRT_SIZE to be decided
 CFrtMemPoolEntry::CFrtMemPoolEntry(const CBlockHeader& _frt, //const CAmount& _nFee,
     int64_t _nTime,
-    /*double _entryPriority,*/ unsigned int _entryHeight //,
+    /*double _entryPriority,*/ unsigned int _entryHeight, bool _isRipe
                                                          // bool poolHasNoInputsOf, CAmount _inChainInputValue,
-    /* bool _spendsCoinbase, int64_t _sigOpsCost, LockPoints lp*/) : frt(std::make_shared<CBlockHeader>(_frt)), /*nFee(_nFee),*/ nTime(_nTime), /*entryPriority(_entryPriority),*/ entryHeight(_entryHeight)
+    /* bool _spendsCoinbase, int64_t _sigOpsCost, LockPoints lp*/) : frt(std::make_shared<CBlockHeader>(_frt)), /*nFee(_nFee),*/ nTime(_nTime), /*entryPriority(_entryPriority),*/ entryHeight(_entryHeight), isRipe(_isRipe)
 //    hadNoDependencies(poolHasNoInputsOf), inChainInputValue(_inChainInputValue),
 /*    spendsCoinbase(_spendsCoinbase),*/ //sigOpCost(_sigOpsCost)//, lockPoints(lp)
 {
@@ -1131,9 +1129,10 @@ void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpen
 
     unsigned nFrtnRemoved = 0;
     //    CFeeRate maxFeeRateRemoved(0);
+
+	indexed_fruit_set::index<mining_score_fruit>::type::iterator it = mapFrt.get<mining_score_fruit>().begin();
     while (!mapFrt.empty() && DynamicMemoryUsage() > sizelimit) {
         //        indexed_fruit_set::index<descendant_score>::type::iterator it = mapTx.get<descendant_score>().begin();
-        indexed_fruit_set::index<mining_score_fruit>::type::iterator it = mapFrt.get<mining_score_fruit>().begin();
 
         // We set the new mempool min fee to the feerate of the removed set, plus the
         // "minimum reasonable fee rate" (ie some value under which we consider txn
@@ -1166,8 +1165,60 @@ void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpen
                 }
             }
         }*/
+
+		it++;
     }
 
     //    if (maxFeeRateRemoved > CFeeRate(0))
-    LogPrint("frtmempool", "Removed %u txn\n" /*, rolling minimum fee bumped to %s\n"*/, nFrtnRemoved /*, maxFeeRateRemoved.ToString()*/);
+    LogPrint("frtmempool", "TrimToSize Removed %u frt\n" /*, rolling minimum fee bumped to %s\n"*/, nFrtnRemoved /*, maxFeeRateRemoved.ToString()*/);
+}
+
+void CFrtMemPool::TrimToFresh(/*size_t sizelimit, std::vector<uint256>* pvNoSpendsRemaining*/)
+{
+    LOCK(cs);
+
+    unsigned nFrtnRemoved = 0;
+    //    CFeeRate maxFeeRateRemoved(0);
+
+	indexed_fruit_set::index<fresh_score_fruit>::type::iterator it = mapFrt.get<fresh_score_fruit>().begin();
+    while (!mapFrt.empty() /*&& DynamicMemoryUsage() > sizelimit*/) {
+        //        indexed_fruit_set::index<descendant_score>::type::iterator it = mapTx.get<descendant_score>().begin();
+		if (!(mapFrt.project<0>(it) -> IsRipe()) ) break;
+
+        // We set the new mempool min fee to the feerate of the removed set, plus the
+        // "minimum reasonable fee rate" (ie some value under which we consider txn
+        // to have 0 fee). This way, we don't allow txn to enter mempool with feerate
+        // equal to txn which were removed with no block in between.
+        //        CFeeRate removed(it->GetModFeesWithDescendants(), it->GetSizeWithDescendants());
+        //        removed += minReasonableRelayFee;
+        //        trackPackageRemoved(removed);
+        //        maxFeeRateRemoved = std::max(maxFeeRateRemoved, removed);
+
+        setEntries stage;
+        CalculateDescendants(mapFrt.project<0>(it), stage);
+        nFrtnRemoved += stage.size();
+
+        /*        std::vector<CBlockHeader> frtn;
+        if (pvNoSpendsRemaining) {
+            frtn.reserve(stage.size());
+            BOOST_FOREACH(frtiter it, stage)
+                frtn.push_back(it->GetFrt());
+        }*/
+        RemoveStaged(stage /*, false*/);
+        /*        if (pvNoSpendsRemaining) {
+            BOOST_FOREACH(const CBlock& frt, frtn) {
+                BOOST_FOREACH(const CTxIn& txin, tx.vin) {
+                    if (exists(txin.prevout.hash))
+                        continue;
+                    auto it = mapNextTx.lower_bound(COutPoint(txin.prevout.hash, 0));
+                    if (it == mapNextTx.end() || it->first->hash != txin.prevout.hash)
+                        pvNoSpendsRemaining->push_back(txin.prevout.hash);
+                }
+            }
+        }*/
+		it ++;
+    }
+
+    //    if (maxFeeRateRemoved > CFeeRate(0))
+    LogPrint("frtmempool", "TrimToFresh Removed %u txn\n" /*, rolling minimum fee bumped to %s\n"*/, nFrtnRemoved /*, maxFeeRateRemoved.ToString()*/);
 }

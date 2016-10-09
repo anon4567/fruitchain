@@ -94,6 +94,7 @@ private:
     int64_t nTime;            //!< Local time when entering the mempool
                               //    double entryPriority;      //!< Priority when entering the mempool
     unsigned int entryHeight; //!< Chain height when entering the mempool
+    bool isRipe;
     //    bool hadNoDependencies;    //!< Not dependent on any other txs when it entered the mempool
     //    CAmount inChainInputValue; //!< Sum of all txin values that are already in blockchain
     //    bool spendsCoinbase;       //!< keep track of transactions that spend a coinbase
@@ -119,7 +120,7 @@ private:
 public:
     CFrtMemPoolEntry(const CBlockHeader& _frt, //const CAmount& _nFee,
         int64_t _nTime,
-        /*double _entryPriority,*/ unsigned int _entryHeight
+        /*double _entryPriority,*/ unsigned int _entryHeight, bool _isRipe
         //bool poolHasNoInputsOf, CAmount _inChainInputValue, bool spendsCoinbase,
         /*int64_t nSigOpsCost, FruitLockPoints lp*/);
     CFrtMemPoolEntry(const CFrtMemPoolEntry& other);
@@ -136,6 +137,7 @@ public:
     size_t GetFrtWeight() const { return nFrtWeight; }
     int64_t GetTime() const { return nTime; }
     unsigned int GetHeight() const { return entryHeight; }
+    bool IsRipe() const {return isRipe; }
     //    bool WasClearAtEntry() const { return hadNoDependencies; }
     //    int64_t GetSigOpCost() const { return sigOpCost; }
     //    int64_t GetModifiedFee() const { return nFee + feeDelta; }
@@ -294,6 +296,16 @@ public:
         return a.GetTime() < b.GetTime();
     }
 };
+
+class CompareFrtMemPoolEntryByFreshness
+{
+    public:
+    bool operator()(const CFrtMemPoolEntry& a, const CFrtMemPoolEntry& b)
+    {
+        return a.IsRipe() > b.IsRipe();
+    }
+};
+
 /*
 class CompareTxMemPoolEntryByAncestorFee
 {
@@ -326,6 +338,8 @@ struct entry_time_fruit {
 struct mining_score_fruit {
 };
 struct ancestor_score_fruit {
+};
+struct fresh_score_fruit{
 };
 
 //class CBlockPolicyEstimator;
@@ -463,7 +477,13 @@ public:
                 boost::multi_index::tag<mining_score_fruit>,
                 boost::multi_index::identity<CFrtMemPoolEntry>,
                 CompareFrtMemPoolEntryByScore
-            >//,
+            > ,
+            // sorted by freshness
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<fresh_score_fruit>,
+                boost::multi_index::identity<CFrtMemPoolEntry>,
+                CompareFrtMemPoolEntryByFreshness
+            >
             // sorted by fee rate with ancestors
             /*            boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ancestor_score>,
@@ -608,6 +628,8 @@ public:
       */
     void TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpendsRemaining=NULL*/);
 
+    void TrimToFresh();
+
     /** Expire all transaction (and their dependencies) in the mempool older than time. Return the number of removed transactions. */
     int Expire(int64_t time);
 
@@ -632,10 +654,10 @@ public:
     }
 
     //Note for add() and remove(): No additional check here, please ensure that add good fruit and remove exist fruit.
-    void add(const CBlockHeader& frt, int64_t nTime, unsigned int entryHeight)
+    void add(const CBlockHeader& frt, int64_t nTime, unsigned int entryHeight, bool isRipe)
     {
         const uint256 hash = frt.GetHash();
-        CFrtMemPoolEntry entry(frt, nTime, entryHeight);
+        CFrtMemPoolEntry entry(frt, nTime, entryHeight, isRipe);
         addUnchecked(hash, entry);
     }
 
