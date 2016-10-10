@@ -1153,6 +1153,7 @@ void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpen
             BOOST_FOREACH(frtiter it, stage)
                 frtn.push_back(it->GetFrt());
         }*/
+        it++;
         RemoveStaged(stage /*, false*/);
         /*        if (pvNoSpendsRemaining) {
             BOOST_FOREACH(const CBlock& frt, frtn) {
@@ -1165,8 +1166,6 @@ void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpen
                 }
             }
         }*/
-
-		it++;
     }
 
     //    if (maxFeeRateRemoved > CFeeRate(0))
@@ -1177,48 +1176,26 @@ void CFrtMemPool::TrimToFresh(/*size_t sizelimit, std::vector<uint256>* pvNoSpen
 {
     LOCK(cs);
 
-    unsigned nFrtnRemoved = 0;
+    unsigned nFrtnRemoved = 0, nBefore = 0, nAfter = 0;
+
     //    CFeeRate maxFeeRateRemoved(0);
+    nBefore = mapFrt.size();
 
+    setEntries fresh;
 	indexed_fruit_set::index<fresh_score_fruit>::type::iterator it = mapFrt.get<fresh_score_fruit>().begin();
-    while (!mapFrt.empty() /*&& DynamicMemoryUsage() > sizelimit*/) {
-        //        indexed_fruit_set::index<descendant_score>::type::iterator it = mapTx.get<descendant_score>().begin();
-		if (!(mapFrt.project<0>(it) -> IsRipe()) ) break;
-
-        // We set the new mempool min fee to the feerate of the removed set, plus the
-        // "minimum reasonable fee rate" (ie some value under which we consider txn
-        // to have 0 fee). This way, we don't allow txn to enter mempool with feerate
-        // equal to txn which were removed with no block in between.
-        //        CFeeRate removed(it->GetModFeesWithDescendants(), it->GetSizeWithDescendants());
-        //        removed += minReasonableRelayFee;
-        //        trackPackageRemoved(removed);
-        //        maxFeeRateRemoved = std::max(maxFeeRateRemoved, removed);
-
-        setEntries stage;
-        CalculateDescendants(mapFrt.project<0>(it), stage);
-        nFrtnRemoved += stage.size();
-
-        /*        std::vector<CBlockHeader> frtn;
-        if (pvNoSpendsRemaining) {
-            frtn.reserve(stage.size());
-            BOOST_FOREACH(frtiter it, stage)
-                frtn.push_back(it->GetFrt());
-        }*/
-        RemoveStaged(stage /*, false*/);
-        /*        if (pvNoSpendsRemaining) {
-            BOOST_FOREACH(const CBlock& frt, frtn) {
-                BOOST_FOREACH(const CTxIn& txin, tx.vin) {
-                    if (exists(txin.prevout.hash))
-                        continue;
-                    auto it = mapNextTx.lower_bound(COutPoint(txin.prevout.hash, 0));
-                    if (it == mapNextTx.end() || it->first->hash != txin.prevout.hash)
-                        pvNoSpendsRemaining->push_back(txin.prevout.hash);
-                }
-            }
-        }*/
-		it ++;
+    for ( ; it != mapFrt.get<fresh_score_fruit>().end(); it++) {
+		if (mapFrt.project<0>(it) -> IsRipe()) break;
+        fresh.insert(mapFrt.project<0>(it));
+    }
+    _clear();
+    while (!fresh.empty()) {
+        frtiter it = *fresh.begin();
+        add(it -> GetFrt(), it -> GetTime(), it -> GetHeight(), 1);
+        fresh.erase(it);
     }
 
+    nAfter = mapFrt.size();
+    nFrtnRemoved = nBefore - nAfter;
     //    if (maxFeeRateRemoved > CFeeRate(0))
-    LogPrint("frtmempool", "TrimToFresh Removed %u txn\n" /*, rolling minimum fee bumped to %s\n"*/, nFrtnRemoved /*, maxFeeRateRemoved.ToString()*/);
+    LogPrint("frtmempool", "TrimToFresh Removed %u frt\n" /*, rolling minimum fee bumped to %s\n"*/, nFrtnRemoved /*, maxFeeRateRemoved.ToString()*/);
 }

@@ -302,7 +302,7 @@ class CompareFrtMemPoolEntryByFreshness
     public:
     bool operator()(const CFrtMemPoolEntry& a, const CFrtMemPoolEntry& b)
     {
-        return a.IsRipe() > b.IsRipe();
+        return a.IsRipe() < b.IsRipe();
     }
 };
 
@@ -628,7 +628,7 @@ public:
       */
     void TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpendsRemaining=NULL*/);
 
-    void TrimToFresh();
+    void Refresh();
 
     /** Expire all transaction (and their dependencies) in the mempool older than time. Return the number of removed transactions. */
     int Expire(int64_t time);

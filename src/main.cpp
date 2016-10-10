@@ -2440,8 +2440,10 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     // Update globalHashPrevEpisode
     const CBlockIndex* nblockindex = pindex->pprev;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
-        frtmempool.clear();
-        frtmempool_used.clear();
+       // frtmempool.clear();
+        frtmempool.Refresh();
+//        frtmempool_used.clear();
+        frtmempool_used.Refresh();
         /*if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
             globalHashPrevEpisode.SetNull();
         } else {
@@ -2839,9 +2841,11 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     const CBlockIndex* nblockindex = pindex;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         //globalHashPrevEpisode = nblockindex->GetBlockHash();
-        frtmempool.clear();
+        //frtmempool.clear();
+        frtmempool.Refresh();
         //LogPrintf("clear frtmempool\n");
-        frtmempool_used.clear();
+//        frtmempool_used.clear();
+        frtmempool_used.Refresh();
     }
     //-------------------------------------------------------
 
@@ -3362,8 +3366,10 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                     globalHashPrevEpisode.SetNull();
                 else
                     globalHashPrevEpisode = nblockindex->GetBlockHash();
-                frtmempool.clear();
-                frtmempool_used.clear();
+//                frtmempool.clear();
+                frtmempool.Refresh();
+//                frtmempool_used.clear();
+                frtmempool_used.Refresh();
                 LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
                 return true;
             }
@@ -4680,6 +4686,7 @@ void UnloadBlockIndex()
     mempool.clear();
     //verFruit
     frtmempool.clear();
+    frtmempool_used.clear();
     mapOrphanTransactions.clear();
     mapOrphanTransactionsByPrev.clear();
     nSyncStarted = 0;
