@@ -1172,7 +1172,7 @@ void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpen
     LogPrint("frtmempool", "TrimToSize Removed %u frt\n" /*, rolling minimum fee bumped to %s\n"*/, nFrtnRemoved /*, maxFeeRateRemoved.ToString()*/);
 }
 
-void CFrtMemPool::TrimToFresh(/*size_t sizelimit, std::vector<uint256>* pvNoSpendsRemaining*/)
+void CFrtMemPool::Refresh(/*size_t sizelimit, std::vector<uint256>* pvNoSpendsRemaining*/)
 {
     LOCK(cs);
 
