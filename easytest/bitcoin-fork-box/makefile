@@ -18,8 +18,8 @@ BOOL=true
 
 start:
 	$(BITCOIND) $(B1) -daemon
-	$(BITCOIND) $(B2) -daemon
-	$(BITCOIND) $(B3) -daemon
+#	$(BITCOIND) $(B2) -daemon
+#	$(BITCOIND) $(B3) -daemon
 
 start-gui:
 	$(BITCOINGUI) $(B1) &
@@ -173,10 +173,10 @@ address:
 
 stop:
 	$(BITCOINCLI) $(B1) stop
-	$(BITCOINCLI) $(B2) stop
-	$(BITCOINCLI) $(B3) stop
+#	$(BITCOINCLI) $(B2) stop
+#	$(BITCOINCLI) $(B3) stop
 
 clean:
 	rm -rf 1/regtest
-	rm -rf 2/regtest
-	rm -rf 3/regtest
+#	rm -rf 2/regtest
+#	rm -rf 3/regtest
