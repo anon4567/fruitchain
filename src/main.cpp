@@ -2846,7 +2846,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     // Update globalHashPrevEpisode
     const CBlockIndex* nblockindex = pindex;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
-        //globalHashPrevEpisode = nblockindex->GetBlockHash();
+        globalHashPrevEpisode = nblockindex->GetBlockHash();
         frtmempool.clear();
         //LogPrintf("clear frtmempool\n");
         frtmempool_used.clear();
