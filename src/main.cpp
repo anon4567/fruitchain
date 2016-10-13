@@ -2662,6 +2662,13 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     }
     //------------------------------------------------------
 
+	for (const auto &fruit: block.vfrt) {
+	    if (frtmempool_used.exists(fruit.GetHash())) {
+    	    //return state.Invalid(false, REJECT_INVALID, "frt-already-used", "fruit has been used in current episode");
+			return state.DoS(100, error("ConnectBlock(): check fruit in block"), REJECT_INVALID, "bad-blk-frt-already-used");
+    	}
+	}
+
     CBlockUndo blockundo;
 
     CCheckQueueControl<CScriptCheck> control(fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : NULL);
@@ -2830,6 +2837,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
         frtmempool_used.add(frt, GetTime(), chainActive.Height());
+        LogPrintf("DEBUG: %s\n", frt.ToString());
         if (frtmempool.exists(frt.GetHash()))
             frtmempool.remove(frt);
     }
@@ -3917,9 +3925,9 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, const CBlockHeader& block, 
         2. not be contained in any block earlier in this episode
     */
 
-    if (frtmempool_used.exists(fruit.GetHash())) {
+    /* if (frtmempool_used.exists(fruit.GetHash())) {
         return state.Invalid(false, REJECT_INVALID, "frt-already-used", "fruit has been used in current episode");
-    }
+    }*/
 
     const CBlockIndex* nIndex = pindexPrev;
     for (; !IsEndOfEpisode(nIndex->nHeight);) {
