@@ -187,6 +187,6 @@ cleanregtest:
 #	rm -rf 3/regtest
 
 cleantestnet:
-	rm -rf 1/testnet
+	rm -rf 1/testnet3
 #	rm -rf 2/regtest
 #	rm -rf 3/regtest
