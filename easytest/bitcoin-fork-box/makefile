@@ -180,3 +180,13 @@ clean:
 	rm -rf 1/regtest
 #	rm -rf 2/regtest
 #	rm -rf 3/regtest
+
+cleanregtest:
+	rm -rf 1/regtest
+#	rm -rf 2/regtest
+#	rm -rf 3/regtest
+
+cleantestnet:
+	rm -rf 1/testnet
+#	rm -rf 2/regtest
+#	rm -rf 3/regtest
