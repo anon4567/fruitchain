@@ -2440,6 +2440,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     // Update globalHashPrevEpisode
     const CBlockIndex* nblockindex = pindex->pprev;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
+        LogPrintf("DEBUG: DisconnectBlock: clear mempool of fruit!\n");
         frtmempool.clear();
         frtmempool_used.clear();
         /*if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
@@ -2566,6 +2567,8 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (!fJustCheck) {
             view.SetBestBlock(pindex->GetBlockHash());
             //globalHashPrevEpisode = pindex->GetBlockHash();
+
+            LogPrintf("DEBUG: ConnectBlock1: clear mempool of fruit!\n");
             frtmempool.clear();
             //LogPrintf("clear frtmempool\n");
             frtmempool_used.clear();
@@ -2847,6 +2850,8 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     const CBlockIndex* nblockindex = pindex;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         globalHashPrevEpisode = nblockindex->GetBlockHash();
+
+        LogPrintf("DEBUG: ConnectBlock2: clear mempool of fruit!\n");
         frtmempool.clear();
         //LogPrintf("clear frtmempool\n");
         frtmempool_used.clear();
@@ -3362,17 +3367,24 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
 
             // Whether we have anything to do at all.
             if (pindexMostWork == NULL || pindexMostWork == chainActive.Tip()) {
+                LogPrintf("DEBUG: Whether we have anything to do at all.\n");
                 const CBlockIndex* nblockindex = pindexMostWork;
                 while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight)) {
                     nblockindex = nblockindex->pprev;
                 }
+                
+
                 if (nblockindex == NULL)
                     globalHashPrevEpisode.SetNull();
                 else
                     globalHashPrevEpisode = nblockindex->GetBlockHash();
-                frtmempool.clear();
-                frtmempool_used.clear();
-                LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
+
+                if (nblockindex == NULL) {
+                    LogPrintf("DEBUG: ActivateBestChain: clear mempool of fruit!\n");
+                    frtmempool.clear();
+                    frtmempool_used.clear();
+                    LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
+                }
                 return true;
             }
 
@@ -3447,7 +3459,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
         nblockindex = nblockindex->pprev;
     }
     globalHashPrevEpisode = nblockindex->GetBlockHash();
-    LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
+    LogPrintf("update2 globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
 
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
@@ -4687,7 +4699,9 @@ void UnloadBlockIndex()
     pindexBestHeader = NULL;
     mempool.clear();
     //verFruit
+    LogPrintf("DEBUG: UnloadBlockIndex: clear mempool of fruit!\n");
     frtmempool.clear();
+    frtmempool_used.clear();
     mapOrphanTransactions.clear();
     mapOrphanTransactionsByPrev.clear();
     nSyncStarted = 0;
