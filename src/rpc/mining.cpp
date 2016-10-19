@@ -131,8 +131,11 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
         uint32_t nNonce = 0;
         uint32_t fruitDifficulty = GetFruitDifficulty(pblock->nBits, Params().GetConsensus());
         CValidationState frtState;
-        LogPrintf("One mining try %x | %x \n", pblock->nBits, fruitDifficulty);
+//        LogPrintf("One mining try %x | %x \n", pblock->nBits, fruitDifficulty);
+        arith_uint256 tmpB, tmpF;
+        LogPrintf("One mining try %s | %s \n", tmpB.SetCompact(pblock->nBits).ToString(), tmpF.SetCompact(fruitDifficulty).ToString());
         while (nMaxTries > 0 && nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
+            //LogPrintf("DEBUG: mining result: %s\n", pblock->GetHash().ToString());
             if (CheckProofOfWork(pblock->GetHash(), fruitDifficulty, Params().GetConsensus())) {
                 LogPrintf("Fruit found! :\n%s\n", pblock->ToString().c_str());
                 {
