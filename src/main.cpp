@@ -3501,6 +3501,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
         nblockindex = nblockindex->pprev;
     }
     globalHashPrevEpisode = nblockindex->GetBlockHash();
+    LogPrintf("update2 globalHashPrevEpisode %d: %s\n", nblockindex->nHeight, globalHashPrevEpisode.ToString());
 
     nblockindex = nblockindex->pprev;
     while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight)) {
@@ -3511,10 +3512,8 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
     }
     else {
         globalHashPrevTwoEpisode = nblockindex->GetBlockHash();
+        LogPrintf("update2 globalHashPrevTwoEpisode: %s\n", globalHashPrevTwoEpisode.ToString());
     } 
-
-    LogPrintf("update2 globalHashPrevEpisode %d: %s\n update2 globalHashPrevTwoEpisode: %s\n", nblockindex->nHeight, globalHashPrevEpisode.ToString(), globalHashPrevTwoEpisode.ToString());
-
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
         return false;
@@ -4002,11 +4001,14 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, const CBlockHeader& block, 
         nIndex = nIndex->pprev;
     }
     if (nIndex->GetBlockHash() != fruit.hashPrevEpisode) {
-
-
-
-        LogPrintf("diff %s\n%s\n", nIndex->GetBlockHash().ToString(), fruit.hashPrevEpisode.ToString());
-        return state.DoS(100, false, REJECT_INVALID, "bad-prev", false, "incorrect prev episode");
+        nIndex = nIndex->pprev;
+        while (nIndex != NULL && !IsEndOfEpisode(nIndex->nHeight)) {
+            nIndex = nIndex->pprev;
+        }
+        if (nIndex == NULL || nIndex->GetBlockHash() != fruit.hashPrevEpisode) {
+            LogPrintf("diff %s\n%s\n", nIndex->GetBlockHash().ToString(), fruit.hashPrevEpisode.ToString());
+            return state.DoS(100, false, REJECT_INVALID, "bad-prev", false, "incorrect prev episode");
+        }
     }
 
 
