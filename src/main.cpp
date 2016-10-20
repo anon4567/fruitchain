@@ -81,14 +81,15 @@ size_t nCoinCacheUsage = 5000 * 300;
 uint64_t nPruneTarget = 0;
 int64_t nMaxTipAge = DEFAULT_MAX_TIP_AGE;
 bool fEnableReplacement = DEFAULT_ENABLE_REPLACEMENT;
-
+bool indexRipePool = 1;
 
 CFeeRate minRelayTxFee = CFeeRate(DEFAULT_MIN_RELAY_TX_FEE);
 CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 
 CTxMemPool mempool(::minRelayTxFee);
-CFrtMemPool frtmempool, frtmempool_used;
+CFrtMemPool frtmempool[2], frtmempool_used[2];
 uint256 globalHashPrevEpisode;
+uint256 globalHashPrevTwoEpisode;
 FeeFilterRounder filterRounder(::minRelayTxFee);
 
 struct IteratorComparator {
@@ -1580,7 +1581,15 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 }
 
 //verFruit
-bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CBlockHeader& frt, const Consensus::Params& consensusParams, bool fCheckPOW, bool fOverrideMempoolLimit)
+bool IsRipe(const CBlockHeader& frt)
+{
+    if (frt.hashPrevEpisode == globalHashPrevEpisode) return (indexRipePool ^ 1);
+    if (frt.hashPrevEpisode == globalHashPrevTwoEpisode) return indexRipePool;
+    LogPrintf("ERROR: rotten fruit!");
+    assert(false);
+}
+
+bool AcceptToFruitMemoryPool(CFrtMemPool pool[2], CValidationState& state, const CBlockHeader& frt, const Consensus::Params& consensusParams, bool fCheckPOW, bool fOverrideMempoolLimit)
 {
     const uint256 hash = frt.GetHash();
     AssertLockHeld(cs_main);
@@ -1589,39 +1598,40 @@ bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const C
         return false; // state filled in by CheckTransaction
 
     // is it already in the memory pool?
-    if (pool.exists(hash)) {
+    if (pool[0].exists(hash) || pool[1].exists(hash)) {
         return state.Invalid(false, REJECT_ALREADY_KNOWN, "frt-already-in-frtmempool");
     }
 
     // 1. check if its hist_header is correspond previous blocks
     if (frt.hashPrevEpisode != globalHashPrevEpisode) {
         //This can be sent to P2P network
-        return state.Invalid(false, REJECT_INVALID, "bad-frt-hashPrevEpisode");
+        if (frt.hashPrevEpisode != globalHashPrevTwoEpisode)
+            return state.Invalid(false, REJECT_INVALID, "bad-frt-hashPrevEpisode");
     }
 
     // 2. check if exists in previous blocks
-    if (frtmempool_used.exists(hash)) {
+    if (frtmempool_used[0].exists(hash) || frtmempool_used[1].exists(hash)) {
         return state.Invalid(false, REJECT_ALREADY_KNOWN, "frt-already-in-frtmempool_used");
     }
 
     {
-        CFrtMemPoolEntry entry(frt, /*nFees,*/ GetTime(), /*dPriority,*/ chainActive.Height() /*, pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp*/);
+        bool isRipe = IsRipe(frt);
+        CFrtMemPoolEntry entry(frt, /*nFees,*/ GetTime(), /*dPriority,*/ chainActive.Height()/*, pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp*/);
         //        unsigned int nSize = entry.GetFrtSize();
 
 
         // Store transaction in memory
-        pool.addUnchecked(hash, entry /*, setAncestors, !IsInitialBlockDownload()*/);
+        pool[isRipe].addUnchecked(hash, entry /*, setAncestors, !IsInitialBlockDownload()*/);
 
         // trim mempool and check if tx was trimmed
-        if (!fOverrideMempoolLimit) {
+/*        if (!fOverrideMempoolLimit) {
             LimitFrtMempoolSize(pool, GetArg("-maxfrtmempool", DEFAULT_MAX_FRTMEMPOOL_SIZE) * 1000000); //TODO: command and function
             if (!pool.exists(hash))
                 return state.DoS(0, false, REJECT_INSUFFICIENTFRTMEM, "frtmempool full");
-        }
+        }*/
     }
 
-    LogPrintf("New fruit %s\n global: %s\n", frt.ToString(), globalHashPrevEpisode.ToString());
-
+    LogPrintf("New fruit %s\n global: %s\n global2: %s\n", frt.ToString(), globalHashPrevEpisode.ToString(), globalHashPrevTwoEpisode.ToString());
     return true;
 }
 
@@ -2431,9 +2441,10 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     //-------------------------------------------------------
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
-        frtmempool.add(frt, GetTime(), chainActive.Height());
-        if (frtmempool_used.exists(frt.GetHash()))
-            frtmempool_used.remove(frt);
+        bool isRipe = IsRipe(frt);
+        frtmempool[isRipe].add(frt, GetTime(), chainActive.Height());
+        if (frtmempool_used[isRipe].exists(frt.GetHash()))
+            frtmempool_used[isRipe].remove(frt);
     }
     //----------------------------
     //------------------------------------------------------
@@ -2441,18 +2452,28 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     const CBlockIndex* nblockindex = pindex->pprev;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         LogPrintf("DEBUG: DisconnectBlock: clear mempool of fruit!\n");
-//        frtmempool.clear();
-        frtmempool.Refresh();
-//        frtmempool_used.clear();
-        frtmempool_used.Refresh();
-        /*if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
+        frtmempool[indexRipePool ^ 1].clear();
+        frtmempool_used[0].clear();
+        frtmempool_used[1].clear();
+        indexRipePool ^= 1;
+        if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
             globalHashPrevEpisode.SetNull();
+            globalHashPrevTwoEpisode.SetNull();
         } else {
             nblockindex = nblockindex->pprev;
             while (!IsEndOfEpisode(nblockindex->nHeight))
                 nblockindex = nblockindex->pprev;
             globalHashPrevEpisode = nblockindex->GetBlockHash();
-        }*/
+            if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
+                globalHashPrevTwoEpisode.SetNull();
+            } else {
+                nblockindex = nblockindex->pprev;
+                while (!IsEndOfEpisode(nblockindex->nHeight))
+                    nblockindex = nblockindex->pprev;
+                globalHashPrevTwoEpisode = nblockindex->GetBlockHash();
+            }
+        }
+        LogPrintf("DEBUG: update globalHashPrevEpisode: %s\n update globalHashPrevTwoEpisode: %s\n", globalHashPrevEpisode.ToString(), globalHashPrevTwoEpisode.ToString());
     }
 
     // move best block pointer to prevout block
@@ -2571,9 +2592,11 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             //globalHashPrevEpisode = pindex->GetBlockHash();
 
             LogPrintf("DEBUG: ConnectBlock1: clear mempool of fruit!\n");
-            frtmempool.clear();
+            frtmempool[0].clear();
+            frtmempool[1].clear();
             //LogPrintf("clear frtmempool\n");
-            frtmempool_used.clear();
+            frtmempool_used[0].clear();
+            frtmempool_used[1].clear();
         }
         return true;
     }
@@ -2668,7 +2691,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     //------------------------------------------------------
 
 	for (const auto &fruit: block.vfrt) {
-	    if (frtmempool_used.exists(fruit.GetHash())) {
+	    if (frtmempool_used[0].exists(fruit.GetHash()) || frtmempool_used[1].exists(fruit.GetHash())) {
     	    //return state.Invalid(false, REJECT_INVALID, "frt-already-used", "fruit has been used in current episode");
 			return state.DoS(100, error("ConnectBlock(): check fruit in block"), REJECT_INVALID, "bad-blk-frt-already-used");
     	}
@@ -2841,24 +2864,25 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
-        frtmempool_used.add(frt, GetTime(), chainActive.Height());
+        bool isRipe = IsRipe(frt);
+        frtmempool_used[isRipe].add(frt, GetTime(), chainActive.Height());
         LogPrintf("DEBUG: %s\n", frt.ToString());
-        if (frtmempool.exists(frt.GetHash()))
-            frtmempool.remove(frt);
+        if (frtmempool[isRipe].exists(frt.GetHash()))
+            frtmempool[isRipe].remove(frt);
     }
     //----------------------------
 
     // Update globalHashPrevEpisode
     const CBlockIndex* nblockindex = pindex;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
+        globalHashPrevTwoEpisode = globalHashPrevEpisode;
         globalHashPrevEpisode = nblockindex->GetBlockHash();
 
         LogPrintf("DEBUG: ConnectBlock2: clear mempool of fruit!\n");
-//        frtmempool.clear();
-        frtmempool.Refresh();
-        //LogPrintf("clear frtmempool\n");
-//        frtmempool_used.clear();
-        frtmempool_used.Refresh();
+        frtmempool[indexRipePool].clear();
+        frtmempool_used[0].clear();
+        frtmempool_used[1].clear();
+        indexRipePool ^= 1;
     }
     //-------------------------------------------------------
 
@@ -3378,16 +3402,29 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                 }
                 
 
-                if (nblockindex == NULL)
+                if (nblockindex == NULL) {
                     globalHashPrevEpisode.SetNull();
-                else
+                    globalHashPrevTwoEpisode.SetNull();
+                }
+                else {
                     globalHashPrevEpisode = nblockindex->GetBlockHash();
+                    nblockindex = nblockindex->pprev;
+                    while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight)) {
+                        nblockindex = nblockindex->pprev;
+                    }
+                    if (nblockindex == NULL) {
+                        globalHashPrevTwoEpisode.SetNull();
+                    }
+                    else {
+                        globalHashPrevTwoEpisode = nblockindex->GetBlockHash();
+                    }
+                }
                 if (nblockindex == NULL) {
                     LogPrintf("DEBUG: ActivateBestChain: clear mempool of fruit!\n");
-//                    frtmempool.clear();
-                    frtmempool.Refresh();
-//                    frtmempool_used.clear();
-                    frtmempool_used.Refresh();
+                    frtmempool[0].clear();
+                    frtmempool[1].clear();
+                    frtmempool_used[0].clear();
+                    frtmempool_used[1].clear();
                     LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
                 }
                 return true;
@@ -3464,7 +3501,19 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
         nblockindex = nblockindex->pprev;
     }
     globalHashPrevEpisode = nblockindex->GetBlockHash();
-    LogPrintf("update2 globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
+
+    nblockindex = nblockindex->pprev;
+    while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight)) {
+        nblockindex = nblockindex->pprev;
+    }
+    if (nblockindex == NULL) {
+        globalHashPrevTwoEpisode.SetNull();
+    }
+    else {
+        globalHashPrevTwoEpisode = nblockindex->GetBlockHash();
+    } 
+
+    LogPrintf("update2 globalHashPrevEpisode %d: %s\n update2 globalHashPrevTwoEpisode: %s\n", nblockindex->nHeight, globalHashPrevEpisode.ToString(), globalHashPrevTwoEpisode.ToString());
 
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
@@ -3953,6 +4002,9 @@ bool ContextualCheckFruit(const CBlockHeader& fruit, const CBlockHeader& block, 
         nIndex = nIndex->pprev;
     }
     if (nIndex->GetBlockHash() != fruit.hashPrevEpisode) {
+
+
+
         LogPrintf("diff %s\n%s\n", nIndex->GetBlockHash().ToString(), fruit.hashPrevEpisode.ToString());
         return state.DoS(100, false, REJECT_INVALID, "bad-prev", false, "incorrect prev episode");
     }
@@ -4705,8 +4757,10 @@ void UnloadBlockIndex()
     mempool.clear();
     //verFruit
     LogPrintf("DEBUG: UnloadBlockIndex: clear mempool of fruit!\n");
-    frtmempool.clear();
-    frtmempool_used.clear();
+    frtmempool[0].clear();
+    frtmempool[1].clear();
+    frtmempool_used[0].clear();
+    frtmempool_used[1].clear();
     mapOrphanTransactions.clear();
     mapOrphanTransactionsByPrev.clear();
     nSyncStarted = 0;
@@ -5173,8 +5227,9 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         assert(recentRejects); // Relate to
         // No chain tip effects
         return recentRejects->contains(inv.hash) ||
-               //TODO OrphanFruit?
-               frtmempool.exists(inv.hash);
+               //TODO frtmempool_used, orphan ?
+               frtmempool[0].exists(inv.hash) ||
+               frtmempool[1].exists(inv.hash);
     }
     case MSG_BLOCK:
     case MSG_WITNESS_BLOCK:
@@ -6042,7 +6097,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         mapAlreadyAskedFor.erase(inv.hash);
 
         if (!AlreadyHave(inv) && AcceptToFruitMemoryPool(frtmempool, state, frt, Params().GetConsensus())) {
-            frtmempool.check(/*pcoinsTip*/);
+            bool isRipe = IsRipe(frt);
+            frtmempool[isRipe].check(/*pcoinsTip*/);
             RelayFruit(frt);
             /*            for (unsigned int i = 0; i < tx.vout.size(); i++) {
                 vWorkQueue.emplace_back(inv.hash, i);
@@ -6053,7 +6109,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             LogPrint("frtmempool", "AcceptToMemoryPool: peer=%d: accepted %s (poolsz %u txn, %u kB)\n",
                 pfrom->id,
                 frt.GetHash().ToString(),
-                frtmempool.size(), frtmempool.DynamicMemoryUsage() / 1000); //TODO: Fruit Size scale are not determined yet.
+                frtmempool[isRipe].size(), frtmempool[isRipe].DynamicMemoryUsage() / 1000); //TODO: Fruit Size scale are not determined yet.
 
             // Recursively process any orphan transactions that depended on this one
         } else {
@@ -7212,9 +7268,12 @@ bool SendMessages(CNode* pto)
                         continue;
                     }
                     // Not in the mempool anymore? don't bother sending it.
-                    auto frtinfo = frtmempool.info(hash);
+                    auto frtinfo = frtmempool[0].info(hash);
                     if (!frtinfo.frt) {
-                        continue;
+                        frtinfo = frtmempool[1].info(hash);
+                        if (!frtinfo.frt) {
+                            continue;
+                        }
                     }
                     /*                    if (filterrate && txinfo.feeRate.GetFeePerK() < filterrate) {
                         continue;

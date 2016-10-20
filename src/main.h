@@ -173,8 +173,8 @@ extern uint256 globalHashPrevEpisode;
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern CTxMemPool mempool;
-extern CFrtMemPool frtmempool;
-extern CFrtMemPool frtmempool_used;
+extern CFrtMemPool frtmempool[2];
+extern CFrtMemPool frtmempool_used[2];
 typedef boost::unordered_map<uint256, CBlockIndex*, BlockHasher> BlockMap;
 extern BlockMap mapBlockIndex;
 extern uint64_t nLastBlockTx;
@@ -329,8 +329,10 @@ void PruneAndFlush();
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fOverrideMempoolLimit = false, const CAmount nAbsurdFee = 0);
 
+bool IsRipe(const CBlockHeader& frt);
+
 /** (try to) add fruit to memory pool **/
-bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const CBlockHeader& frt, const Consensus::Params& consensusParams, bool fCheckPOW = true, bool fOverrideMempoolLimit = false);
+bool AcceptToFruitMemoryPool(CFrtMemPool pool[2], CValidationState& state, const CBlockHeader& frt, const Consensus::Params& consensusParams, bool fCheckPOW = true, bool fOverrideMempoolLimit = false);
 
 /** Convert CValidationState to a human-readable message for logging */
 std::string FormatStateMessage(const CValidationState& state);

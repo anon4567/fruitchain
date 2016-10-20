@@ -648,10 +648,26 @@ void BlockAssembler::addFrts(uint32_t diff)
     fNeedSizeAccounting = true;
 
     // This vector will be sorted into a priority queue:
-    frtmempool.ExpireDifficulty(diff);
+    frtmempool[0].ExpireDifficulty(diff);
+    frtmempool[1].ExpireDifficulty(diff);
 
-    for (CFrtMemPool::indexed_fruit_set::iterator mi = frtmempool.mapFrt.begin();
-         mi != frtmempool.mapFrt.end(); ++mi) {
+    for (CFrtMemPool::indexed_fruit_set::iterator mi = frtmempool[0].mapFrt.begin();
+         mi != frtmempool[0].mapFrt.end(); ++mi) {
+        //CAmount dummy;
+        //mempool.ApplyDeltas(mi->GetTx().GetHash(), dPriority, dummy);
+
+        // If fruit already in block, skip
+        if (fruitInBlock.count(mi)) { //TODO 1
+            assert(false);
+            continue;
+        }
+
+        if (TestForBlock(mi)) {
+            AddToBlock(mi);
+        }
+    }
+	for (CFrtMemPool::indexed_fruit_set::iterator mi = frtmempool[1].mapFrt.begin();
+         mi != frtmempool[1].mapFrt.end(); ++mi) {
         //CAmount dummy;
         //mempool.ApplyDeltas(mi->GetTx().GetHash(), dPriority, dummy);
 
