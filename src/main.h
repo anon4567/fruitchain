@@ -162,7 +162,7 @@ static const int MAX_UNCONNECTING_HEADERS = 10;
 static const bool DEFAULT_PEERBLOOMFILTERS = true;
 
 /** Number of bits that fruits are easier than blocks */
-static const uint32_t TIMES_FRUIT_LESS_THAN_BLOCK = 1000;
+static const uint32_t TIMES_FRUIT_LESS_THAN_BLOCK = 100;
 
 
 struct BlockHasher {
