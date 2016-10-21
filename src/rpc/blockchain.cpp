@@ -337,13 +337,13 @@ UniValue mempoolToJSON(bool fVerbose = false)
 //verFruit
 UniValue getrawfrtmempool(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1)
+    if (fHelp || params.size() > 2)
         throw runtime_error(
             "getrawfrtmempool ( verbose )\n"
             "\nReturns all fruit ids in fruit memory pool as a json array of string fruit ids.\n"
             "\nArguments:\n"
             "1. verbose           (boolean, optional, default=false) true for a json object, false for array of fruit ids\n"
-            "\n2. freshness (boolean, optional, default=false) false for fresh fruit, true for ripe fruit\n"
+            "\n2. freshness (string, optional, default=false) true for ripe fruit, otherwise for fresh fruit\n"
             "\nResult: (for verbose = false):\n"
             "[                     (json array of string)\n"
             "  \"fruitid\"     (string) The fruit id\n"
@@ -358,23 +358,23 @@ UniValue getrawfrtmempool(const UniValue& params, bool fHelp)
             HelpExampleCli("getrawfrtmempool", "true") + HelpExampleRpc("getrawfrtmempool", "true"));
 
     bool fVerbose = false;
-    bool fFreshness = false;
+    bool fFreshness = (indexRipePool^1);
     if (params.size() > 0)
-        fVerbose = params[0].get_bool();
+        fVerbose = (params[0].get_str() == "true");
     if (params.size() > 1)
-        fFreshness = params[1].get_bool();
+        fFreshness = ((params[1].get_str() == "true") ? indexRipePool : (indexRipePool^1));
     return frtmempoolToJSON(frtmempool[fFreshness], fVerbose);
 }
 
 UniValue getrawfrtmempool_used(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() > 1)
+    if (fHelp || params.size() > 2)
         throw runtime_error(
             "getrawfrtmempool_used ( verbose )\n"
             "\nReturns all fruit ids in fruit memory pool_used as a json array of string fruit ids.\n"
             "\nArguments:\n"
             "1. verbose           (boolean, optional, default=false) true for a json object, false for array of fruit ids\n"
-            "\n2. freshness (boolean, optional, default=false) false for fresh fruit, true for ripe fruit\n"
+            "\n2. freshness (string, optional, default=false) true for ripe fruit, otherwise for fresh fruit\n"
             "\nResult: (for verbose = false):\n"
             "[                     (json array of string)\n"
             "  \"fruitid\"     (string) The fruit id\n"
@@ -389,12 +389,11 @@ UniValue getrawfrtmempool_used(const UniValue& params, bool fHelp)
             HelpExampleCli("getrawfrtmempool_used", "true") + HelpExampleRpc("getrawfrtmempool_used", "true"));
 
     bool fVerbose = false;
-    bool fFreshness = false;
+    bool fFreshness = (indexRipePool^1);
     if (params.size() > 0)
-        fVerbose = params[0].get_bool();
+        fVerbose = (params[0].get_str() == "true");
     if (params.size() > 1)
-        fFreshness = params[1].get_bool();
-
+        fFreshness = ((params[1].get_str() == "true") ? indexRipePool : (indexRipePool^1));
     return frtmempoolToJSON(frtmempool_used[fFreshness], fVerbose);
 }
 

@@ -94,8 +94,8 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "keypoolrefill", 0 },
     { "getrawmempool", 0 },
     //verFruit
-    { "getrawfrtmempool", 0 },
-    { "getrawfrtmempool_used", 0 },
+    { "getrawfrtmempool", 2 },
+    { "getrawfrtmempool_used", 2 },
     { "estimatefee", 0 },
     { "estimatepriority", 0 },
     { "estimatesmartfee", 0 },
