@@ -2227,7 +2227,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
       * RewardFractionDiff(i) = REWARD_DIFF_FRACTION_C3 * (1 - (i - 1) / (k - 1))
       */
     LogPrintf("Calculate reward distribution start, pindex->phashBlock: %d\n", pindex->phashBlock);
-    std::vector<uint32_t> f;
+    std::vector<uint32_t> f, ripef, freshf;
     uint32_t F = 0;
     std::vector<CAmount> fee, reward_block_creator;
     std::vector<std::vector<CScript> > fruit_creator;
@@ -2235,6 +2235,8 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     CAmount S = 0;
     const CBlockIndex* nblockindex = pindex;
     f.resize(FRUIT_PERIOD_LENGTH);
+    ripef.resize(FRUIT_PERIOD_LENGTH);
+    freshf.resize(FRUIT_PERIOD_LENGTH);
     fee.resize(FRUIT_PERIOD_LENGTH);
     reward_block_creator.resize(FRUIT_PERIOD_LENGTH);
     block_creator.resize(FRUIT_PERIOD_LENGTH);
