@@ -2231,7 +2231,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     uint32_t F = 0;
     std::vector<CAmount> fee, reward_block_creator;
     std::vector<std::vector<CScript> > fruit_creator;
-    std::vector<std::vector<CBlockHeader> > block_fruit;
+    std::vector<std::vector<bool> > fruit_isripe;
     std::vector<CScript> block_creator;
     CAmount S = 0;
     const CBlockIndex* nblockindex = pindex;
@@ -2242,7 +2242,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     reward_block_creator.resize(FRUIT_PERIOD_LENGTH);
     block_creator.resize(FRUIT_PERIOD_LENGTH);
     fruit_creator.resize(FRUIT_PERIOD_LENGTH);
-    block_fruit.resize(FRUIT_PERIOD_LENGTH);
+    fruit_isripe.resize(FRUIT_PERIOD_LENGTH);
     CAmount rest = 0;
     //loop in reverse order
 
@@ -2273,10 +2273,12 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         }
 
         std::vector<CScript> vfc;
+        std::vector<bool> vfr;
         // regard block a fruit
         f[i] += 1;
         freshf[i] += 1;
         vfc.push_back(nblock->scriptPubKey);
+        vfr.push_back(false);
         //------------------------------------
 
         F += f[i];
@@ -2298,13 +2300,15 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
 
         for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
             vfc.push_back(nblock->vfrt[i].scriptPubKey);
+            vfr.push_back(IsRipe(nblock->vfrt[i]));
         }
         fruit_creator[i] = vfc;
-        block_fruit[i] = nblock->vfrt;
+        fruit_isripe[i] = vfr;
 
         block_creator[i] = nblock->scriptPubKey;
     }
     // Create generation tx
+//    LogPrintf("DEBUG:look at block end!\n");
     CMutableTransaction nTx;
     nTx.vin.resize(1);
     nTx.vin[0].prevout.SetNull();
@@ -2312,11 +2316,14 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
 
     std::map<CScript, CAmount> rewardDist;
     for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
+//        LogPrintf("DEBUG:Calc block %d\n", i);
         //CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * ((FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH - 1) * REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR),
         CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/   = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * ((FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR *(FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH - 1) * REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR);
         CAmount reward_per_fruit_cr_ripe = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR - REWARD_CREATE_FRACTION_C2_NUMERATOR)) / (F * REWARD_CREATE_FRACTION_C2_DENOMINATOR);
         CAmount reward_per_fruit_co = S / F - reward_per_fruit_cr;
         CAmount reward_per_fruit_co_ripe = S / F - reward_per_fruit_cr_ripe;
+
+//        LogPrintf("DEBUG:Calc amount end!\n");
 
         //LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld\n", reward_per_fruit_cr, reward_per_fruit_co);
 
@@ -2331,25 +2338,28 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         rest -= reward_block_creator[i];
 
         for (unsigned int j = 0; j < fruit_creator[i].size(); ++j) {
+//            LogPrintf("DEBUG:Calc fruit %d\n", j);
             //nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i][j]));
+//            LogPrintf("DEBUG:creator %s\n", fruit_creator[i][j].ToString());
+//            LogPrintf("DEBUG:fruit isripe: %d\n", fruit_isripe[i][j]);
             if (rewardDist.find(fruit_creator[i][j]) != rewardDist.end()) {
-                if (IsRipe(block_fruit[i][j]))
+                if (fruit_isripe[i][j])
                     rewardDist[fruit_creator[i][j]] += reward_per_fruit_cr_ripe;
                 else 
                     rewardDist[fruit_creator[i][j]] += reward_per_fruit_cr;
             }
             else {
-                if (IsRipe(block_fruit[i][j]))
+                if (fruit_isripe[i][j])
                     rewardDist[fruit_creator[i][j]] = reward_per_fruit_cr_ripe;
                 else
                     rewardDist[fruit_creator[i][j]] = reward_per_fruit_cr;
             }
-            //LogPrintf("Calculate reward distribution mid: rest: %lld\n", rest);
-            if (IsRipe(block_fruit[i][j]))
+//            LogPrintf("Calculate reward distribution mid: rest: %lld\n", rest);
+            if (fruit_isripe[i][j])
                 rest -= reward_per_fruit_cr_ripe;
             else 
                 rest -= reward_per_fruit_cr;
-            //LogPrintf("Calculate reward distribution mid2 : rest: %lld\n", rest);
+//            LogPrintf("Calculate reward distribution mid2 : rest: %lld\n", rest);
         }
     }
     if (rest != 0) {
