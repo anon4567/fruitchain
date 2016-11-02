@@ -2318,13 +2318,12 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
 //        LogPrintf("DEBUG:Calc block %d\n", i);
         //CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * ((FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH - 1) * REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR),
-        CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/   = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * ((FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR *(FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH - 1) * REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR);
+        CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * (FRUIT_PERIOD_LENGTH * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH)*REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH)*REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR);
         CAmount reward_per_fruit_cr_ripe = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR - REWARD_CREATE_FRACTION_C2_NUMERATOR)) / (F * REWARD_CREATE_FRACTION_C2_DENOMINATOR);
         CAmount reward_per_fruit_co = S / F - reward_per_fruit_cr;
         CAmount reward_per_fruit_co_ripe = S / F - reward_per_fruit_cr_ripe;
 
 //        LogPrintf("DEBUG:Calc amount end!\n");
-
         //LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld\n", reward_per_fruit_cr, reward_per_fruit_co);
 
 //        reward_block_creator[i] += reward_per_fruit_co * f[i];
@@ -2373,7 +2372,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         nTx.vout.push_back(CTxOut(rewardAssign.second, rewardAssign.first));
     }
     fruit_tx.push_back(nTx);
-    LogPrintf("Calculate reward distribution end\n");
+    LogPrintf("Calculate reward distribution end\n generation tx: %s", fruit_tx[0].ToString().c_str());
     return true;
 }
 
@@ -2732,7 +2731,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 			return state.DoS(100, error("ConnectBlock(): check fruit in block"), REJECT_INVALID, "bad-blk-frt-already-used");
     	}
 	}
-
     CBlockUndo blockundo;
 
     CCheckQueueControl<CScriptCheck> control(fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : NULL);
@@ -2869,6 +2867,15 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         pindex->RaiseValidity(BLOCK_VALID_SCRIPTS);
         setDirtyBlockIndex.insert(pindex);
     }
+
+    // Write reward distribution transcation to disk
+    /*if (IsEndOfEpisode(pindex->nHeight)) {
+        CDiskBlockPos pos;
+        if (!FindRewardPos(state, pos, pindex->nHeight, ::GetSerializeSize(fruit_tx[0], SER_DISK, CLIENT_VERSION)))
+            return error("ConnectBlock(): FindRewardPos failed");
+        if (!WriteRewardToDisk(fruit_tx[0], pindex->GetHash(), chainparams.MessageStart()))
+            return AbortNode(state, "Failed to write reward data");
+    }*/
 
     if (fTxIndex)
         if (!pblocktree->WriteTxIndex(vPos))
@@ -3436,7 +3443,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                 while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight)) {
                     nblockindex = nblockindex->pprev;
                 }
-                
+
 
                 if (nblockindex == NULL) {
                     globalHashPrevEpisode.SetNull();
@@ -3773,6 +3780,8 @@ bool FindBlockPos(CValidationState& state, CDiskBlockPos& pos, unsigned int nAdd
     setDirtyFileInfo.insert(nFile);
     return true;
 }
+
+//bool FindRewardPos(CValidationState& state, CDiskBlockPos& pos, int nHeight, unsigned int n)
 
 bool FindUndoPos(CValidationState& state, int nFile, CDiskBlockPos& pos, unsigned int nAddSize)
 {
