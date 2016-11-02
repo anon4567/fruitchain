@@ -2473,15 +2473,6 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         SyncWithWallets(tx, pindex->pprev);
     }
 
-    //-------------------------------------------------------
-    // Update frtmempool and frtmempool_used
-    for (const auto& frt : block.vfrt) {
-        bool isRipe = IsRipe(frt);
-        frtmempool[isRipe].add(frt, GetTime(), chainActive.Height());
-        if (frtmempool_used[isRipe].exists(frt.GetHash()))
-            frtmempool_used[isRipe].remove(frt);
-    }
-    //----------------------------
     //------------------------------------------------------
     // Update globalHashPrevEpisode
     const CBlockIndex* nblockindex = pindex->pprev;
@@ -2510,6 +2501,16 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         }
         LogPrintf("DEBUG: update globalHashPrevEpisode: %s\n update globalHashPrevTwoEpisode: %s\n", globalHashPrevEpisode.ToString(), globalHashPrevTwoEpisode.ToString());
     }
+
+	//-------------------------------------------------------
+    // Update frtmempool and frtmempool_used
+    for (const auto& frt : block.vfrt) {
+        bool isRipe = IsRipe(frt);
+        frtmempool[isRipe].add(frt, GetTime(), chainActive.Height());
+        if (frtmempool_used[isRipe].exists(frt.GetHash()))
+            frtmempool_used[isRipe].remove(frt);
+    }
+    //----------------------------
 
     // move best block pointer to prevout block
     view.SetBestBlock(pindex->pprev->GetBlockHash());
@@ -3468,8 +3469,9 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                     frtmempool[1].clear();
                     frtmempool_used[0].clear();
                     frtmempool_used[1].clear();
-                    LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
+//                    LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
                 }
+                LogPrintf("update globalHashPrevEpisode %d: %s %s\n", nblockindex!=NULL ? nblockindex->nHeight : 0, globalHashPrevEpisode.ToString(), globalHashPrevTwoEpisode.ToString());
                 return true;
             }
 
