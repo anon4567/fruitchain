@@ -3392,8 +3392,9 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                     LogPrintf("DEBUG: ActivateBestChain: clear mempool of fruit!\n");
                     frtmempool.clear();
                     frtmempool_used.clear();
-                    LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
+//                    LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
                 }
+                LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex!=NULL ? nblockindex->nHeight : 0, globalHashPrevEpisode.ToString());
                 return true;
             }
 
