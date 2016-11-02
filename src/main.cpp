@@ -2339,6 +2339,7 @@ bool IsEndOfEpisode(int nHeight)
 
 bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool* pfClean)
 {
+    LogPrintf("disconnect block:\n %s\n", block.ToString().c_str());
     assert(pindex->GetBlockHash() == view.GetBestBlock());
 
     if (pfClean)
@@ -2549,6 +2550,7 @@ static int64_t nTimeTotal = 0;
 
 bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck, std::vector<std::tuple<CTransaction, CBlockIndex*, int> >* pTxChanged)
 {
+    LogPrintf("connectblock:\n%s\n", block.ToString().c_str());
     AssertLockHeld(cs_main);
 
     int64_t nTimeStart = GetTimeMicros();
