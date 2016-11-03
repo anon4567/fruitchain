@@ -1581,10 +1581,18 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 }
 
 //verFruit
-bool IsRipe(const CBlockHeader& frt)
+bool IndexFrtmempool(const CBlockHeader& frt)
 {
     if (frt.hashPrevEpisode == globalHashPrevEpisode) return (indexRipePool ^ 1);
     if (frt.hashPrevEpisode == globalHashPrevTwoEpisode) return indexRipePool;
+    LogPrintf("ERROR: rotten fruit!");
+    assert(false);
+}
+
+bool IsRipe(const CBlockHeader& frt)
+{
+    if (frt.hashPrevEpisode == globalHashPrevEpisode) return 0;
+    if (frt.hashPrevEpisode == globalHashPrevTwoEpisode) return 1;
     LogPrintf("ERROR: rotten fruit!");
     assert(false);
 }
@@ -1615,7 +1623,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool pool[2], CValidationState& state, const
     }
 
     {
-        bool isRipe = IsRipe(frt);
+        bool isRipe = IndexFrtmempool(frt); //IsRipe(frt);
         CFrtMemPoolEntry entry(frt, /*nFees,*/ GetTime(), /*dPriority,*/ chainActive.Height()/*, pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp*/);
         //        unsigned int nSize = entry.GetFrtSize();
 
@@ -2505,7 +2513,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
 	//-------------------------------------------------------
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
-        bool isRipe = IsRipe(frt);
+        bool isRipe = IndexFrtmempool(frt); //IsRipe(frt);
         frtmempool[isRipe].add(frt, GetTime(), chainActive.Height());
         if (frtmempool_used[isRipe].exists(frt.GetHash()))
             frtmempool_used[isRipe].remove(frt);
@@ -2908,7 +2916,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
-        bool isRipe = IsRipe(frt);
+        bool isRipe = IndexFrtmempool(frt); //IsRipe(frt);
         frtmempool_used[isRipe].add(frt, GetTime(), chainActive.Height());
         LogPrintf("DEBUG: %s\n", frt.ToString());
         if (frtmempool[isRipe].exists(frt.GetHash()))
@@ -6146,7 +6154,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         mapAlreadyAskedFor.erase(inv.hash);
 
         if (!AlreadyHave(inv) && AcceptToFruitMemoryPool(frtmempool, state, frt, Params().GetConsensus())) {
-            bool isRipe = IsRipe(frt);
+            bool isRipe = IndexFrtmempool(frt); //IsRipe(frt);
             frtmempool[isRipe].check(/*pcoinsTip*/);
             RelayFruit(frt);
             /*            for (unsigned int i = 0; i < tx.vout.size(); i++) {
