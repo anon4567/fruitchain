@@ -229,7 +229,7 @@ static const unsigned int DEFAULT_CHECKLEVEL = 4;
 // Setting the target to > than 550MB will make it likely we can respect the target.
 static const uint64_t MIN_DISK_SPACE_FOR_BLOCK_FILES = 550 * 1024 * 1024;
 
-bool IsEndOfEpisode(CBlockIndex* pindex);
+bool IsEndOfEpisode(int nHeight);
 /** Register with a network node to receive its signals */
 void RegisterNodeSignals(CNodeSignals& nodeSignals);
 /** Unregister a network node */
