@@ -1585,7 +1585,7 @@ bool IndexFrtmempool(const CBlockHeader& frt)
 {
     if (frt.hashPrevEpisode == globalHashPrevEpisode) return (indexRipePool ^ 1);
     if (frt.hashPrevEpisode == globalHashPrevTwoEpisode) return indexRipePool;
-    LogPrintf("ERROR: rotten fruit!");
+    LogPrintf("ERROR: rotten fruit!\n");
     assert(false);
 }
 
@@ -1593,7 +1593,9 @@ bool IsRipe(const CBlockHeader& frt)
 {
     if (frt.hashPrevEpisode == globalHashPrevEpisode) return 0;
     if (frt.hashPrevEpisode == globalHashPrevTwoEpisode) return 1;
-    LogPrintf("ERROR: rotten fruit!");
+    LogPrintf("ERROR: rotten fruit!\n");
+    LogPrintf("DEBUG %s\n", globalHashPrevEpisode.ToString());
+    LogPrintf("DEBUG %s\n", globalHashPrevTwoEpisode.ToString());
     assert(false);
 }
 
