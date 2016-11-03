@@ -2263,7 +2263,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
             }
             nblock = &tmpblock;
         }
-        LogPrintf("look at block %d: fee: %lld, #frt: %u\n", i, fee[i], f[i]);
+        LogPrintf("look at block %d: fee: %lld, #frt: %u, #fresh: %u, #ripe: %u\n", i, fee[i], f[i], freshf[i], ripef[i]);
 
         f[i] = nblock->vfrt.size();
         for (unsigned int j = 0; j < nblock->vfrt.size(); ++j) {
@@ -2292,7 +2292,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
             }
         }*/
 
-        LogPrintf("look at block %d: fee: %lld, #frt: %u\n", i, fee[i], f[i]);
+        LogPrintf("look at block %d: fee: %lld, #frt: %u, #fresh: %u, #ripe: %u\n", i, fee[i], f[i], freshf[i], ripef[i]);
         CAmount tmp = fee[i] + GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus());
         reward_block_creator[i] = tmp * FEE_FRACTION_C1_NUMERATOR / FEE_FRACTION_C1_DENOMINATOR;
         S += tmp - reward_block_creator[i];
@@ -2318,7 +2318,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
 //        LogPrintf("DEBUG:Calc block %d\n", i);
         //CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * ((FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH - 1) * REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR),
-        CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * (FRUIT_PERIOD_LENGTH * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH)*REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH)*REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR);
+        CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * (FRUIT_PERIOD_LENGTH * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - i) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH)*REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH)*REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR);
         CAmount reward_per_fruit_cr_ripe = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR - REWARD_CREATE_FRACTION_C2_NUMERATOR)) / (F * REWARD_CREATE_FRACTION_C2_DENOMINATOR);
         CAmount reward_per_fruit_co = S / F - reward_per_fruit_cr;
         CAmount reward_per_fruit_co_ripe = S / F - reward_per_fruit_cr_ripe;
