@@ -88,8 +88,8 @@ CAmount maxTxFee = DEFAULT_TRANSACTION_MAXFEE;
 
 CTxMemPool mempool(::minRelayTxFee);
 CFrtMemPool frtmempool[2], frtmempool_used[2];
-uint256 globalHashPrevEpisode;
-uint256 globalHashPrevTwoEpisode;
+//uint256 globalHashPrevEpisode;
+//uint256 globalHashPrevTwoEpisode;
 FeeFilterRounder filterRounder(::minRelayTxFee);
 
 struct IteratorComparator {
@@ -1581,7 +1581,32 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 }
 
 //verFruit
-bool IndexFrtmempool(const CBlockHeader& frt)
+CBlockIndex* FindHashPrevEpisode(CBlockIndex* nblockindex)
+{
+    while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight))
+        nblockindex = nblockindex->pprev;    
+    return nblockindex;
+}
+
+void SetPrevEpisode(CBlockIndex* nblockindex, uint256 &hashPrevEpisode, uint256 &hashPrevTwoEpisode)
+{
+    nblockindex = FindHashPrevEpisode(nblockindex);
+    if (nblockindex != NULL)
+        hashPrevEpisode = nblockindex->GetBlockHash();
+    else {
+        hashPrevEpisode.SetNull();
+        hashPrevTwoEpisode.SetNull();
+        return ;
+    }
+    nblockindex = nblockindex->pprev;
+    nblockindex = FindHashPrevEpisode(nblockindex);
+    if (nblockindex != NULL)
+        hashPrevTwoEpisode = nblockindex->GetBlockHash();
+    else
+        hashPrevTwoEpisode.SetNull();
+}
+
+bool IndexFrtmempool(const CBlockHeader& frt, uint256 globalHashPrevEpisode, uint256 globalHashPrevTwoEpisode)
 {
     if (frt.hashPrevEpisode == globalHashPrevEpisode) return (indexRipePool ^ 1);
     if (frt.hashPrevEpisode == globalHashPrevTwoEpisode) return indexRipePool;
@@ -1589,7 +1614,7 @@ bool IndexFrtmempool(const CBlockHeader& frt)
     assert(false);
 }
 
-bool IsRipe(const CBlockHeader& frt)
+bool IsRipe(const CBlockHeader& frt, uint256 globalHashPrevEpisode, uint256 globalHashPrevTwoEpisode)
 {
     if (frt.hashPrevEpisode == globalHashPrevEpisode) return 0;
     if (frt.hashPrevEpisode == globalHashPrevTwoEpisode) return 1;
@@ -1613,9 +1638,16 @@ bool AcceptToFruitMemoryPool(CFrtMemPool pool[2], CValidationState& state, const
     }
 
     // 1. check if its hist_header is correspond previous blocks
-    if (frt.hashPrevEpisode != globalHashPrevEpisode) {
+    CBlockIndex* nblockindex = chainActive.Tip();
+    uint256 hashPrevEpisode, hashPrevTwoEpisode;
+    //nblockindex = nblockindex->pprev;
+//    while (!IsEndOfEpisode(nblockindex->nHeight))
+//        nblockindex = nblockindex->pprev;
+    SetPrevEpisode(nblockindex, hashPrevEpisode, hashPrevTwoEpisode);
+
+    if (frt.hashPrevEpisode != hashPrevEpisode) {
         //This can be sent to P2P network
-        if (frt.hashPrevEpisode != globalHashPrevTwoEpisode)
+        if (frt.hashPrevEpisode != hashPrevTwoEpisode)
             return state.Invalid(false, REJECT_INVALID, "bad-frt-hashPrevEpisode");
     }
 
@@ -1625,7 +1657,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool pool[2], CValidationState& state, const
     }
 
     {
-        bool isRipe = IndexFrtmempool(frt); //IsRipe(frt);
+        bool isRipe = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //IsRipe(frt);
         CFrtMemPoolEntry entry(frt, /*nFees,*/ GetTime(), /*dPriority,*/ chainActive.Height()/*, pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp*/);
         //        unsigned int nSize = entry.GetFrtSize();
 
@@ -1641,7 +1673,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool pool[2], CValidationState& state, const
         }*/
     }
 
-    LogPrintf("New fruit %s\n global: %s\n global2: %s\n", frt.ToString(), globalHashPrevEpisode.ToString(), globalHashPrevTwoEpisode.ToString());
+    LogPrintf("New fruit %s\n global: %s\n global2: %s\n", frt.ToString(), hashPrevEpisode.ToString(), hashPrevTwoEpisode.ToString());
     return true;
 }
 
@@ -2255,7 +2287,11 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     fruit_isripe.resize(FRUIT_PERIOD_LENGTH);
     CAmount rest = 0;
     //loop in reverse order
-
+    //nblockindex = pindex->pprev;
+    uint256 hashPrevEpisode, hashPrevTwoEpisode;
+    SetPrevEpisode(pindex->pprev, hashPrevEpisode, hashPrevTwoEpisode);
+    
+    nblockindex = pindex;
     for (int i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
         LogPrintf("look at block %d: start\n", i);
 
@@ -2278,7 +2314,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         f[i] = nblock->vfrt.size();
         for (unsigned int j = 0; j < nblock->vfrt.size(); ++j) {
             CBlockHeader frt = nblock->vfrt[j];
-            if (IsRipe(frt)) ripef[i] += 1;
+            if (IsRipe(frt, hashPrevEpisode, hashPrevTwoEpisode)) ripef[i] += 1;
             else freshf[i] += 1;
         }
 
@@ -2310,7 +2346,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
 
         for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
             vfc.push_back(nblock->vfrt[i].scriptPubKey);
-            vfr.push_back(IsRipe(nblock->vfrt[i]));
+            vfr.push_back(IsRipe(nblock->vfrt[i], hashPrevEpisode, hashPrevTwoEpisode));
         }
         fruit_creator[i] = vfc;
         fruit_isripe[i] = vfr;
@@ -2394,6 +2430,7 @@ bool IsEndOfEpisode(int nHeight)
 
 bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool* pfClean)
 {
+    LogPrintf("disconnect block:\n %s\n", block.ToString().c_str());
     assert(pindex->GetBlockHash() == view.GetBestBlock());
 
     if (pfClean)
@@ -2486,13 +2523,15 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     //------------------------------------------------------
     // Update globalHashPrevEpisode
     const CBlockIndex* nblockindex = pindex->pprev;
+    uint256 hashPrevEpisode, hashPrevTwoEpisode;
+    SetPrevEpisode(pindex->pprev, hashPrevEpisode, hashPrevTwoEpisode);
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         LogPrintf("DEBUG: DisconnectBlock: clear mempool of fruit!\n");
         frtmempool[indexRipePool ^ 1].clear();
         frtmempool_used[0].clear();
         frtmempool_used[1].clear();
         indexRipePool ^= 1;
-        if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
+/*        if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
             globalHashPrevEpisode.SetNull();
             globalHashPrevTwoEpisode.SetNull();
         } else {
@@ -2508,14 +2547,14 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
                     nblockindex = nblockindex->pprev;
                 globalHashPrevTwoEpisode = nblockindex->GetBlockHash();
             }
-        }
-        LogPrintf("DEBUG: update globalHashPrevEpisode: %s\n update globalHashPrevTwoEpisode: %s\n", globalHashPrevEpisode.ToString(), globalHashPrevTwoEpisode.ToString());
+        }*/
+        LogPrintf("DEBUG: update globalHashPrevEpisode: %s\n update globalHashPrevTwoEpisode: %s\n", hashPrevEpisode.ToString(), hashPrevTwoEpisode.ToString());
     }
 
 	//-------------------------------------------------------
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
-        bool isRipe = IndexFrtmempool(frt); //IsRipe(frt);
+        bool isRipe = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //IsRipe(frt);
         frtmempool[isRipe].add(frt, GetTime(), chainActive.Height());
         if (frtmempool_used[isRipe].exists(frt.GetHash()))
             frtmempool_used[isRipe].remove(frt);
@@ -2618,6 +2657,10 @@ static int64_t nTimeTotal = 0;
 
 bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck, std::vector<std::tuple<CTransaction, CBlockIndex*, int> >* pTxChanged)
 {
+    //const CBlockIndex* nblockindex = pindex->pprev;
+    uint256 hashPrevEpisode, hashPrevTwoEpisode;
+    SetPrevEpisode(pindex->pprev, hashPrevEpisode, hashPrevTwoEpisode);
+    LogPrintf("connectblock:\n%s\n", block.ToString().c_str());
     AssertLockHeld(cs_main);
 
     int64_t nTimeStart = GetTimeMicros();
@@ -2918,7 +2961,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
-        bool isRipe = IndexFrtmempool(frt); //IsRipe(frt);
+        bool isRipe = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //IsRipe(frt);
         frtmempool_used[isRipe].add(frt, GetTime(), chainActive.Height());
         LogPrintf("DEBUG: %s\n", frt.ToString());
         if (frtmempool[isRipe].exists(frt.GetHash()))
@@ -2929,9 +2972,8 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     // Update globalHashPrevEpisode
     const CBlockIndex* nblockindex = pindex;
     if (IsEndOfEpisode(nblockindex->nHeight)) {
-        globalHashPrevTwoEpisode = globalHashPrevEpisode;
-        globalHashPrevEpisode = nblockindex->GetBlockHash();
-
+        hashPrevTwoEpisode = hashPrevEpisode;
+        hashPrevEpisode = nblockindex->GetBlockHash();
         LogPrintf("DEBUG: ConnectBlock2: clear mempool of fruit!\n");
         frtmempool[indexRipePool].clear();
         frtmempool_used[0].clear();
@@ -3453,10 +3495,9 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                 const CBlockIndex* nblockindex = pindexMostWork;
                 while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight)) {
                     nblockindex = nblockindex->pprev;
-                }
+                } 
 
-
-                if (nblockindex == NULL) {
+/*                if (nblockindex == NULL) {
                     globalHashPrevEpisode.SetNull();
                     globalHashPrevTwoEpisode.SetNull();
                 }
@@ -3472,8 +3513,9 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                     else {
                         globalHashPrevTwoEpisode = nblockindex->GetBlockHash();
                     }
-                }
+                }*/
                 if (nblockindex == NULL) {
+                    //genesis block
                     LogPrintf("DEBUG: ActivateBestChain: clear mempool of fruit!\n");
                     frtmempool[0].clear();
                     frtmempool[1].clear();
@@ -3481,7 +3523,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                     frtmempool_used[1].clear();
 //                    LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
                 }
-                LogPrintf("update globalHashPrevEpisode %d: %s %s\n", nblockindex!=NULL ? nblockindex->nHeight : 0, globalHashPrevEpisode.ToString(), globalHashPrevTwoEpisode.ToString());
+                LogPrintf("update globalHashPrevEpisode %d\n", nblockindex!=NULL ? nblockindex->nHeight : 0);
                 return true;
             }
 
@@ -3493,6 +3535,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                 // Wipe cache, we may need another branch now.
                 pindexMostWork = NULL;
             }
+
             pindexNewTip = chainActive.Tip();
             pindexFork = chainActive.FindFork(pindexOldTip);
             fInitialDownload = IsInitialBlockDownload();
@@ -3551,14 +3594,14 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
     } while (pindexNewTip != pindexMostWork);
     CheckBlockIndex(chainparams.GetConsensus());
     // Update globalHashPrevEpisode
-    const CBlockIndex* nblockindex = pindexNewTip;
+    /*const CBlockIndex* nblockindex = pindexNewTip;
     while (!IsEndOfEpisode(nblockindex->nHeight)) {
         nblockindex = nblockindex->pprev;
-    }
-    globalHashPrevEpisode = nblockindex->GetBlockHash();
-    LogPrintf("update2 globalHashPrevEpisode %d: %s\n", nblockindex->nHeight, globalHashPrevEpisode.ToString());
+    }*/
+    //globalHashPrevEpisode = nblockindex->GetBlockHash();
+    //LogPrintf("update2 globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
 
-    nblockindex = nblockindex->pprev;
+/*    nblockindex = nblockindex->pprev;
     while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight)) {
         nblockindex = nblockindex->pprev;
     }
@@ -3568,7 +3611,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
     else {
         globalHashPrevTwoEpisode = nblockindex->GetBlockHash();
         LogPrintf("update2 globalHashPrevTwoEpisode: %s\n", globalHashPrevTwoEpisode.ToString());
-    } 
+    } */
     // Write changes periodically to disk, after relay.
     if (!FlushStateToDisk(state, FLUSH_STATE_PERIODIC)) {
         return false;
@@ -6156,7 +6199,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         mapAlreadyAskedFor.erase(inv.hash);
 
         if (!AlreadyHave(inv) && AcceptToFruitMemoryPool(frtmempool, state, frt, Params().GetConsensus())) {
-            bool isRipe = IndexFrtmempool(frt); //IsRipe(frt);
+            CBlockIndex* nblockindex = chainActive.Tip();
+            uint256 hashPrevEpisode, hashPrevTwoEpisode;
+            SetPrevEpisode(nblockindex, hashPrevEpisode, hashPrevTwoEpisode);
+            bool isRipe = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //IsRipe(frt);
             frtmempool[isRipe].check(/*pcoinsTip*/);
             RelayFruit(frt);
             /*            for (unsigned int i = 0; i < tx.vout.size(); i++) {

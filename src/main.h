@@ -218,7 +218,7 @@ extern uint64_t nPruneTarget;
 static const unsigned int MIN_BLOCKS_TO_KEEP = 288;
 
 static const signed int DEFAULT_CHECKBLOCKS = 6;
-static const unsigned int DEFAULT_CHECKLEVEL = 3;
+static const unsigned int DEFAULT_CHECKLEVEL = 4;
 
 // Require that user allocate at least 550MB for block & undo files (blk???.dat and rev???.dat)
 // At 1MB per block, 288 blocks = 288MB.
@@ -331,8 +331,10 @@ void PruneAndFlush();
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fOverrideMempoolLimit = false, const CAmount nAbsurdFee = 0);
 
-bool IndexFrtmempool(const CBlockHeader& frt);
-bool IsRipe(const CBlockHeader& frt);
+CBlockIndex* FindHashPrevEpisode(CBlockIndex* nblockindex);
+void SetPrevEpisode(CBlockIndex* nblockindex, uint256 &hashPrevEpisode, uint256 &hashPrevTwoEpisode);
+bool IndexFrtmempool(const CBlockHeader& frt, uint256 globalHashPrevEpisode, uint256 globalHashPrevTwoEpisode);
+bool IsRipe(const CBlockHeader& frt, uint256 globalHashPrevEpisode, uint256 globalHashPrevTwoEpisode);
 
 /** (try to) add fruit to memory pool **/
 bool AcceptToFruitMemoryPool(CFrtMemPool pool[2], CValidationState& state, const CBlockHeader& frt, const Consensus::Params& consensusParams, bool fCheckPOW = true, bool fOverrideMempoolLimit = false);
