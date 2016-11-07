@@ -2334,7 +2334,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         nTx.vout.push_back(CTxOut(rewardAssign.second, rewardAssign.first));
     }
     fruit_tx.push_back(nTx);
-    LogPrintf("Calculate reward distribution end\n generation tx: %s", fruit_tx[0].ToString().c_str());
+    LogPrintf("Calculate reward distribution end\n generation tx: %s\n%s", fruit_tx[0].GetHash().ToString().c_str(), fruit_tx[0].ToString().c_str());
     return true;
 }
 
