@@ -1584,11 +1584,11 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 CBlockIndex* FindHashPrevEpisode(CBlockIndex* nblockindex)
 {
     while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight))
-        nblockindex = nblockindex->pprev;    
+        nblockindex = nblockindex->pprev;
     return nblockindex;
 }
 
-void SetPrevEpisode(CBlockIndex* nblockindex, uint256 &hashPrevEpisode, uint256 &hashPrevTwoEpisode)
+void SetPrevEpisode(CBlockIndex* nblockindex, uint256& hashPrevEpisode, uint256& hashPrevTwoEpisode)
 {
     nblockindex = FindHashPrevEpisode(nblockindex);
     if (nblockindex != NULL)
@@ -1596,7 +1596,7 @@ void SetPrevEpisode(CBlockIndex* nblockindex, uint256 &hashPrevEpisode, uint256 
     else {
         hashPrevEpisode.SetNull();
         hashPrevTwoEpisode.SetNull();
-        return ;
+        return;
     }
     nblockindex = nblockindex->pprev;
     nblockindex = FindHashPrevEpisode(nblockindex);
@@ -1608,16 +1608,20 @@ void SetPrevEpisode(CBlockIndex* nblockindex, uint256 &hashPrevEpisode, uint256 
 
 bool IndexFrtmempool(const CBlockHeader& frt, uint256 globalHashPrevEpisode, uint256 globalHashPrevTwoEpisode)
 {
-    if (frt.hashPrevEpisode == globalHashPrevEpisode) return (indexRipePool ^ 1);
-    if (frt.hashPrevEpisode == globalHashPrevTwoEpisode) return indexRipePool;
+    if (frt.hashPrevEpisode == globalHashPrevEpisode)
+        return (indexRipePool ^ 1);
+    if (frt.hashPrevEpisode == globalHashPrevTwoEpisode)
+        return indexRipePool;
     LogPrintf("ERROR: rotten fruit!\n");
     assert(false);
 }
 
 bool IsRipe(const CBlockHeader& frt, uint256 globalHashPrevEpisode, uint256 globalHashPrevTwoEpisode)
 {
-    if (frt.hashPrevEpisode == globalHashPrevEpisode) return 0;
-    if (frt.hashPrevEpisode == globalHashPrevTwoEpisode) return 1;
+    if (frt.hashPrevEpisode == globalHashPrevEpisode)
+        return 0;
+    if (frt.hashPrevEpisode == globalHashPrevTwoEpisode)
+        return 1;
     LogPrintf("ERROR: rotten fruit!\n");
     LogPrintf("DEBUG %s\n", globalHashPrevEpisode.ToString());
     LogPrintf("DEBUG %s\n", globalHashPrevTwoEpisode.ToString());
@@ -1641,8 +1645,8 @@ bool AcceptToFruitMemoryPool(CFrtMemPool pool[2], CValidationState& state, const
     CBlockIndex* nblockindex = chainActive.Tip();
     uint256 hashPrevEpisode, hashPrevTwoEpisode;
     //nblockindex = nblockindex->pprev;
-//    while (!IsEndOfEpisode(nblockindex->nHeight))
-//        nblockindex = nblockindex->pprev;
+    //    while (!IsEndOfEpisode(nblockindex->nHeight))
+    //        nblockindex = nblockindex->pprev;
     SetPrevEpisode(nblockindex, hashPrevEpisode, hashPrevTwoEpisode);
 
     if (frt.hashPrevEpisode != hashPrevEpisode) {
@@ -1658,7 +1662,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool pool[2], CValidationState& state, const
 
     {
         bool isRipe = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //IsRipe(frt);
-        CFrtMemPoolEntry entry(frt, /*nFees,*/ GetTime(), /*dPriority,*/ chainActive.Height()/*, pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp*/);
+        CFrtMemPoolEntry entry(frt, /*nFees,*/ GetTime(), /*dPriority,*/ chainActive.Height() /*, pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp*/);
         //        unsigned int nSize = entry.GetFrtSize();
 
 
@@ -1666,7 +1670,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool pool[2], CValidationState& state, const
         pool[isRipe].addUnchecked(hash, entry /*, setAncestors, !IsInitialBlockDownload()*/);
 
         // trim mempool and check if tx was trimmed
-/*        if (!fOverrideMempoolLimit) {
+        /*        if (!fOverrideMempoolLimit) {
             LimitFrtMempoolSize(pool, GetArg("-maxfrtmempool", DEFAULT_MAX_FRTMEMPOOL_SIZE) * 1000000); //TODO: command and function
             if (!pool.exists(hash))
                 return state.DoS(0, false, REJECT_INSUFFICIENTFRTMEM, "frtmempool full");
@@ -2290,7 +2294,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     //nblockindex = pindex->pprev;
     uint256 hashPrevEpisode, hashPrevTwoEpisode;
     SetPrevEpisode(pindex->pprev, hashPrevEpisode, hashPrevTwoEpisode);
-    
+
     nblockindex = pindex;
     for (int i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
         LogPrintf("look at block %d: start\n", i);
@@ -2314,8 +2318,10 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         f[i] = nblock->vfrt.size();
         for (unsigned int j = 0; j < nblock->vfrt.size(); ++j) {
             CBlockHeader frt = nblock->vfrt[j];
-            if (IsRipe(frt, hashPrevEpisode, hashPrevTwoEpisode)) ripef[i] += 1;
-            else freshf[i] += 1;
+            if (IsRipe(frt, hashPrevEpisode, hashPrevTwoEpisode))
+                ripef[i] += 1;
+            else
+                freshf[i] += 1;
         }
 
         std::vector<CScript> vfc;
@@ -2354,7 +2360,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         block_creator[i] = nblock->scriptPubKey;
     }
     // Create generation tx
-//    LogPrintf("DEBUG:look at block end!\n");
+    //    LogPrintf("DEBUG:look at block end!\n");
     CMutableTransaction nTx;
     nTx.vin.resize(1);
     nTx.vin[0].prevout.SetNull();
@@ -2362,17 +2368,17 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
 
     std::map<CScript, CAmount> rewardDist;
     for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
-//        LogPrintf("DEBUG:Calc block %d\n", i);
+        //        LogPrintf("DEBUG:Calc block %d\n", i);
         //CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * ((FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH - 1) * REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR),
         CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * (FRUIT_PERIOD_LENGTH * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - i) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH)*REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH)*REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR);
         CAmount reward_per_fruit_cr_ripe = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR - REWARD_CREATE_FRACTION_C2_NUMERATOR)) / (F * REWARD_CREATE_FRACTION_C2_DENOMINATOR);
         CAmount reward_per_fruit_co = S / F - reward_per_fruit_cr;
         CAmount reward_per_fruit_co_ripe = S / F - reward_per_fruit_cr_ripe;
 
-//        LogPrintf("DEBUG:Calc amount end!\n");
+        //        LogPrintf("DEBUG:Calc amount end!\n");
         //LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld\n", reward_per_fruit_cr, reward_per_fruit_co);
 
-//        reward_block_creator[i] += reward_per_fruit_co * f[i];
+        //        reward_block_creator[i] += reward_per_fruit_co * f[i];
         reward_block_creator[i] += reward_per_fruit_co * freshf[i];
         reward_block_creator[i] += reward_per_fruit_co_ripe * ripef[i];
         //nTx.vout.push_back(CTxOut(reward_block_creator[i], block_creator[i]));
@@ -2383,28 +2389,27 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         rest -= reward_block_creator[i];
 
         for (unsigned int j = 0; j < fruit_creator[i].size(); ++j) {
-//            LogPrintf("DEBUG:Calc fruit %d\n", j);
+            //            LogPrintf("DEBUG:Calc fruit %d\n", j);
             //nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i][j]));
-//            LogPrintf("DEBUG:creator %s\n", fruit_creator[i][j].ToString());
-//            LogPrintf("DEBUG:fruit isripe: %d\n", fruit_isripe[i][j]);
+            //            LogPrintf("DEBUG:creator %s\n", fruit_creator[i][j].ToString());
+            //            LogPrintf("DEBUG:fruit isripe: %d\n", fruit_isripe[i][j]);
             if (rewardDist.find(fruit_creator[i][j]) != rewardDist.end()) {
                 if (fruit_isripe[i][j])
                     rewardDist[fruit_creator[i][j]] += reward_per_fruit_cr_ripe;
-                else 
+                else
                     rewardDist[fruit_creator[i][j]] += reward_per_fruit_cr;
-            }
-            else {
+            } else {
                 if (fruit_isripe[i][j])
                     rewardDist[fruit_creator[i][j]] = reward_per_fruit_cr_ripe;
                 else
                     rewardDist[fruit_creator[i][j]] = reward_per_fruit_cr;
             }
-//            LogPrintf("Calculate reward distribution mid: rest: %lld\n", rest);
+            //            LogPrintf("Calculate reward distribution mid: rest: %lld\n", rest);
             if (fruit_isripe[i][j])
                 rest -= reward_per_fruit_cr_ripe;
-            else 
+            else
                 rest -= reward_per_fruit_cr;
-//            LogPrintf("Calculate reward distribution mid2 : rest: %lld\n", rest);
+            //            LogPrintf("Calculate reward distribution mid2 : rest: %lld\n", rest);
         }
     }
     if (rest != 0) {
@@ -2531,7 +2536,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         frtmempool_used[0].clear();
         frtmempool_used[1].clear();
         indexRipePool ^= 1;
-/*        if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
+        /*        if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
             globalHashPrevEpisode.SetNull();
             globalHashPrevTwoEpisode.SetNull();
         } else {
@@ -2551,7 +2556,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         LogPrintf("DEBUG: update globalHashPrevEpisode: %s\n update globalHashPrevTwoEpisode: %s\n", hashPrevEpisode.ToString(), hashPrevTwoEpisode.ToString());
     }
 
-	//-------------------------------------------------------
+    //-------------------------------------------------------
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
         bool isRipe = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //IsRipe(frt);
@@ -2770,21 +2775,14 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     nTimeForks += nTime2 - nTime1;
     LogPrint("bench", "    - Fork checks: %.2fms [%.2fs]\n", 0.001 * (nTime2 - nTime1), nTimeForks * 0.000001);
 
-    std::vector<CTransaction> fruit_tx;
-    if (IsEndOfEpisode(pindex->nHeight)) {
-        if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
-            return state.DoS(100, error("ConnectBlock(): try to CalculateRewardDistribution"),
-                REJECT_INVALID, "bad-blk-reward-episodecorrupted");
-        LogPrintf("End of Episode: %u\n", fruit_tx.size());
-    }
     //------------------------------------------------------
 
-	for (const auto &fruit: block.vfrt) {
-	    if (frtmempool_used[0].exists(fruit.GetHash()) || frtmempool_used[1].exists(fruit.GetHash())) {
-    	    //return state.Invalid(false, REJECT_INVALID, "frt-already-used", "fruit has been used in current episode");
-			return state.DoS(100, error("ConnectBlock(): check fruit in block"), REJECT_INVALID, "bad-blk-frt-already-used");
-    	}
-	}
+    for (const auto& fruit : block.vfrt) {
+        if (frtmempool_used[0].exists(fruit.GetHash()) || frtmempool_used[1].exists(fruit.GetHash())) {
+            //return state.Invalid(false, REJECT_INVALID, "frt-already-used", "fruit has been used in current episode");
+            return state.DoS(100, error("ConnectBlock(): check fruit in block"), REJECT_INVALID, "bad-blk-frt-already-used");
+        }
+    }
     CBlockUndo blockundo;
 
     CCheckQueueControl<CScriptCheck> control(fScriptChecks && nScriptCheckThreads ? &scriptcheckqueue : NULL);
@@ -2869,6 +2867,15 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     }
 
     pindex->nFees = nFees;
+
+    std::vector<CTransaction> fruit_tx;
+    if (IsEndOfEpisode(pindex->nHeight)) {
+        if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
+            return state.DoS(100, error("ConnectBlock(): try to CalculateRewardDistribution"),
+                REJECT_INVALID, "bad-blk-reward-episodecorrupted");
+        LogPrintf("End of Episode: %u\n", fruit_tx.size());
+    }
+
 
     int64_t nTime3 = GetTimeMicros();
     nTimeConnect += nTime3 - nTime2;
@@ -3495,9 +3502,9 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                 const CBlockIndex* nblockindex = pindexMostWork;
                 while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight)) {
                     nblockindex = nblockindex->pprev;
-                } 
+                }
 
-/*                if (nblockindex == NULL) {
+                /*                if (nblockindex == NULL) {
                     globalHashPrevEpisode.SetNull();
                     globalHashPrevTwoEpisode.SetNull();
                 }
@@ -3521,9 +3528,9 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
                     frtmempool[1].clear();
                     frtmempool_used[0].clear();
                     frtmempool_used[1].clear();
-//                    LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
+                    //                    LogPrintf("update globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
                 }
-                LogPrintf("update globalHashPrevEpisode %d\n", nblockindex!=NULL ? nblockindex->nHeight : 0);
+                LogPrintf("update globalHashPrevEpisode %d\n", nblockindex != NULL ? nblockindex->nHeight : 0);
                 return true;
             }
 
@@ -3601,7 +3608,7 @@ bool ActivateBestChain(CValidationState& state, const CChainParams& chainparams,
     //globalHashPrevEpisode = nblockindex->GetBlockHash();
     //LogPrintf("update2 globalHashPrevEpisode %d: %s", nblockindex->nHeight, globalHashPrevEpisode.ToString());
 
-/*    nblockindex = nblockindex->pprev;
+    /*    nblockindex = nblockindex->pprev;
     while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight)) {
         nblockindex = nblockindex->pprev;
     }
