@@ -1661,13 +1661,13 @@ bool AcceptToFruitMemoryPool(CFrtMemPool pool[2], CValidationState& state, const
     }
 
     {
-        bool isRipe = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //IsRipe(frt);
+        bool whichPool = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //whichPool(frt);
         CFrtMemPoolEntry entry(frt, /*nFees,*/ GetTime(), /*dPriority,*/ chainActive.Height() /*, pool.HasNoInputsOf(tx), inChainInputValue, fSpendsCoinbase, nSigOpsCost, lp*/);
         //        unsigned int nSize = entry.GetFrtSize();
 
 
         // Store transaction in memory
-        pool[isRipe].addUnchecked(hash, entry /*, setAncestors, !IsInitialBlockDownload()*/);
+        pool[whichPool].addUnchecked(hash, entry /*, setAncestors, !IsInitialBlockDownload()*/);
 
         // trim mempool and check if tx was trimmed
         /*        if (!fOverrideMempoolLimit) {
@@ -2533,8 +2533,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     if (IsEndOfEpisode(nblockindex->nHeight)) {
         LogPrintf("DEBUG: DisconnectBlock: clear mempool of fruit!\n");
         frtmempool[indexRipePool ^ 1].clear();
-        frtmempool_used[0].clear();
-        frtmempool_used[1].clear();
+        frtmempool_used[indexRipePool ^ 1].clear();
         indexRipePool ^= 1;
         /*        if (nblockindex->GetBlockHash() == chainparams.GetConsensus().hashGenesisBlock) {
             globalHashPrevEpisode.SetNull();
@@ -2559,10 +2558,10 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     //-------------------------------------------------------
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
-        bool isRipe = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //IsRipe(frt);
-        frtmempool[isRipe].add(frt, GetTime(), chainActive.Height());
-        if (frtmempool_used[isRipe].exists(frt.GetHash()))
-            frtmempool_used[isRipe].remove(frt);
+        bool whichPool = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //whichPool(frt);
+        frtmempool[whichPool].add(frt, GetTime(), chainActive.Height());
+        if (frtmempool_used[whichPool].exists(frt.GetHash()))
+            frtmempool_used[whichPool].remove(frt);
     }
     //----------------------------
 
@@ -2968,11 +2967,11 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
-        bool isRipe = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //IsRipe(frt);
-        frtmempool_used[isRipe].add(frt, GetTime(), chainActive.Height());
+        bool whichPool = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //whichPool(frt);
+        frtmempool_used[whichPool].add(frt, GetTime(), chainActive.Height());
         LogPrintf("DEBUG: %s\n", frt.ToString());
-        if (frtmempool[isRipe].exists(frt.GetHash()))
-            frtmempool[isRipe].remove(frt);
+        if (frtmempool[whichPool].exists(frt.GetHash()))
+            frtmempool[whichPool].remove(frt);
     }
     //----------------------------
 
@@ -2983,8 +2982,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         hashPrevEpisode = nblockindex->GetBlockHash();
         LogPrintf("DEBUG: ConnectBlock2: clear mempool of fruit!\n");
         frtmempool[indexRipePool].clear();
-        frtmempool_used[0].clear();
-        frtmempool_used[1].clear();
+        frtmempool_used[indexRipePool].clear();
         indexRipePool ^= 1;
     }
     //-------------------------------------------------------
@@ -6209,8 +6207,8 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             CBlockIndex* nblockindex = chainActive.Tip();
             uint256 hashPrevEpisode, hashPrevTwoEpisode;
             SetPrevEpisode(nblockindex, hashPrevEpisode, hashPrevTwoEpisode);
-            bool isRipe = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //IsRipe(frt);
-            frtmempool[isRipe].check(/*pcoinsTip*/);
+            bool whichPool = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //whichPool(frt);
+            frtmempool[whichPool].check(/*pcoinsTip*/);
             RelayFruit(frt);
             /*            for (unsigned int i = 0; i < tx.vout.size(); i++) {
                 vWorkQueue.emplace_back(inv.hash, i);
@@ -6221,7 +6219,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             LogPrint("frtmempool", "AcceptToMemoryPool: peer=%d: accepted %s (poolsz %u txn, %u kB)\n",
                 pfrom->id,
                 frt.GetHash().ToString(),
-                frtmempool[isRipe].size(), frtmempool[isRipe].DynamicMemoryUsage() / 1000); //TODO: Fruit Size scale are not determined yet.
+                frtmempool[whichPool].size(), frtmempool[whichPool].DynamicMemoryUsage() / 1000); //TODO: Fruit Size scale are not determined yet.
 
             // Recursively process any orphan transactions that depended on this one
         } else {
