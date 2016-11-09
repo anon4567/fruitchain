@@ -2665,14 +2665,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     nTimeForks += nTime2 - nTime1;
     LogPrint("bench", "    - Fork checks: %.2fms [%.2fs]\n", 0.001 * (nTime2 - nTime1), nTimeForks * 0.000001);
 
-    std::vector<CTransaction> fruit_tx;
-    if (IsEndOfEpisode(pindex->nHeight)) {
-        if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
-            return state.DoS(100, error("ConnectBlock(): try to CalculateRewardDistribution"),
-                REJECT_INVALID, "bad-blk-reward-episodecorrupted");
-        LogPrintf("End of Episode: %u\n", fruit_tx.size());
-    }
-    //------------------------------------------------------
 
     for (const auto& fruit : block.vfrt) {
         if (frtmempool_used.exists(fruit.GetHash())) {
@@ -2765,6 +2757,15 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     }
 
     pindex->nFees = nFees;
+
+    std::vector<CTransaction> fruit_tx;
+    if (IsEndOfEpisode(pindex->nHeight)) {
+        if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
+            return state.DoS(100, error("ConnectBlock(): try to CalculateRewardDistribution"),
+                REJECT_INVALID, "bad-blk-reward-episodecorrupted");
+        LogPrintf("End of Episode: %u\n", fruit_tx.size());
+    }
+    //------------------------------------------------------
 
     int64_t nTime3 = GetTimeMicros();
     nTimeConnect += nTime3 - nTime2;
