@@ -3701,7 +3701,7 @@ bool ResetBlockFailureFlags(CBlockIndex* pindex)
 
 CBlockIndex* AddToBlockIndex(const CBlockHeader& block)
 {
-    LogPrintf("AddToBlockIndex %s", block.GetHash().GetHex());
+    LogPrintf("AddToBlockIndex %s\n", block.GetHash().GetHex());
     // Check for duplicate
     uint256 hash = block.GetHash();
     BlockMap::iterator it = mapBlockIndex.find(hash);
