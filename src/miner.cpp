@@ -168,13 +168,18 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
     // transaction (which in most cases can be a no-op).
     fIncludeWitness = IsWitnessEnabled(pindexPrev, chainparams.GetConsensus());
 
+    pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
+    // Add fruits
+    addFrts(GetFruitDifficulty(pblock->nBits, Params().GetConsensus()));
+
     addPriorityTxs();
     addPackageTxs();
 
     nLastBlockTx = nBlockTx;
+    nLastBlockFrt = nBlockFrt;
     nLastBlockSize = nBlockSize;
     nLastBlockWeight = nBlockWeight;
-    LogPrintf("CreateNewBlock(): total size %u txs: %u fees: %ld sigops %d\n", nBlockSize, nBlockTx, nFees, nBlockSigOpsCost);
+    LogPrintf("CreateNewBlock(): total size %u txs: %u frts: %u fees: %ld sigops %d\n", nBlockSize, nBlockTx, nBlockFrt, nFees, nBlockSigOpsCost);
 
     // Create coinbase transaction.
     /*CMutableTransaction coinbaseTx;
@@ -188,9 +193,6 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
     pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());
     pblocktemplate->vTxFees[0] = -nFees;*/
 
-    pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
-    // Add fruits
-    addFrts(GetFruitDifficulty(pblock->nBits, Params().GetConsensus()));
 
     // Fill in header
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
