@@ -168,13 +168,18 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
     // transaction (which in most cases can be a no-op).
     fIncludeWitness = IsWitnessEnabled(pindexPrev, chainparams.GetConsensus());
 
+    pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
+    // Add fruits
+    addFrts(GetFruitDifficulty(pblock->nBits, Params().GetConsensus()));
+
     addPriorityTxs();
     addPackageTxs();
 
     nLastBlockTx = nBlockTx;
+    nLastBlockFrt = nBlockFrt;
     nLastBlockSize = nBlockSize;
     nLastBlockWeight = nBlockWeight;
-    LogPrintf("CreateNewBlock(): total size %u txs: %u fees: %ld sigops %d\n", nBlockSize, nBlockTx, nFees, nBlockSigOpsCost);
+    LogPrintf("CreateNewBlock(): total size %u txs: %u frts: %u fees: %ld sigops %d\n", nBlockSize, nBlockTx, nBlockFrt, nFees, nBlockSigOpsCost);
 
     // Create coinbase transaction.
     /*CMutableTransaction coinbaseTx;
@@ -188,9 +193,6 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
     pblocktemplate->vchCoinbaseCommitment = GenerateCoinbaseCommitment(*pblock, pindexPrev, chainparams.GetConsensus());
     pblocktemplate->vTxFees[0] = -nFees;*/
 
-    pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
-    // Add fruits
-    addFrts(GetFruitDifficulty(pblock->nBits, Params().GetConsensus()));
 
     // Fill in header
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
@@ -327,14 +329,14 @@ bool BlockAssembler::TestForBlock(CTxMemPool::txiter iter)
 bool BlockAssembler::TestForBlock(CFrtMemPool::frtiter iter)
 {
     if (nBlockWeight + iter->GetFrtWeight() >= nBlockMaxWeight) {
-        // If the block is so close to full that no more txs will fit
+        // If the block is so close to full that no more frts will fit
         // or if we've tried more than 50 times to fill remaining space
         // then flag that the block is finished
         if (nBlockWeight > nBlockMaxWeight - 400 || lastFewFrts > 50) {
             frtBlockFinished = true;
             return false;
         }
-        // Once we're within 4000 weight of a full block, only look at 50 more txs
+        // Once we're within 4000 weight of a full block, only look at 50 more frts
         // to try to fill the remaining space.
         if (nBlockWeight > nBlockMaxWeight - 4000) {
             lastFewFrts++;
