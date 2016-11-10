@@ -2435,7 +2435,7 @@ bool IsEndOfEpisode(int nHeight)
 
 bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool* pfClean)
 {
-    LogPrintf("disconnect block:\n %s\n", block.ToString().c_str());
+    LogPrintf("disconnect block:\n %s\n", block.GetBlockHeader().ToString().c_str());
     assert(pindex->GetBlockHash() == view.GetBestBlock());
 
     if (pfClean)
@@ -2664,7 +2664,8 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     //const CBlockIndex* nblockindex = pindex->pprev;
     uint256 hashPrevEpisode, hashPrevTwoEpisode;
     SetPrevEpisode(pindex->pprev, hashPrevEpisode, hashPrevTwoEpisode);
-    LogPrintf("connectblock:\n%s\n", block.ToString().c_str());
+//    LogPrintf("connectblock:\n%s\n", block.ToString().c_str());
+    LogPrintf("connectblock:\n%s\n", block.GetBlockHeader().ToString().c_str());
     AssertLockHeld(cs_main);
 
     int64_t nTimeStart = GetTimeMicros();
@@ -2969,7 +2970,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     for (const auto& frt : block.vfrt) {
         bool whichPool = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //whichPool(frt);
         frtmempool_used[whichPool].add(frt, GetTime(), chainActive.Height());
-        LogPrintf("DEBUG: %s\n", frt.ToString());
+//        LogPrintf("DEBUG: %s\n", frt.ToString());
         if (frtmempool[whichPool].exists(frt.GetHash()))
             frtmempool[whichPool].remove(frt);
     }

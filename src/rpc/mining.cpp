@@ -110,17 +110,17 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
         nHeight = nHeightStart;
         nHeightEnd = nHeightStart + nGenerate;
     }
-    LogPrintf("mining! 1\n");
+//    LogPrintf("mining! 1\n");
     unsigned int nExtraNonce = 0;
     UniValue result(UniValue::VOBJ);
     UniValue blockHashes(UniValue::VARR);
     UniValue fruitHashes(UniValue::VARR);
     while (nHeight < nHeightEnd) {
         std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(Params()).CreateNewBlock(coinbaseScript->reserveScript));
-        LogPrintf("mining! 2\n");
+//        LogPrintf("mining! 2\n");
         if (!pblocktemplate.get())
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
-        LogPrintf("mining! 3\n");
+//        LogPrintf("mining! 3\n");
         CBlock* pblock = &pblocktemplate->block;
         /*{
             LOCK(cs_main);
@@ -137,7 +137,8 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
         while (nMaxTries > 0 && nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
             //LogPrintf("DEBUG: mining result: %s\n", pblock->GetHash().ToString());
             if (CheckProofOfWork(pblock->GetHash(), fruitDifficulty, Params().GetConsensus())) {
-                LogPrintf("Fruit found! :\n%s\n", pblock->ToString().c_str());
+//                LogPrintf("Fruit found! :\n%s\n", pblock->ToString().c_str());
+                LogPrintf("Fruit found! :\n%s\n", pblock->GetBlockHeader().ToString().c_str());
                 {
                     LOCK(cs_main);
                     AcceptToFruitMemoryPool(frtmempool, frtState, pblock->GetBlockHeader(), Params().GetConsensus());
