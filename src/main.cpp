@@ -2527,7 +2527,8 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
 
     //------------------------------------------------------
     // Update globalHashPrevEpisode
-    const CBlockIndex* nblockindex = pindex->pprev;
+//    const CBlockIndex* nblockindex = pindex->pprev;
+    const CBlockIndex* nblockindex = pindex;
     uint256 hashPrevEpisode, hashPrevTwoEpisode;
     SetPrevEpisode(pindex->pprev, hashPrevEpisode, hashPrevTwoEpisode);
     if (IsEndOfEpisode(nblockindex->nHeight)) {
@@ -2562,6 +2563,10 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         frtmempool[whichPool].add(frt, GetTime(), chainActive.Height());
         if (frtmempool_used[whichPool].exists(frt.GetHash()))
             frtmempool_used[whichPool].remove(frt);
+        else {
+            LogPrintf("ERROR: fruit not exist!");
+            assert(0);
+        }
     }
     //----------------------------
 
@@ -2780,6 +2785,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     for (const auto& fruit : block.vfrt) {
         if (frtmempool_used[0].exists(fruit.GetHash()) || frtmempool_used[1].exists(fruit.GetHash())) {
             //return state.Invalid(false, REJECT_INVALID, "frt-already-used", "fruit has been used in current episode");
+            LogPrintf("ERROR: %s\n", fruit.GetHash().ToString());
             return state.DoS(100, error("ConnectBlock(): check fruit in block"), REJECT_INVALID, "bad-blk-frt-already-used");
         }
     }
@@ -2970,7 +2976,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     for (const auto& frt : block.vfrt) {
         bool whichPool = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //whichPool(frt);
         frtmempool_used[whichPool].add(frt, GetTime(), chainActive.Height());
-//        LogPrintf("DEBUG: %s\n", frt.ToString());
+        LogPrintf("DEBUG: add to frtmempool_used %s %d\n", frt.GetHash().ToString(), IsRipe(frt));
         if (frtmempool[whichPool].exists(frt.GetHash()))
             frtmempool[whichPool].remove(frt);
     }
