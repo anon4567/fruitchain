@@ -2976,7 +2976,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     for (const auto& frt : block.vfrt) {
         bool whichPool = IndexFrtmempool(frt, hashPrevEpisode, hashPrevTwoEpisode); //whichPool(frt);
         frtmempool_used[whichPool].add(frt, GetTime(), chainActive.Height());
-        LogPrintf("DEBUG: add to frtmempool_used %s %d\n", frt.GetHash().ToString(), IsRipe(frt));
+        LogPrintf("DEBUG: add to frtmempool_used %s %d\n", frt.GetHash().ToString(), IsRipe(frt, hashPrevEpisode, hashPrevTwoEpisode));
         if (frtmempool[whichPool].exists(frt.GetHash()))
             frtmempool[whichPool].remove(frt);
     }
