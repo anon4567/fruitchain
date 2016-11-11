@@ -2565,7 +2565,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
             frtmempool_used[whichPool].remove(frt);
         else {
             LogPrintf("ERROR: fruit not exist!");
-            assert(0);
+            //assert(0);
         }
     }
     //----------------------------
@@ -2669,7 +2669,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     //const CBlockIndex* nblockindex = pindex->pprev;
     uint256 hashPrevEpisode, hashPrevTwoEpisode;
     SetPrevEpisode(pindex->pprev, hashPrevEpisode, hashPrevTwoEpisode);
-//    LogPrintf("connectblock:\n%s\n", block.ToString().c_str());
+    //    LogPrintf("connectblock:\n%s\n", block.ToString().c_str());
     LogPrintf("connectblock:\n%s\n", block.GetBlockHeader().ToString().c_str());
     AssertLockHeld(cs_main);
 
