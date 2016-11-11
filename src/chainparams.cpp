@@ -170,7 +170,7 @@ public:
          *  and may be not able to get fruit
         **/
         consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan = 16 * 3 * 60//14 * 24 * 60 * 60; // two weeks
+        consensus.nPowTargetTimespan = 16 * 3 * 60; //14 * 24 * 60 * 60; // two weeks
         consensus.nPowTargetSpacing = 3 * 60; //10 * 60;
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
