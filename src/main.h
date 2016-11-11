@@ -74,10 +74,10 @@ static const unsigned int DEFAULT_DESCENDANT_SIZE_LIMIT = 101;
 /** Default for -mempoolexpiry, expiration time for mempool transactions in hours */
 static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 72;
 /** length of fruit period */
-static const unsigned int FRUIT_PERIOD_LENGTH = 6;
+static const unsigned int FRUIT_PERIOD_LENGTH = 8;
 /** Fraction of fees that would be sent to block creator */
 static const int FEE_FRACTION_C1_NUMERATOR = 1;
-static const int FEE_FRACTION_C1_DENOMINATOR = 10;
+static const int FEE_FRACTION_C1_DENOMINATOR = 100;
 /** Fraction of reward how much would the first block get less than the last block creator from a fruit*/
 static const int REWARD_DIFF_FRACTION_C3_NUMERATOR = 1;
 static const int REWARD_DIFF_FRACTION_C3_DENOMINATOR = 100;
@@ -331,8 +331,8 @@ void PruneAndFlush();
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fOverrideMempoolLimit = false, const CAmount nAbsurdFee = 0);
 
-CBlockIndex* FindHashPrevEpisode(CBlockIndex* nblockindex);
-void SetPrevEpisode(CBlockIndex* nblockindex, uint256 &hashPrevEpisode, uint256 &hashPrevTwoEpisode);
+const CBlockIndex* FindHashPrevEpisode(const CBlockIndex* nblockindex);
+void SetPrevEpisode(const CBlockIndex* nblockindex, uint256& hashPrevEpisode, uint256& hashPrevTwoEpisode);
 bool IndexFrtmempool(const CBlockHeader& frt, uint256 globalHashPrevEpisode, uint256 globalHashPrevTwoEpisode);
 bool IsRipe(const CBlockHeader& frt, uint256 globalHashPrevEpisode, uint256 globalHashPrevTwoEpisode);
 

@@ -1581,14 +1581,14 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 }
 
 //verFruit
-CBlockIndex* FindHashPrevEpisode(CBlockIndex* nblockindex)
+const CBlockIndex* FindHashPrevEpisode(const CBlockIndex* nblockindex)
 {
     while (nblockindex != NULL && !IsEndOfEpisode(nblockindex->nHeight))
         nblockindex = nblockindex->pprev;
     return nblockindex;
 }
 
-void SetPrevEpisode(CBlockIndex* nblockindex, uint256& hashPrevEpisode, uint256& hashPrevTwoEpisode)
+void SetPrevEpisode(const CBlockIndex* nblockindex, uint256& hashPrevEpisode, uint256& hashPrevTwoEpisode)
 {
     nblockindex = FindHashPrevEpisode(nblockindex);
     if (nblockindex != NULL)
@@ -2365,6 +2365,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     nTx.vin.resize(1);
     nTx.vin[0].prevout.SetNull();
     nTx.vin[0].scriptSig = CScript() << pindex->nHeight << OP_0;
+    LogPrintf("Calculate reward distribution mid: S: %lld, F: %lld\n", S, F);
 
     std::map<CScript, CAmount> rewardDist;
     for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
@@ -2376,7 +2377,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
         CAmount reward_per_fruit_co_ripe = S / F - reward_per_fruit_cr_ripe;
 
         //        LogPrintf("DEBUG:Calc amount end!\n");
-        //LogPrintf("Calculate reward distribution mid: reward for creator: %lld, for collector: %lld\n", reward_per_fruit_cr, reward_per_fruit_co);
+        LogPrintf("Calculate reward distribution mid: reward for creator: %lld/%lld, for collector: %lld/%lld\n", reward_per_fruit_cr, reward_per_fruit_cr_ripe, reward_per_fruit_co, reward_per_fruit_co_ripe);
 
         //        reward_block_creator[i] += reward_per_fruit_co * f[i];
         reward_block_creator[i] += reward_per_fruit_co * freshf[i];
@@ -2453,6 +2454,40 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     if (blockUndo.vtxundo.size() != block.vtx.size())
         return error("DisconnectBlock(): block and undo data inconsistent");
 
+    //Undo episode reward tx
+    std::vector<CTransaction> fruit_tx;
+    if (IsEndOfEpisode(pindex->nHeight)) {
+        if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
+            return error("DisconnectBlock(): try to CalculateRewardDistribution");
+    }
+
+    // undo transactions in reverse order
+    for (int i = fruit_tx.size() - 1; i >= 0; i--) {
+        const CTransaction& tx = fruit_tx[i];
+        uint256 hash = tx.GetHash();
+
+        // Check that all outputs are available and match the outputs in the block itself
+        // exactly.
+        {
+            CCoinsModifier outs = view.ModifyCoins(hash);
+            outs->ClearUnspendable();
+
+            CCoins outsBlock(tx, pindex->nHeight);
+            // The CCoins serialization does not serialize negative numbers.
+            // No network rules currently depend on the version here, so an inconsistency is harmless
+            // but it must be corrected before txout nversion ever influences a network rule.
+            if (outsBlock.nVersion < 0)
+                outs->nVersion = outsBlock.nVersion;
+            if (*outs != outsBlock)
+                fClean = fClean && error("DisconnectBlock(): added generation transaction mismatch? database corrupted");
+
+            // remove outputs
+            outs->Clear();
+        }
+
+        SyncWithWallets(tx, pindex->pprev);
+    }
+
     // undo transactions in reverse order
     for (int i = block.vtx.size() - 1; i >= 0; i--) {
         const CTransaction& tx = block.vtx[i];
@@ -2491,43 +2526,8 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         //}
     }
 
-    //Undo episode reward tx
-    std::vector<CTransaction> fruit_tx;
-    if (IsEndOfEpisode(pindex->nHeight)) {
-        if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
-            return error("DisconnectBlock(): try to CalculateRewardDistribution");
-    }
-
-    // undo transactions in reverse order
-    for (int i = fruit_tx.size() - 1; i >= 0; i--) {
-        const CTransaction& tx = fruit_tx[i];
-        uint256 hash = tx.GetHash();
-
-        // Check that all outputs are available and match the outputs in the block itself
-        // exactly.
-        {
-            CCoinsModifier outs = view.ModifyCoins(hash);
-            outs->ClearUnspendable();
-
-            CCoins outsBlock(tx, pindex->nHeight);
-            // The CCoins serialization does not serialize negative numbers.
-            // No network rules currently depend on the version here, so an inconsistency is harmless
-            // but it must be corrected before txout nversion ever influences a network rule.
-            if (outsBlock.nVersion < 0)
-                outs->nVersion = outsBlock.nVersion;
-            if (*outs != outsBlock)
-                fClean = fClean && error("DisconnectBlock(): added transaction mismatch? database corrupted");
-
-            // remove outputs
-            outs->Clear();
-        }
-
-        SyncWithWallets(tx, pindex->pprev);
-    }
-
     //------------------------------------------------------
     // Update globalHashPrevEpisode
-//    const CBlockIndex* nblockindex = pindex->pprev;
     const CBlockIndex* nblockindex = pindex;
     uint256 hashPrevEpisode, hashPrevTwoEpisode;
     SetPrevEpisode(pindex->pprev, hashPrevEpisode, hashPrevTwoEpisode);
@@ -3961,6 +3961,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         if (setFruits.find(frt.GetHash()) != setFruits.end()) {
             return state.DoS(100, false, REJECT_INVALID, "bad-frt-duplicate", false, "duplicate fruit");
         }
+        setFruits.insert(frt.GetHash());
     }
     // ---------------------------
 
@@ -4830,6 +4831,7 @@ bool RewindBlockIndex(const CChainParams& params)
             // Remove various other things
             pindexIter->nTx = 0;
             pindexIter->ed = 0;
+            pindexIter->nFees = 0;
             pindexIter->nChainTx = 0;
             pindexIter->chainEd = 0;
             pindexIter->nSequenceId = 0;

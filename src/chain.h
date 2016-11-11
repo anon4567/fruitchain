@@ -196,6 +196,9 @@ public:
     unsigned int nTx;
     unsigned int ed;
 
+    //For fruitchain
+    CAmount nFees;
+
     //! (memory only) Number of transactions in the chain up to and including this block.
     //! This value will be non-zero only if and only if transactions for this block and all its parents are available.
     //! Change to 64-bit type when necessary; won't happen before 2030
@@ -204,9 +207,6 @@ public:
 
     //! Verification status of this block. See enum BlockStatus
     unsigned int nStatus;
-
-    //For fruitchain
-    CAmount nFees;
 
     //! block header
     int32_t nVersion;
@@ -233,11 +233,11 @@ public:
         nChainWork = arith_uint256();
         nTx = 0;
         ed = 0;
+        nFees = 0;
         nChainTx = 0;
         chainEd = 0;
         nStatus = 0;
         nSequenceId = 0;
-        nFees = 0;
 
         nVersion = 0;
         hashPrevEpisode.SetNull();
@@ -401,6 +401,7 @@ public:
         READWRITE(VARINT(nStatus));
         READWRITE(VARINT(nTx));
         READWRITE(VARINT(ed));
+        READWRITE(VARINT(nFees));
         if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
             READWRITE(VARINT(nFile));
         if (nStatus & BLOCK_HAVE_DATA)
