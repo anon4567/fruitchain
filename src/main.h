@@ -331,8 +331,8 @@ void PruneAndFlush();
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState& state, const CTransaction& tx, bool fLimitFree, bool* pfMissingInputs, bool fOverrideMempoolLimit = false, const CAmount nAbsurdFee = 0);
 
-CBlockIndex* FindHashPrevEpisode(CBlockIndex* nblockindex);
-void SetPrevEpisode(CBlockIndex* nblockindex, uint256 &hashPrevEpisode, uint256 &hashPrevTwoEpisode);
+const CBlockIndex* FindHashPrevEpisode(const CBlockIndex* nblockindex);
+void SetPrevEpisode(const CBlockIndex* nblockindex, uint256& hashPrevEpisode, uint256& hashPrevTwoEpisode);
 bool IndexFrtmempool(const CBlockHeader& frt, uint256 globalHashPrevEpisode, uint256 globalHashPrevTwoEpisode);
 bool IsRipe(const CBlockHeader& frt, uint256 globalHashPrevEpisode, uint256 globalHashPrevTwoEpisode);
 
