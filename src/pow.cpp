@@ -45,6 +45,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     const CBlockIndex* pindexFirst = pindexLast->GetAncestor(nHeightFirst);
     assert(pindexFirst);
 
+    LogPrintf("DEBUG Height: %d %d\n", pindexLast->nHeight, pindexFirst->nHeight);
     return CalculateNextWorkRequired(pindexLast, pindexFirst->GetBlockTime(), params);
 }
 
@@ -55,6 +56,7 @@ unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nF
 
     // Limit adjustment step
     int64_t nActualTimespan = pindexLast->GetBlockTime() - nFirstBlockTime;
+    LogPrintf("DEBUG BlockTime: %lld %lld\n", pindexLast->GetBlockTime(), nFirstBlockTime);
     if (nActualTimespan < params.nPowTargetTimespan / 4)
         nActualTimespan = params.nPowTargetTimespan / 4;
     if (nActualTimespan > params.nPowTargetTimespan * 4)
