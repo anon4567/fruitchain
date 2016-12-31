@@ -18,7 +18,7 @@ uint256 CBlockHeader::GetHash() const
 std::string CBlock::ToString() const
 {
     std::stringstream s;
-    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, hashPrevEpisode=%s, hashFruits=%s, nTime=%u, nBits=%08x, nNonce=%u, scriptPubKey=%s, vtx=%u, vfrt=%u)\n",
+    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, hashPrevEpisode=%s, hashFruits=%s, nTime=%u, nBits=%08x, nNonce=%u, scriptPubKey=%s, nTax=%u, vtx=%u, vfrt=%u)\n",
         GetHash().ToString(),
         nVersion,
         hashPrevBlock.ToString(),
@@ -27,6 +27,7 @@ std::string CBlock::ToString() const
         hashFruits.ToString(),
         nTime, nBits, nNonce,
         HexStr(scriptPubKey).substr(0, 30),
+        nTax,
         vtx.size(),
         vfrt.size());
     for (unsigned int i = 0; i < vtx.size(); i++) {

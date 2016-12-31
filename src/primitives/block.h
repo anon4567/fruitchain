@@ -34,6 +34,7 @@ public:
     uint32_t nBits;
     uint32_t nNonce;
     CScript scriptPubKey; //pubkey of creator
+    uint8_t nTax;
 
     CBlockHeader()
     {
@@ -54,6 +55,7 @@ public:
         READWRITE(nBits);
         READWRITE(nNonce);
         READWRITE(*(CScriptBase*)(&scriptPubKey));
+        READWRITE(nTax);
     }
 
     void SetNull()
@@ -67,6 +69,7 @@ public:
         nBits = 0;
         nNonce = 0;
         scriptPubKey.clear();
+        nTax = 0;
     }
 
     bool IsNull() const
@@ -80,18 +83,18 @@ public:
     {
         return (int64_t)nTime;
     }
-    
+
     std::string ToString() const
     {
         std::stringstream s;
-        s << strprintf("CBlockHeader(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashPrevEpisode=%s, hashMerkleRoot=%s, hashFruits=%s, nTime=%u, nBits=%08x, nNonce=%u)\n",
+        s << strprintf("CBlockHeader(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashPrevEpisode=%s, hashMerkleRoot=%s, hashFruits=%s, nTime=%u, nBits=%08x, nNonce=%u, nTax=%u)\n",
                 GetHash().ToString(),
                 nVersion,
                 hashPrevBlock.ToString(),
                 hashPrevEpisode.ToString(),
                 hashMerkleRoot.ToString(),
                 hashFruits.ToString(),
-                nTime, nBits, nNonce);
+                nTime, nBits, nNonce, nTax);
         return s.str();
     }
 };
@@ -148,6 +151,7 @@ public:
         block.nBits = nBits;
         block.nNonce = nNonce;
         block.scriptPubKey = scriptPubKey;
+        block.nTax = nTax;
         return block;
     }
 
