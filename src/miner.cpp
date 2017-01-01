@@ -207,7 +207,8 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
     pblock->hashFruits = pblock->GetFruitsHash();
     pblock->nNonce = 0;
-    //pblocktemplate->vTxSigOpsCost[0] = WITNESS_SCALE_FACTOR * GetLegacySigOpCount(pblock->vtx[0]);
+    pblock->nTax = 8;
+    //pblocktemplate->vTxSigOpsCost[0] =/ WITNESS_SCALE_FACTOR * GetLegacySigOpCount(pblock->vtx[0]);
 
     CValidationState state;
     if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false, false)) {
@@ -674,7 +675,7 @@ void BlockAssembler::addFrts(uint32_t diff)
             AddToBlock(mi);
         }
     }
-	for (CFrtMemPool::indexed_fruit_set::iterator mi = frtmempool[1].mapFrt.begin();
+    for (CFrtMemPool::indexed_fruit_set::iterator mi = frtmempool[1].mapFrt.begin();
          mi != frtmempool[1].mapFrt.end(); ++mi) {
         //CAmount dummy;
         //mempool.ApplyDeltas(mi->GetTx().GetHash(), dPriority, dummy);

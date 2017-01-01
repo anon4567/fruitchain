@@ -217,6 +217,7 @@ public:
     uint32_t nBits;
     uint32_t nNonce;
     CScript scriptPubKey; //pubkey of creator
+    uint8_t nTax;
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
@@ -247,6 +248,7 @@ public:
         nBits = 0;
         nNonce = 0;
         scriptPubKey.clear();
+        nTax = 8;
     }
 
     CBlockIndex()
@@ -266,6 +268,7 @@ public:
         nBits = block.nBits;
         nNonce = block.nNonce;
         scriptPubKey = block.scriptPubKey;
+        nTax = block.nTax;
     }
 
     CDiskBlockPos GetBlockPos() const
@@ -301,6 +304,7 @@ public:
         block.nBits = nBits;
         block.nNonce = nNonce;
         block.scriptPubKey = scriptPubKey;
+        block.nTax = nTax;
         return block;
     }
 
@@ -419,6 +423,7 @@ public:
         READWRITE(nBits);
         READWRITE(nNonce);
         READWRITE(*(CScriptBase*)(&scriptPubKey));
+        READWRITE(nTax);
     }
 
     uint256 GetBlockHash() const
@@ -433,6 +438,7 @@ public:
         block.nBits = nBits;
         block.nNonce = nNonce;
         block.scriptPubKey = scriptPubKey;
+        block.nTax = nTax;
         return block.GetHash();
     }
 
