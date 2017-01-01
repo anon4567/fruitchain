@@ -73,8 +73,12 @@ static const unsigned int DEFAULT_DESCENDANT_LIMIT = 25;
 static const unsigned int DEFAULT_DESCENDANT_SIZE_LIMIT = 101;
 /** Default for -mempoolexpiry, expiration time for mempool transactions in hours */
 static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 72;
-/** length of fruit period */
+/** Maximum portion shared to collector : 1/FRUIT_MAX_TAX **/
+static const unsigned int FRUIT_MAX_TAX = 2;
+/** Length of fruit period */
 static const unsigned int FRUIT_PERIOD_LENGTH = 8;
+/** Length of distribution period */
+static const unsigned int REWARD_PERIOD_LENGTH = FRUIT_PERIOD_LENGTH * 2;
 /** Fraction of fees that would be sent to block creator */
 static const int FEE_FRACTION_C1_NUMERATOR = 1;
 static const int FEE_FRACTION_C1_DENOMINATOR = 100;

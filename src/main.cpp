@@ -1397,8 +1397,8 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
                 return state.DoS(10, false,
                     REJECT_INVALID, "bad-txns-spends-conflicting-tx", false,
                     strprintf("%s spends conflicting transaction %s",
-                                     hash.ToString(),
-                                     hashAncestor.ToString()));
+                        hash.ToString(),
+                        hashAncestor.ToString()));
             }
         }
 
@@ -1447,9 +1447,9 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
                     return state.DoS(0, false,
                         REJECT_INSUFFICIENTFEE, "insufficient fee", false,
                         strprintf("rejecting replacement %s; new feerate %s <= old feerate %s",
-                                         hash.ToString(),
-                                         newFeeRate.ToString(),
-                                         oldFeeRate.ToString()));
+                            hash.ToString(),
+                            newFeeRate.ToString(),
+                            oldFeeRate.ToString()));
                 }
 
                 BOOST_FOREACH (const CTxIn& txin, mi->GetTx().vin) {
@@ -1475,9 +1475,9 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
                 return state.DoS(0, false,
                     REJECT_NONSTANDARD, "too many potential replacements", false,
                     strprintf("rejecting replacement %s; too many potential replacements (%d > %d)\n",
-                                     hash.ToString(),
-                                     nConflictingCount,
-                                     maxDescendantsToVisit));
+                        hash.ToString(),
+                        nConflictingCount,
+                        maxDescendantsToVisit));
             }
 
             for (unsigned int j = 0; j < tx.vin.size(); j++) {
@@ -1493,7 +1493,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
                         return state.DoS(0, false,
                             REJECT_NONSTANDARD, "replacement-adds-unconfirmed", false,
                             strprintf("replacement %s adds unconfirmed input, idx %d",
-                                             hash.ToString(), j));
+                                hash.ToString(), j));
                 }
             }
 
@@ -1504,7 +1504,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
                 return state.DoS(0, false,
                     REJECT_INSUFFICIENTFEE, "insufficient fee", false,
                     strprintf("rejecting replacement %s, less fees than conflicting txs; %s < %s",
-                                     hash.ToString(), FormatMoney(nModifiedFees), FormatMoney(nConflictingFees)));
+                        hash.ToString(), FormatMoney(nModifiedFees), FormatMoney(nConflictingFees)));
             }
 
             // Finally in addition to paying more fees than the conflicts the
@@ -1514,9 +1514,9 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
                 return state.DoS(0, false,
                     REJECT_INSUFFICIENTFEE, "insufficient fee", false,
                     strprintf("rejecting replacement %s, not enough additional fees to relay; %s < %s",
-                                     hash.ToString(),
-                                     FormatMoney(nDeltaFees),
-                                     FormatMoney(::minRelayTxFee.GetFee(nSize))));
+                        hash.ToString(),
+                        FormatMoney(nDeltaFees),
+                        FormatMoney(::minRelayTxFee.GetFee(nSize))));
             }
         }
 
@@ -2268,75 +2268,75 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
       * calculate reward distribution of this episode.
       * total reward S = nfees + GetBlockSubsidy(nHeight, chainparams.GetConsensus()) for each block
       * let f[i] = number of fruits collected by block i, F = sum f[i]
-      * then for each fruit collected by block j, its collector get co = (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i))* (1 / F) * S, its creator get cr = (1 / F) * S - co
+      * then for each fruit collected by block j, its collector get co = (1 - tax + RewardFractionDiff(i))* (1 / F) * S, its creator get cr = (1 / F) * S - co
       * additionally, creator of block i get FEE_FRACTION_C1 * fee[i] for reward
       * RewardFractionDiff(i) = REWARD_DIFF_FRACTION_C3 * (1 - (i - 1) / (k - 1))
       */
+
     LogPrintf("Calculate reward distribution start, pindex->phashBlock: %d\n", pindex->phashBlock);
-    std::vector<uint32_t> f, ripef, freshf;
-    uint32_t F = 0;
-    std::vector<CAmount> fee, reward_block_creator;
-    std::vector<std::vector<CScript> > fruit_creator;
-    std::vector<std::vector<bool> > fruit_isripe;
-    std::vector<CScript> block_creator;
-    CAmount S = 0;
+    std::map<uint256, int32_t> hashPosition;
+    std::vector<CBlock> vBlock;
     const CBlockIndex* nblockindex = pindex;
-    f.resize(FRUIT_PERIOD_LENGTH);
-    ripef.resize(FRUIT_PERIOD_LENGTH);
-    freshf.resize(FRUIT_PERIOD_LENGTH);
-    fee.resize(FRUIT_PERIOD_LENGTH);
-    reward_block_creator.resize(FRUIT_PERIOD_LENGTH);
-    block_creator.resize(FRUIT_PERIOD_LENGTH);
-    fruit_creator.resize(FRUIT_PERIOD_LENGTH);
-    fruit_isripe.resize(FRUIT_PERIOD_LENGTH);
-    CAmount rest = 0;
-    //loop in reverse order
-    //nblockindex = pindex->pprev;
-    uint256 hashPrevEpisode, hashPrevTwoEpisode;
-    SetPrevEpisode(pindex->pprev, hashPrevEpisode, hashPrevTwoEpisode);
-
-    nblockindex = pindex;
-    for (int i = FRUIT_PERIOD_LENGTH - 1; i >= 0; --i, nblockindex = nblockindex->pprev) {
-        LogPrintf("look at block %d: start\n", i);
-
-        if (nblockindex == NULL) {
-            return error("CalculateRewardDistribution(): the %d-th block is not found", i);
+    int right = pindex->nHeight - FRUIT_PERIOD_LENGTH + 1;
+    int left = right - REWARD_PERIOD_LENGTH + 1;
+    for (int i = 0; i < FRUIT_PERIOD_LENGTH * 2 + REWARD_PERIOD_LENGTH; ++i, nblockindex = nblockindex->pprev) {
+        if (pindex == NULL) {
+            break;
         }
+        hashPosition[pindex->GetBlockHash()] = i;
         CBlock tmpblock;
-        const CBlock* nblock;
         LogPrintf("look at block %d\n", i);
         if (nblockindex == pindex) {
-            nblock = &block;
+            tmpblock = block;
         } else {
             if (!ReadBlockFromDisk(tmpblock, nblockindex, chainparams.GetConsensus())) {
                 return error("CalculateRewardDistribution(): can't read the %d-th block from disk", i);
             }
-            nblock = &tmpblock;
         }
-        LogPrintf("look at block %d: fee: %lld, #frt: %u, #fresh: %u, #ripe: %u\n", i, fee[i], f[i], freshf[i], ripef[i]);
+        vBlocks.push_back(tmpblock);
+    }
 
-        f[i] = nblock->vfrt.size();
-        for (unsigned int j = 0; j < nblock->vfrt.size(); ++j) {
-            CBlockHeader frt = nblock->vfrt[j];
-            if (IsRipe(frt, hashPrevEpisode, hashPrevTwoEpisode))
-                ripef[i] += 1;
-            else
-                freshf[i] += 1;
-        }
+    std::map<CScript, CAmount> rewardDist;
+    const CBlockIndex* ppindex = pindex;
+    for (int k = 0; k < REWARD_PERIOD_LENGTH + FRUIT_PERIOD_LENGTH; ++k, ppindex = ppindex->pprev) {
+        std::vector<uint32_t> f;
+        uint32_t F = 0, start_point = 0;
+        std::vector<CAmount> fee, reward_block_creator;
+        std::vector<std::vector<CScript> > fruit_creator;
+        std::vector<std::vector<uint8_t> > fruit_tax;
+        std::vector<CScript> block_creator;
+        CAmount S = 0;
+        nblockindex = ppindex;
+        f.resize(FRUIT_PERIOD_LENGTH + 1);
+        fee.resize(FRUIT_PERIOD_LENGTH + 1);
+        reward_block_creator.resize(FRUIT_PERIOD_LENGTH + 1);
+        block_creator.resize(FRUIT_PERIOD_LENGTH);
+        fruit_creator.resize(FRUIT_PERIOD_LENGTH);
+        CAmount rest = 0;
 
-        std::vector<CScript> vfc;
-        std::vector<bool> vfr;
-        // regard block a fruit
-        f[i] += 1;
-        freshf[i] += 1;
-        vfc.push_back(nblock->scriptPubKey);
-        vfr.push_back(false);
-        //------------------------------------
+        for (int i = FRUIT_PERIOD_LENGTH; i >= 0; --i, nblockindex = nblockindex->pprev) {
+            LogPrintf("look at block %d: start\n", i);
 
-        F += f[i];
+            if (nblockindex == NULL) {
+                start_point = i + 1;
+                break;
+            }
+            const CBlock* nblock;
+            nblock = &vBlocks[k + (FRUIT_PERIOD_LENGTH - i - 1)];
 
-        fee[i] = nblockindex->nFees;
-        /*for (const auto& tx : nblock->vtx) {
+            f[i] = nblock->vfrt.size();
+
+            std::vector<CScript> vfc;
+            std::vector<uint8_t> vft;
+            // regard block a fruit
+            f[i] += 1;
+            vfc.push_back(nblock->scriptPubKey);
+            //------------------------------------
+
+            F += f[i];
+
+            fee[i] = nblockindex->nFees;
+            /*for (const auto& tx : nblock->vtx) {
             //Note that in fruitchain there is no generation tx
             if (!tx.IsCoinBase()) {
                 LogPrintf("calculate tx fee: %s\n", tx.ToString().c_str());
@@ -2344,82 +2344,73 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
             }
         }*/
 
-        LogPrintf("look at block %d: fee: %lld, #frt: %u, #fresh: %u, #ripe: %u\n", i, fee[i], f[i], freshf[i], ripef[i]);
-        CAmount tmp = fee[i] + GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus());
-        reward_block_creator[i] = tmp * FEE_FRACTION_C1_NUMERATOR / FEE_FRACTION_C1_DENOMINATOR;
-        S += tmp - reward_block_creator[i];
-        rest += tmp;
+            CAmount tmp = (i == FRUIT_PERIOD_LENGTH) ? fee[i] + GetBlockSubsidy(nblockindex->nHeight, chainparams.GetConsensus()) : 0;
+            reward_block_creator[i] = tmp * FEE_FRACTION_C1_NUMERATOR / FEE_FRACTION_C1_DENOMINATOR;
+            S += tmp - reward_block_creator[i];
+            rest += tmp;
 
-        for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
-            vfc.push_back(nblock->vfrt[i].scriptPubKey);
-            vfr.push_back(IsRipe(nblock->vfrt[i], hashPrevEpisode, hashPrevTwoEpisode));
+            for (unsigned int i = 0; i < nblock->vfrt.size(); ++i) {
+                vfc.push_back(nblock->vfrt[i].scriptPubKey);
+                vft.push_back(nblock->vfrt[i].nTax);
+            }
+            fruit_creator[i] = vfc;
+            fruit_tax[i] = vft;
+
+            block_creator[i] = nblock->scriptPubKey;
         }
-        fruit_creator[i] = vfc;
-        fruit_isripe[i] = vfr;
 
-        block_creator[i] = nblock->scriptPubKey;
+        // Create generation tx
+        //    LogPrintf("DEBUG:look at block end!\n");
+        LogPrintf("Calculate reward distribution mid: S: %lld, F: %lld\n", S, F);
+
+        for (unsigned int i = start_point; i <= FRUIT_PERIOD_LENGTH; ++i) {
+            //        LogPrintf("DEBUG:Calc block %d\n", i);
+            //CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * ((FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH - 1) * REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR),
+
+            //        LogPrintf("DEBUG:Calc amount end!\n");
+            LogPrintf("Calculate reward distribution mid: reward for creator: %lld/%lld, for collector: %lld/%lld\n", reward_per_fruit_cr, reward_per_fruit_cr_ripe, reward_per_fruit_co, reward_per_fruit_co_ripe);
+
+            //        reward_block_creator[i] += reward_per_fruit_co * f[i];
+            //nTx.vout.push_back(CTxOut(reward_block_creator[i], block_creator[i]));
+
+            if (i < FRUIT_PERIOD_LENGTH) {
+                for (unsigned int j = 0; j < fruit_creator[i].size(); ++j) {
+                    const reward_c2_numerator = 1, reward_c2_denominator = fruit_tax[i][j] + FRUIT_MAX_TAX;
+                    CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (reward_c2_denominator * (FRUIT_PERIOD_LENGTH * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - i) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - reward_c2_numerator * (FRUIT_PERIOD_LENGTH)*REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH)*reward_c2_denominator * REWARD_DIFF_FRACTION_C3_DENOMINATOR);
+                    CAmount reward_per_fruit_co = S / F - reward_per_fruit_cr;
+                    //            LogPrintf("DEBUG:Calc fruit %d\n", j);
+                    //nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i][j]));
+                    //            LogPrintf("DEBUG:creator %s\n", fruit_creator[i][j].ToString());
+                    //            LogPrintf("DEBUG:fruit isripe: %d\n", fruit_isripe[i][j]);
+                    reward_block_creator[i] += reward_per_fruit_co;
+                    if (rewardDist.find(fruit_creator[i][j]) != rewardDist.end()) {
+                        rewardDist[fruit_creator[i][j]] += reward_per_fruit_cr;
+                    } else {
+                        rewardDist[fruit_creator[i][j]] = reward_per_fruit_cr;
+                    }
+                    //            LogPrintf("Calculate reward distribution mid: rest: %lld\n", rest);
+                    rest -= reward_per_fruit_cr;
+                    //            LogPrintf("Calculate reward distribution mid2 : rest: %lld\n", rest);
+                }
+            }
+            if (rewardDist.find(block_creator[i]) != rewardDist.end())
+                rewardDist[block_creator[i]] += reward_block_creator[i];
+            else
+                rewardDist[block_creator[i]] = reward_block_creator[i];
+            rest -= reward_block_creator[i];
+        }
+        if (rest != 0) {
+            //nTx.vout.push_back(CTxOut(rest, block_creator[0]));
+            if (rewardDist.find(block_creator[0]) != rewardDist.end())
+                rewardDist[block_creator[0]] += rest;
+            else
+                rewardDist[block_creator[0]] = rest;
+        }
     }
-    // Create generation tx
-    //    LogPrintf("DEBUG:look at block end!\n");
     CMutableTransaction nTx;
     nTx.vin.resize(1);
     nTx.vin[0].prevout.SetNull();
     nTx.vin[0].scriptSig = CScript() << pindex->nHeight << OP_0;
-    LogPrintf("Calculate reward distribution mid: S: %lld, F: %lld\n", S, F);
-
-    std::map<CScript, CAmount> rewardDist;
-    for (unsigned int i = 0; i < FRUIT_PERIOD_LENGTH; ++i) {
-        //        LogPrintf("DEBUG:Calc block %d\n", i);
-        //CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * ((FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH - 1) * REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR),
-        CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * (FRUIT_PERIOD_LENGTH * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - i) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH)*REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH)*REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR);
-        CAmount reward_per_fruit_cr_ripe = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR - REWARD_CREATE_FRACTION_C2_NUMERATOR)) / (F * REWARD_CREATE_FRACTION_C2_DENOMINATOR);
-        CAmount reward_per_fruit_co = S / F - reward_per_fruit_cr;
-        CAmount reward_per_fruit_co_ripe = S / F - reward_per_fruit_cr_ripe;
-
-        //        LogPrintf("DEBUG:Calc amount end!\n");
-        LogPrintf("Calculate reward distribution mid: reward for creator: %lld/%lld, for collector: %lld/%lld\n", reward_per_fruit_cr, reward_per_fruit_cr_ripe, reward_per_fruit_co, reward_per_fruit_co_ripe);
-
-        //        reward_block_creator[i] += reward_per_fruit_co * f[i];
-        reward_block_creator[i] += reward_per_fruit_co * freshf[i];
-        reward_block_creator[i] += reward_per_fruit_co_ripe * ripef[i];
-        //nTx.vout.push_back(CTxOut(reward_block_creator[i], block_creator[i]));
-        if (rewardDist.find(block_creator[i]) != rewardDist.end())
-            rewardDist[block_creator[i]] += reward_block_creator[i];
-        else
-            rewardDist[block_creator[i]] = reward_block_creator[i];
-        rest -= reward_block_creator[i];
-
-        for (unsigned int j = 0; j < fruit_creator[i].size(); ++j) {
-            //            LogPrintf("DEBUG:Calc fruit %d\n", j);
-            //nTx.vout.push_back(CTxOut(reward_per_fruit_cr, fruit_creator[i][j]));
-            //            LogPrintf("DEBUG:creator %s\n", fruit_creator[i][j].ToString());
-            //            LogPrintf("DEBUG:fruit isripe: %d\n", fruit_isripe[i][j]);
-            if (rewardDist.find(fruit_creator[i][j]) != rewardDist.end()) {
-                if (fruit_isripe[i][j])
-                    rewardDist[fruit_creator[i][j]] += reward_per_fruit_cr_ripe;
-                else
-                    rewardDist[fruit_creator[i][j]] += reward_per_fruit_cr;
-            } else {
-                if (fruit_isripe[i][j])
-                    rewardDist[fruit_creator[i][j]] = reward_per_fruit_cr_ripe;
-                else
-                    rewardDist[fruit_creator[i][j]] = reward_per_fruit_cr;
-            }
-            //            LogPrintf("Calculate reward distribution mid: rest: %lld\n", rest);
-            if (fruit_isripe[i][j])
-                rest -= reward_per_fruit_cr_ripe;
-            else
-                rest -= reward_per_fruit_cr;
-            //            LogPrintf("Calculate reward distribution mid2 : rest: %lld\n", rest);
-        }
-    }
-    if (rest != 0) {
-        //nTx.vout.push_back(CTxOut(rest, block_creator[0]));
-        if (rewardDist.find(block_creator[0]) != rewardDist.end())
-            rewardDist[block_creator[0]] += rest;
-        else
-            rewardDist[block_creator[0]] = rest;
-    }
     for (auto const& rewardAssign : rewardDist) {
         nTx.vout.push_back(CTxOut(rewardAssign.second, rewardAssign.first));
     }
@@ -2428,10 +2419,11 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
     return true;
 }
 
-bool IsEndOfEpisode(int nHeight)
+bool IsTimeToDistributeReward(int nHeight)
 {
-    // genesis block not included
-    return nHeight % FRUIT_PERIOD_LENGTH == 0;
+    if (nHeight < FRUIT_PERIOD_LENGTH)
+        return false;
+    return (nHeight - (FRUIT_PERIOD_LENGTH)) % REWARD_PERIOD_LENGTH == 0;
 }
 
 bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool* pfClean)
@@ -2456,7 +2448,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
 
     //Undo episode reward tx
     std::vector<CTransaction> fruit_tx;
-    if (IsEndOfEpisode(pindex->nHeight)) {
+    if (IsTimeToDistributeReward(pindex->nHeight)) {
         if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
             return error("DisconnectBlock(): try to CalculateRewardDistribution");
     }
@@ -2666,10 +2658,6 @@ static int64_t nTimeTotal = 0;
 
 bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pindex, CCoinsViewCache& view, const CChainParams& chainparams, bool fJustCheck, std::vector<std::tuple<CTransaction, CBlockIndex*, int> >* pTxChanged)
 {
-    //const CBlockIndex* nblockindex = pindex->pprev;
-    uint256 hashPrevEpisode, hashPrevTwoEpisode;
-    SetPrevEpisode(pindex->pprev, hashPrevEpisode, hashPrevTwoEpisode);
-    //    LogPrintf("connectblock:\n%s\n", block.ToString().c_str());
     LogPrintf("connectblock:\n%s\n", block.GetBlockHeader().ToString().c_str());
     AssertLockHeld(cs_main);
 
@@ -2875,7 +2863,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     pindex->nFees = nFees;
 
     std::vector<CTransaction> fruit_tx;
-    if (IsEndOfEpisode(pindex->nHeight)) {
+    if (IsTimeToDistributeReward(pindex->nHeight)) {
         if (!CalculateRewardDistribution(fruit_tx, block, pindex, view, chainparams))
             return state.DoS(100, error("ConnectBlock(): try to CalculateRewardDistribution"),
                 REJECT_INVALID, "bad-blk-reward-episodecorrupted");
@@ -2956,7 +2944,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     LogPrint("bench", "    - Index writing: %.2fms [%.2fs]\n", 0.001 * (nTime5 - nTime4), nTimeIndex * 0.000001);
 
     // Watch for changes to the previous coinbase transaction.
-    if (IsEndOfEpisode(pindex->nHeight)) {
+    if (IsTimeToDistributeReward(pindex->nHeight)) {
         static uint256 hashPrevBestCoinBase;
         GetMainSignals().UpdatedTransaction(hashPrevBestCoinBase);
         hashPrevBestCoinBase = fruit_tx[0].GetHash();
@@ -2981,19 +2969,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             frtmempool[whichPool].remove(frt);
     }
     //----------------------------
-
-    // Update globalHashPrevEpisode
-    const CBlockIndex* nblockindex = pindex;
-    if (IsEndOfEpisode(nblockindex->nHeight)) {
-        hashPrevTwoEpisode = hashPrevEpisode;
-        hashPrevEpisode = nblockindex->GetBlockHash();
-        LogPrintf("DEBUG: ConnectBlock2: clear mempool of fruit!\n");
-        frtmempool[indexRipePool].clear();
-        frtmempool_used[indexRipePool].clear();
-        indexRipePool ^= 1;
-    }
-    //-------------------------------------------------------
-
 
     int64_t nTime6 = GetTimeMicros();
     nTimeCallbacks += nTime6 - nTime5;
