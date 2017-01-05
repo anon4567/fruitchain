@@ -197,13 +197,7 @@ CBlockTemplate* BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn)
     // Fill in header
     pblock->hashPrevBlock = pindexPrev->GetBlockHash();
     UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
-    CBlockIndex* nblockindex = chainActive.Tip();
-    uint256 hashPrevEpisode;
-    //nblockindex = nblockindex->pprev;
-    while (!IsEndOfEpisode(nblockindex->nHeight))
-        nblockindex = nblockindex->pprev;
-    hashPrevEpisode = nblockindex->GetBlockHash();
-    pblock->hashPrevEpisode = hashPrevEpisode;
+    pblock->hashPrevEpisode = pblock->hashPrevBlock;
     pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
     pblock->hashFruits = pblock->GetFruitsHash();
     pblock->nNonce = 0;
