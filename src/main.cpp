@@ -1619,7 +1619,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const C
 
     // 1. check if its hist_header is correspond previous blocks
     CBlockIndex* nblockindex = chainActive.Tip();
-    int Height = FindHeightCurrEpisode(nblockindex, frt.freshness);
+    int Height = FindHeightCurrEpisode(nblockindex, frt.hashPrevEpisode);
 
     if (Height < 0) {
         //This can be sent to P2P network
@@ -1644,7 +1644,7 @@ bool AcceptToFruitMemoryPool(CFrtMemPool& pool, CValidationState& state, const C
         }*/
     }
 
-    LogPrintf("New fruit %s\n global: %s\n global2: %s\n", frt.ToString(), hashPrevEpisode.ToString(), hashPrevTwoEpisode.ToString());
+    LogPrintf("New fruit %s\n", frt.ToString());
     return true;
 }
 
@@ -2488,7 +2488,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
     //------------------------------------------------------
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
-        frtmempool.add(frt, GetTime(), chainActive.Height(), FindHeightCurrEpisode(pindex->pprev, frt.freshness));
+        frtmempool.add(frt, GetTime(), chainActive.Height(), FindHeightCurrEpisode(pindex->pprev, frt.hashPrevEpisode));
         if (frtmempool_used.exists(frt.GetHash()))
             frtmempool_used.remove(frt);
         else {
@@ -2503,7 +2503,7 @@ bool DisconnectBlock(const CBlock& block, CValidationState& state, const CBlockI
         if (!ReadBlockFromDisk(nblock, nblockindex, chainparams.GetConsensus())) //TODO: read genesis block from disk
             return error("DisconnectBlock(): unable to read the first block of current episode from disk");
         for (const auto& frt : nblock.vfrt) {
-            frtmempool_used.add(frt, GetTime(), chainActive.Height(), FindHeightCurrEpisode(nblockindex->pprev, frt.freshness));
+            frtmempool_used.add(frt, GetTime(), chainActive.Height(), FindHeightCurrEpisode(nblockindex->pprev, frt.hashPrevEpisode));
         }
     }
     // move best block pointer to prevout block
@@ -2902,7 +2902,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     // Update frtmempool and frtmempool_used
     for (const auto& frt : block.vfrt) {
-        frtmempool_used.add(frt, GetTime(), chainActive.Height(), FindHeightCurrEpisode(pindex->pprev, frt.freshness));
+        frtmempool_used.add(frt, GetTime(), chainActive.Height(), FindHeightCurrEpisode(pindex->pprev, frt.hashPrevEpisode));
         LogPrintf("DEBUG: add to frtmempool_used %s\n", frt.GetHash().ToString());
         if (frtmempool.exists(frt.GetHash()))
             frtmempool.remove(frt);

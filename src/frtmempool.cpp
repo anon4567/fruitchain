@@ -21,7 +21,7 @@
 #include "version.h"
 
 using namespace std;
-CFrtMemPoolEntry::CFrtMemPoolEntry(const CBlockHeader& _frt, int64_t _nTime, unsigned int _entryHeight, unsigned int _pointerHeight) : 
+CFrtMemPoolEntry::CFrtMemPoolEntry(const CBlockHeader& _frt, int64_t _nTime, unsigned int _entryHeight, int _pointerHeight) : 
     frt(std::make_shared<CBlockHeader>(_frt)), nTime(_nTime), entryHeight(_entryHeight), pointerHeight(_pointerHeight)
 {
     nFrtWeight = GetFrtSize(); //FRT_WEIGHT;    //GetTransactionWeight(_frt);	//TODO: used in miner.cpp for block weight
@@ -1130,7 +1130,7 @@ void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpen
     //    CFeeRate maxFeeRateRemoved(0);
     while (!mapFrt.empty() && DynamicMemoryUsage() > sizelimit) {
         //        indexed_fruit_set::index<descendant_score>::type::iterator it = mapTx.get<descendant_score>().begin();
-        indexed_fruit_set::index<mining_score_fruit>::type::iterator it = mapFrt.get<mining_score_fruit>().begin();
+        indexed_fruit_set::index<mining_hash_fruit>::type::iterator it = mapFrt.get<mining_hash_fruit>().begin();
 
         // We set the new mempool min fee to the feerate of the removed set, plus the
         // "minimum reasonable fee rate" (ie some value under which we consider txn

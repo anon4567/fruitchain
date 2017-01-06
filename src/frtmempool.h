@@ -137,7 +137,7 @@ public:
     size_t GetFrtWeight() const { return nFrtWeight; }
     int64_t GetTime() const { return nTime; }
     unsigned int GetHeight() const { return entryHeight; }
-    unsigned int GetPointerHeight() const { return pointerHeight; }
+    int GetPointerHeight() const { return pointerHeight; }
     //    bool WasClearAtEntry() const { return hadNoDependencies; }
     //    int64_t GetSigOpCost() const { return sigOpCost; }
     //    int64_t GetModifiedFee() const { return nFee + feeDelta; }
