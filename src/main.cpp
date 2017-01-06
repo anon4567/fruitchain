@@ -2260,7 +2260,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
                 return error("CalculateRewardDistribution(): can't read the %d-th block from disk", i);
             }
         }
-        vBlocks.push_back(tmpblock);
+        vBlock.push_back(tmpblock);
     }
 
     std::map<CScript, CAmount> rewardDist;
@@ -2289,7 +2289,7 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
                 break;
             }
             const CBlock* nblock;
-            nblock = &vBlocks[k + (FRUIT_PERIOD_LENGTH - i - 1)];
+            nblock = &vBlock[k + (FRUIT_PERIOD_LENGTH - i - 1)];
 
             f[i] = nblock->vfrt.size();
 
@@ -2335,14 +2335,14 @@ bool CalculateRewardDistribution(std::vector<CTransaction>& fruit_tx, const CBlo
             //CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (REWARD_CREATE_FRACTION_C2_DENOMINATOR * ((FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - (i + 1)) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - REWARD_CREATE_FRACTION_C2_NUMERATOR * (FRUIT_PERIOD_LENGTH - 1) * REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH - 1) * REWARD_CREATE_FRACTION_C2_DENOMINATOR * REWARD_DIFF_FRACTION_C3_DENOMINATOR),
 
             //        LogPrintf("DEBUG:Calc amount end!\n");
-            LogPrintf("Calculate reward distribution mid: reward for creator: %lld/%lld, for collector: %lld/%lld\n", reward_per_fruit_cr, reward_per_fruit_cr_ripe, reward_per_fruit_co, reward_per_fruit_co_ripe);
+            //LogPrintf("Calculate reward distribution mid: reward for creator: %lld/%lld, for collector: %lld/%lld\n", reward_per_fruit_cr, reward_per_fruit_cr_ripe, reward_per_fruit_co, reward_per_fruit_co_ripe);
 
             //        reward_block_creator[i] += reward_per_fruit_co * f[i];
             //nTx.vout.push_back(CTxOut(reward_block_creator[i], block_creator[i]));
 
             if (i < FRUIT_PERIOD_LENGTH) {
                 for (unsigned int j = 0; j < fruit_creator[i].size(); ++j) {
-                    const reward_c2_numerator = 1, reward_c2_denominator = fruit_tax[i][j] + FRUIT_MAX_TAX;
+                    const CAmount reward_c2_numerator = 1, reward_c2_denominator = fruit_tax[i][j] + FRUIT_MAX_TAX;
                     CAmount reward_per_fruit_cr /* = S * (1 - REWARD_CREATE_FRACTION_C2 + RewardFractionDiff(i + 1)) / F*/ = (S * (reward_c2_denominator * (FRUIT_PERIOD_LENGTH * REWARD_DIFF_FRACTION_C3_DENOMINATOR + (FRUIT_PERIOD_LENGTH - i) * REWARD_DIFF_FRACTION_C3_NUMERATOR) - reward_c2_numerator * (FRUIT_PERIOD_LENGTH)*REWARD_DIFF_FRACTION_C3_DENOMINATOR)) / (F * (FRUIT_PERIOD_LENGTH)*reward_c2_denominator * REWARD_DIFF_FRACTION_C3_DENOMINATOR);
                     CAmount reward_per_fruit_co = S / F - reward_per_fruit_cr;
                     //            LogPrintf("DEBUG:Calc fruit %d\n", j);
