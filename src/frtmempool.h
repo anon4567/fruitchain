@@ -280,7 +280,7 @@ public:
     {
         return a.GetPointerHeight() < b.GetPointerHeight();
     }
-}
+};
 
 class CompareFrtMemPoolEntryByHash
 {
