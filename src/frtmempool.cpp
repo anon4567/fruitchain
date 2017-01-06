@@ -21,33 +21,13 @@
 #include "version.h"
 
 using namespace std;
-//TODO: FRT_WEIGHT, FRT_USAGE_SIZE, FRT_SIZE to be decided
-CFrtMemPoolEntry::CFrtMemPoolEntry(const CBlockHeader& _frt, //const CAmount& _nFee,
-    int64_t _nTime,
-    /*double _entryPriority,*/ unsigned int _entryHeight //,
-                                                         // bool poolHasNoInputsOf, CAmount _inChainInputValue,
-    /* bool _spendsCoinbase, int64_t _sigOpsCost, LockPoints lp*/) : frt(std::make_shared<CBlockHeader>(_frt)), /*nFee(_nFee),*/ nTime(_nTime), /*entryPriority(_entryPriority),*/ entryHeight(_entryHeight)
-//    hadNoDependencies(poolHasNoInputsOf), inChainInputValue(_inChainInputValue),
-/*    spendsCoinbase(_spendsCoinbase),*/ //sigOpCost(_sigOpsCost)//, lockPoints(lp)
+CFrtMemPoolEntry::CFrtMemPoolEntry(const CBlockHeader& _frt, int64_t _nTime, unsigned int _entryHeight, unsigned int _pointerHeight) : 
+    frt(std::make_shared<CBlockHeader>(_frt)), nTime(_nTime), entryHeight(_entryHeight), pointerHeight(_pointerHeight)
 {
     nFrtWeight = GetFrtSize(); //FRT_WEIGHT;    //GetTransactionWeight(_frt);	//TODO: used in miner.cpp for block weight
                                //    nModSize = _tx.CalculateModifiedSize(GetTxSize());
     nUsageSize = GetFrtSize(); //FRT_USAGESIZE; //RecursiveDynamicUsage(*tx) + memusage::DynamicUsage(tx); //TODO: call func in core_memusage and memusage  -> tx.vin, tx.vout, tx.wit
-
-
     LogPrintf("size of CBlockHeader: %d\n", nFrtWeight);
-    /*   nCountWithDescendants = 1;
-    nSizeWithDescendants = GetTxSize();
-    nModFeesWithDescendants = nFee;
-    CAmount nValueIn = _tx.GetValueOut()+nFee;
-    assert(inChainInputValue <= nValueIn); */
-
-    //    feeDelta = 0;
-
-    /*   nCountWithAncestors = 1;
-    nSizeWithAncestors = GetTxSize();
-    nModFeesWithAncestors = nFee;
-    nSigOpCostWithAncestors = sigOpCost; */
 }
 
 CFrtMemPoolEntry::CFrtMemPoolEntry(const CFrtMemPoolEntry& other)
@@ -1024,7 +1004,7 @@ int CFrtMemPool::Expire(int64_t time)
 int CFrtMemPool::ExpireDifficulty(uint32_t difficulty)
 {
     LOCK(cs);
-    indexed_fruit_set::index<mining_score_fruit>::type::iterator it = mapFrt.get<mining_score_fruit>().begin();
+    indexed_fruit_set::index<mining_hash_fruit>::type::iterator it = mapFrt.get<mining_hash_fruit>().begin();
     setEntries toremove;
 
     bool fNegative;
@@ -1034,7 +1014,7 @@ int CFrtMemPool::ExpireDifficulty(uint32_t difficulty)
 
     bnTarget.SetCompact(difficulty, &fNegative, &fOverflow);
 
-    while (it != mapFrt.get<mining_score_fruit>().end() && UintToArith256(it->GetFrt().GetHash()) > bnTarget) {
+    while (it != mapFrt.get<mining_hash_fruit>().end() && UintToArith256(it->GetFrt().GetHash()) > bnTarget) {
         toremove.insert(mapFrt.project<0>(it));
         it++;
     }
@@ -1043,6 +1023,23 @@ int CFrtMemPool::ExpireDifficulty(uint32_t difficulty)
         CalculateDescendants(removeit, stage);
     }
     RemoveStaged(stage /*, false*/);
+    return stage.size();
+}
+
+int CFrtMemPool::ExpirePointerHeight(int Height)
+{
+    LOCK(cs);
+    indexed_fruit_set::index<pointer_height_fruit>::type::iterator it = mapFrt.get<pointer_height_fruit>().begin();
+    setEntries toremove;
+    while (it != mapFrt.get<pointer_height_fruit>().end() && it->GetPointerHeight() < Height) {
+        toremove.insert(mapFrt.project<0>(it));
+        it++;
+    }
+    setEntries stage;
+    BOOST_FOREACH (frtiter removeit, toremove) {
+        CalculateDescendants(removeit, stage);
+    }
+    RemoveStaged(stage);
     return stage.size();
 }
 
@@ -1124,7 +1121,7 @@ void CTxMemPool::trackPackageRemoved(const CFeeRate& rate) {
         blockSinceLastRollingFeeBump = false;
     }
 }*/
-//no priority thus remove the first fruit.
+//TODO: priority according to profit
 void CFrtMemPool::TrimToSize(size_t sizelimit /*, std::vector<uint256>* pvNoSpendsRemaining*/)
 {
     LOCK(cs);

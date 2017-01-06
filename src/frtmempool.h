@@ -94,6 +94,7 @@ private:
     int64_t nTime;            //!< Local time when entering the mempool
                               //    double entryPriority;      //!< Priority when entering the mempool
     unsigned int entryHeight; //!< Chain height when entering the mempool
+    int pointerHeight; //!< Height of last pointer
     //    bool hadNoDependencies;    //!< Not dependent on any other txs when it entered the mempool
     //    CAmount inChainInputValue; //!< Sum of all txin values that are already in blockchain
     //    bool spendsCoinbase;       //!< keep track of transactions that spend a coinbase
@@ -119,7 +120,7 @@ private:
 public:
     CFrtMemPoolEntry(const CBlockHeader& _frt, //const CAmount& _nFee,
         int64_t _nTime,
-        /*double _entryPriority,*/ unsigned int _entryHeight
+        /*double _entryPriority,*/ unsigned int _entryHeight, int _pointerHeight
         //bool poolHasNoInputsOf, CAmount _inChainInputValue, bool spendsCoinbase,
         /*int64_t nSigOpsCost, FruitLockPoints lp*/);
     CFrtMemPoolEntry(const CFrtMemPoolEntry& other);
@@ -136,6 +137,7 @@ public:
     size_t GetFrtWeight() const { return nFrtWeight; }
     int64_t GetTime() const { return nTime; }
     unsigned int GetHeight() const { return entryHeight; }
+    unsigned int GetPointerHeight() const { return pointerHeight; }
     //    bool WasClearAtEntry() const { return hadNoDependencies; }
     //    int64_t GetSigOpCost() const { return sigOpCost; }
     //    int64_t GetModifiedFee() const { return nFee + feeDelta; }
@@ -271,17 +273,20 @@ public:
  *  Sort by score of entry ((fee+delta)/size) in descending order
  */
 
-class CompareFrtMemPoolEntryByScore
+class CompareFrtMemPoolEntryByPointer
 {
 public:
     bool operator()(const CFrtMemPoolEntry& a, const CFrtMemPoolEntry& b)
     {
-/*        double f1 = (double)a.GetModifiedFee() * b.GetTxSize();
-        double f2 = (double)b.GetModifiedFee() * a.GetTxSize();
-        if (f1 == f2) {
-            return b.GetTx().GetHash() < a.GetTx().GetHash();
-        }
-        return f1 > f2;*/
+        return a.GetPointerHeight() < b.GetPointerHeight();
+    }
+}
+
+class CompareFrtMemPoolEntryByHash
+{
+public:
+    bool operator()(const CFrtMemPoolEntry& a, const CFrtMemPoolEntry& b)
+    {
         return b.GetFrt().GetHash() < a.GetFrt().GetHash();
     }
 };
@@ -294,39 +299,17 @@ public:
         return a.GetTime() < b.GetTime();
     }
 };
-/*
-class CompareTxMemPoolEntryByAncestorFee
-{
-public:
-    bool operator()(const CTxMemPoolEntry& a, const CTxMemPoolEntry& b)
-    {
-        double aFees = a.GetModFeesWithAncestors();
-        double aSize = a.GetSizeWithAncestors();
 
-        double bFees = b.GetModFeesWithAncestors();
-        double bSize = b.GetSizeWithAncestors();
-
-        // Avoid division by rewriting (a/b > c/d) as (a*d > c*b).
-        double f1 = aFees * bSize;
-        double f2 = aSize * bFees;
-
-        if (f1 == f2) {
-            return a.GetTx().GetHash() < b.GetTx().GetHash();
-        }
-
-        return f1 > f2;
-    }
-};*/
 
 // Multi_index tag names
-struct descendant_score_fruit {
+struct pointer_height_fruit {
+};
+struct mining_hash_fruit {
 };
 struct entry_time_fruit {
 };
-struct mining_score_fruit {
-};
-struct ancestor_score_fruit {
-};
+
+
 
 //class CBlockPolicyEstimator;
 
@@ -447,12 +430,11 @@ public:
         boost::multi_index::indexed_by<
             // sorted by txid
             boost::multi_index::hashed_unique<mempoolentry_frtid, SaltedTxidHasher>, //TODO: SaltedFrtidHasher? Seems ok to use the same one.
-            // sorted by fee rate
-            /*            boost::multi_index::ordered_non_unique<
-                boost::multi_index::tag<descendant_score>,
-                boost::multi_index::identity<CTxMemPoolEntry>,
-                CompareTxMemPoolEntryByDescendantScore
-            >,*/
+            // sorted by pointer height
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<pointer_height_fruit>,
+                boost::multi_index::identity<CFrtMemPoolEntry>,
+                CompareFrtMemPoolEntryByPointer> ,
             // sorted by entry time
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<entry_time_fruit>,
@@ -460,9 +442,9 @@ public:
                 CompareFrtMemPoolEntryByEntryTime> ,
             // sorted by score (for mining prioritization)
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<mining_score_fruit>,
+                boost::multi_index::tag<mining_hash_fruit>,
                 boost::multi_index::identity<CFrtMemPoolEntry>,
-                CompareFrtMemPoolEntryByScore
+                CompareFrtMemPoolEntryByHash
             >//,
             // sorted by fee rate with ancestors
             /*            boost::multi_index::ordered_non_unique<
@@ -470,7 +452,7 @@ public:
                 boost::multi_index::identity<CTxMemPoolEntry>,
                 CompareTxMemPoolEntryByAncestorFee
             >*/
-            > >
+            > > 
         indexed_fruit_set;
 
     mutable CCriticalSection cs;
@@ -610,8 +592,8 @@ public:
 
     /** Expire all transaction (and their dependencies) in the mempool older than time. Return the number of removed transactions. */
     int Expire(int64_t time);
-
     int ExpireDifficulty(uint32_t difficulty);
+    int ExpirePointerHeight(int Height);
 
     unsigned long size()
     {
@@ -632,10 +614,10 @@ public:
     }
 
     //Note for add() and remove(): No additional check here, please ensure that add good fruit and remove exist fruit.
-    void add(const CBlockHeader& frt, int64_t nTime, unsigned int entryHeight)
+    void add(const CBlockHeader& frt, int64_t nTime, unsigned int entryHeight, int pointerHeight)
     {
         const uint256 hash = frt.GetHash();
-        CFrtMemPoolEntry entry(frt, nTime, entryHeight);
+        CFrtMemPoolEntry entry(frt, nTime, entryHeight, pointerHeight);
         addUnchecked(hash, entry);
     }
 
